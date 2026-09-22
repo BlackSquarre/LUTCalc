@@ -516,6 +516,13 @@ LUTGamma.prototype.gammaList = function() {
 	this.gammaDat.push(false);
 	this.gammaExt.push(false);
 
+	// DJI ACES IDT v1.5: native normalized D-Log2 signal (see docs/dlog2.md).
+	this.gammas.push(new LUTGammaDLog2('DJI D-Log2'));
+	this.gammaSub.push([this.subIdx('DJI'),this.subIdx('Log')]);
+	this.gts.push('DJI D-Gamut2');
+	this.gammaDat.push(true);
+	this.gammaExt.push(false);
+
 	this.DLogM = this.gammas.length;
 	this.gammas.push(new LUTGammaDLog('DJI DLog-M'));
 	this.gammaSub.push([this.subIdx('DJI'),this.subIdx('Log')]);
@@ -2605,6 +2612,76 @@ LUTGamma.prototype.finalOut = function(buff,cb) {
 	}
 };
 // Transfer function calculation objects
+// DJI D-Log2, from DJI's DLog2_DGamut2 ACES IDT.
+// Linear values in LUTCalc use 0.2 for 18% grey; the IDT uses 0.18.
+// Data methods consume/produce the IDT's normalized signal directly.
+// Legal methods apply LUTCalc's usual 64..940 / 1023 range conversion.
+function LUTGammaDLog2(name) {
+	this.name = name;
+	this.iso = 800;
+	this.cat = 0;
+	this.a = 16.285770761945304;
+	this.h = 475 / (Math.pow(2, this.a) - 1);
+	this.k1 = 0.059439938321493;
+	this.b1 = 0.304985337243402;
+	this.k2 = 2.960935245492250;
+	this.b2 = 0.148314799066323;
+	this.cut = 0.028961695254132;
+}
+LUTGammaDLog2.prototype.changeISO = function(iso) {
+	this.iso = iso;
+};
+LUTGammaDLog2.prototype.changeContrast = function(rec,out) {
+};
+LUTGammaDLog2.prototype.changeRange = function(rec,out) {
+};
+LUTGammaDLog2.prototype.linToData = function(input) {
+	input *= 0.9;
+	if (input >= 0.18) {
+		return Math.log2(input / this.h + 1) / this.a;
+	} else if (input >= this.cut) {
+		return this.k1 * Math.log2(input / 0.18) + this.b1;
+	}
+	return this.k2 * (input - this.cut) + this.b2;
+};
+LUTGammaDLog2.prototype.linFromData = function(input) {
+	if (input >= this.b1) {
+		return this.h * (Math.pow(2, this.a * input) - 1) / 0.9;
+	} else if (input >= this.b2) {
+		return Math.pow(2, (input - this.b1) / this.k1 + Math.log2(0.18)) / 0.9;
+	}
+	return ((input - this.b2) / this.k2 + this.cut) / 0.9;
+};
+LUTGammaDLog2.prototype.linToLegal = function(input) {
+	return (this.linToData(input) * 1023 - 64) / 876;
+};
+LUTGammaDLog2.prototype.linFromLegal = function(input) {
+	return this.linFromData((input * 876 + 64) / 1023);
+};
+LUTGammaDLog2.prototype.linToD = function(buff) {
+	var c = new Float64Array(buff);
+	for (var j=0; j<c.length; j++) {
+		c[j] = this.linToData(c[j]);
+	}
+};
+LUTGammaDLog2.prototype.linToL = function(buff) {
+	var c = new Float64Array(buff);
+	for (var j=0; j<c.length; j++) {
+		c[j] = this.linToLegal(c[j]);
+	}
+};
+LUTGammaDLog2.prototype.linFromD = function(buff) {
+	var c = new Float64Array(buff);
+	for (var j=0; j<c.length; j++) {
+		c[j] = this.linFromData(c[j]);
+	}
+};
+LUTGammaDLog2.prototype.linFromL = function(buff) {
+	var c = new Float64Array(buff);
+	for (var j=0; j<c.length; j++) {
+		c[j] = this.linFromLegal(c[j]);
+	}
+};
 // Generalised Log
 function LUTGammaLog(name,params) {
 	this.name = name;
@@ -7012,6 +7089,11 @@ function getGammaWorkerString() {
 	for (var j in LUTGammaLUTSimple.prototype) {
 		out += 'LUTGammaLUTSimple.prototype.' + j + '=' + LUTGammaLUTSimple.prototype[j].toString() + "\n";
 	}
+	// LUTGammaDLog2
+	out += LUTGammaDLog2.toString() + "\n";
+	for (var j in LUTGammaDLog2.prototype) {
+		out += 'LUTGammaDLog2.prototype.' + j + '=' + LUTGammaDLog2.prototype[j].toString() + "\n";
+	}
 	// LUTGammaDLog
 	out += LUTGammaDLog.toString() + "\n";
 	for (var j in LUTGammaDLog.prototype) {
@@ -7249,6 +7331,8 @@ LUTColourSpace.prototype.loadColourSpaces = function() {
 	this.csInSub.push([this.subIdx('RED')]);
 	this.csIn.push(this.toSys('DJI D-Gamut'));
 	this.csInSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
+	this.csIn.push(this.toSys('DJI D-Gamut2'));
+	this.csInSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
 	this.csIn.push(this.toSys('DJI D-GamutM'));
 	this.csInSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
 	this.csIn.push(this.toSys('Protune Native'));
@@ -7343,6 +7427,8 @@ LUTColourSpace.prototype.loadColourSpaces = function() {
 	this.csOut.push(this.fromSys('REDWideGamutRGB'));
 	this.csOutSub.push([this.subIdx('RED')]);
 	this.csOut.push(this.fromSys('DJI D-Gamut'));
+	this.csOutSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
+	this.csOut.push(this.fromSys('DJI D-Gamut2'));
 	this.csOutSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
 	this.csOut.push(this.fromSys('DJI D-GamutM'));
 	this.csOutSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
@@ -8066,6 +8152,15 @@ LUTColourSpace.prototype.xyzMatrices = function() {
 	djidgamut.white = this.illuminant('d65');
 	djidgamut.toXYZ = this.RGBtoXYZ(djidgamut.xy,djidgamut.white);
 	this.g.push(djidgamut);
+// DJI D-Gamut2: CTL chromaticities, full precision matrix, CAT02 D65 adaptation.
+// The companion DCTL rounds its matrices to four decimal places.
+	var djidgamut2 = {};
+	djidgamut2.name = 'DJI D-Gamut2';
+	djidgamut2.cat = this.CATs.modelIdx('CIECAT02');
+	djidgamut2.xy = new Float64Array([0.7347,0.2653, 0.1600,0.8400, 0.0900,-0.0800]);
+	djidgamut2.white = this.illuminant('d65');
+	djidgamut2.toXYZ = this.RGBtoXYZ(djidgamut2.xy,djidgamut2.white);
+	this.g.push(djidgamut2);
 // DJI D-GamutM
 	var djidgamutm = {};
 	djidgamutm.name = 'DJI D-GamutM';

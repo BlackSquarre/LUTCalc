@@ -1,7 +1,14 @@
+v4.10
+-----
+* New Feature - DJI D-Log2 / D-Gamut2 support, including data/legal ranges and worker bundles.
+* Added independent numeric reference checks and technical documentation for D-Log2.
+
 LUTCalc Changelog
 =================
 
 v4.09
+-----
+
 * New Feature - Blackmagic BMDFilm Gen 5.
 * New Feature - Fuji F-Log2.
 * New Feature - Additional camera presets.

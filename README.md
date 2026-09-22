@@ -146,3 +146,7 @@ External Code Used
 * The function 'createRadioElement' is used to dynamically create radio buttons. This came from a tip by Prestaul on [stackoverflow](http://stackoverflow.com/questions/118693/how-do-you-dynamically-create-a-radio-button-in-javascript-that-works-in-all-bro)
 
 All other code is by me, Ben Turley.
+
+## DJI D-Log2 / D-Gamut2
+
+DJI D-Log2 and D-Gamut2 are available for input and output. See [technical verification and usage](docs/dlog2.md) for the ACES IDT source, range conventions and distinction from DJI's Rec.709 rendering LUT. Run `node --test tests/dlog2.test.js` to verify the implementation.

@@ -206,6 +206,8 @@ LUTColourSpace.prototype.loadColourSpaces = function() {
 	this.csInSub.push([this.subIdx('RED')]);
 	this.csIn.push(this.toSys('DJI D-Gamut'));
 	this.csInSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
+	this.csIn.push(this.toSys('DJI D-Gamut2'));
+	this.csInSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
 	this.csIn.push(this.toSys('DJI D-GamutM'));
 	this.csInSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
 	this.csIn.push(this.toSys('Protune Native'));
@@ -300,6 +302,8 @@ LUTColourSpace.prototype.loadColourSpaces = function() {
 	this.csOut.push(this.fromSys('REDWideGamutRGB'));
 	this.csOutSub.push([this.subIdx('RED')]);
 	this.csOut.push(this.fromSys('DJI D-Gamut'));
+	this.csOutSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
+	this.csOut.push(this.fromSys('DJI D-Gamut2'));
 	this.csOutSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
 	this.csOut.push(this.fromSys('DJI D-GamutM'));
 	this.csOutSub.push([this.subIdx('DJI'),this.subIdx('Wide Gamut')]);
@@ -1023,6 +1027,15 @@ LUTColourSpace.prototype.xyzMatrices = function() {
 	djidgamut.white = this.illuminant('d65');
 	djidgamut.toXYZ = this.RGBtoXYZ(djidgamut.xy,djidgamut.white);
 	this.g.push(djidgamut);
+// DJI D-Gamut2: CTL chromaticities, full precision matrix, CAT02 D65 adaptation.
+// The companion DCTL rounds its matrices to four decimal places.
+	var djidgamut2 = {};
+	djidgamut2.name = 'DJI D-Gamut2';
+	djidgamut2.cat = this.CATs.modelIdx('CIECAT02');
+	djidgamut2.xy = new Float64Array([0.7347,0.2653, 0.1600,0.8400, 0.0900,-0.0800]);
+	djidgamut2.white = this.illuminant('d65');
+	djidgamut2.toXYZ = this.RGBtoXYZ(djidgamut2.xy,djidgamut2.white);
+	this.g.push(djidgamut2);
 // DJI D-GamutM
 	var djidgamutm = {};
 	djidgamutm.name = 'DJI D-GamutM';
