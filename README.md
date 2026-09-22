@@ -147,6 +147,10 @@ External Code Used
 
 All other code is by me, Ben Turley.
 
+Copyright notice
+----------------
+Original LUTCalc code is Copyright (C) Ben Turley and remains licensed under GPLv2. The DJI D-Log2 / D-Gamut2 implementation and its verification documentation and tests carry the modification notice: `BlackSuarre modified`.
+
 ## DJI D-Log2 / D-Gamut2
 
 DJI D-Log2 and D-Gamut2 are available for input and output. See [technical verification and usage](docs/dlog2.md) for the ACES IDT source, range conventions and distinction from DJI's Rec.709 rendering LUT. Run `node --test tests/dlog2.test.js` to verify the implementation.
