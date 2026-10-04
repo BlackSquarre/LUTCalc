@@ -1,0 +1,91 @@
+{
+  "sourceSHA256": {
+    "lut.js": "359aabf3502eb38508bd0799d631475ecb9ad19a1af6297e95a01f1fd6f501c4",
+    "ring.js": "197b111472e04361bb77189c6a0981fd3531aa7747e01d4763f38e25327471b5",
+    "bounding.js": "9876fe83cb099e2fde343c707dfa7095abbd47016156a9d05d31e0c0b5e4cdf1",
+    "brent.js": "9c2c9ece9a889ac4c5d94ade127ce3db9b06e7276336814ae6800574895ccf09",
+    "gamma.js": "250017d8efe758f3555148ba9fcb923698add0ac7d9380fa290716eb98e0821e",
+    "colourspace.js": "89f5d45d2783056fe663ab045346a25482f6873c74213377ef227865324a622c"
+  },
+  "size": 17,
+  "source": "LUTGamma.inCalcRGB -> LUTColourSpace.calc(g=true) -> LUTGamma.outCalcRGB; Black Highlight before Black Gamma; no final clipping",
+  "order": "R-fast/G-middle/B-slow",
+  "input": "DLog2/DGamut2 Data",
+  "output": "DLog2/Rec2020 Data",
+  "exposureGain": 2,
+  "ascCDL": [
+    1.25,
+    0.75,
+    1.5,
+    -0.125,
+    0.0625,
+    -0.25,
+    0.5,
+    1.25,
+    2.5,
+    0.625
+  ],
+  "saturationByStop": [
+    0.15,
+    0.5,
+    0.85,
+    1.1999999999999997,
+    1.5499999999999998,
+    0.15,
+    0.5,
+    0.85,
+    1.1999999999999997,
+    1.5499999999999998,
+    0.15,
+    0.5,
+    0.85,
+    1.1999999999999997,
+    1.5499999999999998,
+    0.15,
+    0.5
+  ],
+  "tones": [
+    {
+      "stop": -3,
+      "hue": 17,
+      "saturation": 245
+    },
+    {
+      "stop": 0,
+      "hue": 101,
+      "saturation": 187
+    },
+    {
+      "stop": 4,
+      "hue": 231,
+      "saturation": 213
+    }
+  ],
+  "sdrGamma": 1.2,
+  "blackHighlight": {
+    "blackLevel": 0.025,
+    "highMap": 0.91,
+    "highReferenceScene": 0.72,
+    "blackLock": true,
+    "highLock": true,
+    "prepared": [
+      1.8589285714605528,
+      0.15386155324301468
+    ],
+    "defaults": [
+      -0.06932033603731674,
+      0.40676035559714396
+    ]
+  },
+  "blackGamma": {
+    "upperStops": 0,
+    "featherStops": 2,
+    "power": 0.5
+  },
+  "encodedLegalAnchors": [
+    0.024999999999999994,
+    0.21135932465373122,
+    0.6216100390557698
+  ],
+  "binarySHA256": "8715d2e938eddc9f27e04e527f68c05d24212ae6318cf2aabb8dfed78280b2f8"
+}

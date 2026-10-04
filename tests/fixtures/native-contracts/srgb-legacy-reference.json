@@ -1,0 +1,100 @@
+{
+  "source": "js/gamma.js LUTGammaGam sRGB: legal-normalized methods, not Data code-range wrappers",
+  "algorithmVersion": "srgb.lutcalc-legacy.v1",
+  "encode": [
+    {
+      "input": -1,
+      "expected": -12.92
+    },
+    {
+      "input": -0.1,
+      "expected": -1.292
+    },
+    {
+      "input": -0.01,
+      "expected": -0.1292
+    },
+    {
+      "input": 0,
+      "expected": 0
+    },
+    {
+      "input": 0.001,
+      "expected": 0.012920000000000001
+    },
+    {
+      "input": 0.0031307999999999996,
+      "expected": 0.04044993599999999
+    },
+    {
+      "input": 0.0031308,
+      "expected": 0.04044990748269014
+    },
+    {
+      "input": 0.0031308000000000004,
+      "expected": 0.04044990748269014
+    },
+    {
+      "input": 0.18,
+      "expected": 0.46135612950044164
+    },
+    {
+      "input": 1,
+      "expected": 0.9999999999999999
+    },
+    {
+      "input": 4,
+      "expected": 1.824796295276116
+    }
+  ],
+  "decode": [
+    {
+      "input": -1,
+      "expected": -0.07739938080495357
+    },
+    {
+      "input": -0.1,
+      "expected": -0.007739938080495357
+    },
+    {
+      "input": -0.04045,
+      "expected": -0.0031308049535603713
+    },
+    {
+      "input": 0,
+      "expected": 0
+    },
+    {
+      "input": 0.02,
+      "expected": 0.0015479876160990713
+    },
+    {
+      "input": 0.04015966,
+      "expected": 0.0031080000195459257
+    },
+    {
+      "input": 0.0403,
+      "expected": 0.003119012091626794
+    },
+    {
+      "input": 0.04044999999999999,
+      "expected": 0.003130807283067683
+    },
+    {
+      "input": 0.04045,
+      "expected": 0.0031308072830676845
+    },
+    {
+      "input": 0.04045000000000001,
+      "expected": 0.0031308072830676845
+    },
+    {
+      "input": 1,
+      "expected": 1
+    },
+    {
+      "input": 4,
+      "expected": 25.31466341684702
+    }
+  ]
+}

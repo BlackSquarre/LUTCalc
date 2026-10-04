@@ -1,0 +1,16 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/aces-aswf/aces-input-and-colorspaces/29b722bccd529460696a8382394504cae2e88419/blackmagic_design/CSC.Blackmagic.BMDFilm_WideGamut_Gen5_to_ACES.ctl",
+    "commit": "29b722bccd529460696a8382394504cae2e88419",
+    "file": "research/colour/2026-10-02-bmdgen5/CSC.Blackmagic.BMDFilm_WideGamut_Gen5_to_ACES.ctl",
+    "SHA256": "1fc28a8fe3c76a9bbd4a84a7a8fda095e7789a2511b5a9b224504859874f5065",
+    "downloadedUTC": "2026-10-02T03:46:29.233279+00:00"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/aces-aswf/aces-input-and-colorspaces/29b722bccd529460696a8382394504cae2e88419/blackmagic_design/CSC.Blackmagic.ACES_to_BMDFilm_WideGamut_Gen5.ctl",
+    "commit": "29b722bccd529460696a8382394504cae2e88419",
+    "file": "research/colour/2026-10-02-bmdgen5/CSC.Blackmagic.ACES_to_BMDFilm_WideGamut_Gen5.ctl",
+    "SHA256": "5a148960257c065f04dff1d72a10014309d7d06a4e111179778a19d784a02891",
+    "downloadedUTC": "2026-10-02T03:46:29.661990+00:00"
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "date": "2026-09-23",
+  "status": "passed",
+  "interpolationCases": 14,
+  "matrixCases": 2,
+  "fixtureHashesVerified": true,
+  "scope": "有理数预期值与旧引擎的域内合成插值/矩阵交叉检查；不是 Swift 实现验证、解析器验收或全部精度证明"
+}

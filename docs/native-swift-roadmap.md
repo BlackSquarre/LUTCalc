@@ -1,0 +1,1767 @@
+# 全 Swift 原生迁移实施任务清单
+
+## 2026-10-04 LUTAnalyst 三线性三维反求诊断
+
+- 新增 `Trilinear3DInverse`，按生产三线性采样逐网格单元诊断输入反求；候选必须经过生产采样回放和 `2e-12` 相对尺度残差核验。恒等映射返回唯一根，折叠映射返回全部分支，域外无根，奇异或未被有限求解器证明的包围盒命中保守报告 `unresolved`。
+- 先行定向 Debug／Release 各 7 项通过；Swift Release 全量 8 个测试包、61 项通过、0 失败；macOS、generic iOS、generic iOS Simulator Release 构建均退出码 0。工具链、命令、日志 SHA-256 和未覆盖边界见[LUTAnalyst 三线性三维反求诊断验收](native-validation/2026-10-04-lutanalyst-trilinear-inverse.md)。
+- 只关闭三线性分区诊断子集；不代表任意 3D LUT 全局反求、tricubic／组合 shaper 反求、自动 transfer／colour 分离、生成计划或导出接线完成。FULL-05、H10 与 Goal 保持 active。
+
+## 2026-10-04 HLG OOTF 标量峰值裁切逆向边界
+
+- `HLGOOTF.displayToScene` 现在拒绝等于显示峰值的标量输入；正向峰值裁切造成的多解不会再被伪装成唯一逆值。nits 与 `normalizedBy1000` 两种标度均有契约覆盖，黑位和峰值以下保持原公式。
+- 定向 Debug/Release `HLGOOTFContractsTests` 各 12 项通过；LUTKit Release 全量 8 个测试包通过，LUTCore 237 项、LUTAnalysis 54 项均为 0 失败；macOS、iOS generic、iOS Simulator Release 编译均通过。日志和哈希见[HLG OOTF 标量峰值裁切逆向边界验收](native-validation/2026-10-04-hlg-ootf-scalar-clipped-inverse.md)。
+- 只关闭标量 OOTF 峰值裁切边界；自动峰值、参考白／黑位、四种 HDR 变体、PQ OOTF、完整 HDR/EDR、ICC、查表替代、LUTAnalyst、UI、性能、签名发布和 `full-scope-acceptance.json` 仍未完成，Goal 保持 `active`。
+
+## 2026-10-04 ICC relative colorimetric 标签优先级
+
+- 依据 ICC.1:2022 第 8.10.2 条，在已支持的 RGB LUT linking 子集中按 `A2B1`／`B2A1` 优先、`A2B0`／`B2A0` 回退选择 relative colorimetric 变换；仅对明确不支持的 tag type/direction 回退，损坏 profile 不被隐藏。
+- 新增 intent 1 优先、unsupported `mft1` 回退和 malformed intent 1 拒绝契约；ICC 定向 Debug 50 项通过，LUTKit Release 全量 0 失败。日志哈希和边界见[ICC relative colorimetric 标签优先级验收](native-validation/2026-10-04-icc-relative-intent-tags.md)。
+- 只关闭 ICC linking 标签 precedence 子集；完整 ICC profile 类型／通道／intent、黑点补偿、gamut mapping、系统色彩管理、HDR/EDR、第三方往返、签名发布和 `full-scope-acceptance.json` 仍未完成，Goal 保持 `active`。
+
+## 2026-10-04 LUTAnalyst tetrahedral 三维全分支反求诊断
+
+- 按当前 `LUTVolume3D.sample(..., .tetrahedral)` 的六种轴序，将每个网格单元穷举拆为 6 个仿射四面体；解三元线性系统并用重投影残差核验。相邻四面体边界解按输入坐标去重，多个分支全部返回。
+- 单值结果要求所有输出包围盒可能覆盖目标的四面体均通过 `Matrix3x3` condition limit `1e8` 和 `2e-12` 相对尺度残差检查。奇异／病态单元为 `unresolved`，不降级选根。带 CUBE shaper 和非 tetrahedral 插值明确拒绝；原始 LUT 节点不改写。
+- 7 项 Debug／Release 定向契约通过；Swift Release 全量 8 个测试包 768 项、766 通过、2 个既有外部夹具跳过、0 失败。identity、折叠双根、域外无根、退化映射、仿射独立矩阵逆、采样回放和拒绝边界均有覆盖。工具链、命令、日志 SHA-256 与未覆盖项见[LUTAnalyst tetrahedral 三维反求诊断验收](native-validation/2026-10-04-lutanalyst-tetrahedral-inverse.md)。
+- 该项只闭合指定 tetrahedral 分区内逐查询全分支诊断；不等于连续任意 LUT 全局反求，不接通 tricubic／trilinear、组合 shaper、自动 TF／颜色分离、生成计划／导出、项目或 UI。FULL-05、H10 与 Goal 仍保持 active。
+
+## 2026-10-04 LUTAnalyst 显式仿射 3D 反求生成接线
+
+- 新增 `KnownAffine3DInversePlan`，只封装调用方显式给定并通过矩阵条件检查的仿射模型；将其输入／输出域及完整模型指纹接入 3D 生成请求与曝光批次。生成网格域不匹配、与 1D 逆或 input shaper 冲突时拒绝；没有从任意 3D LUT 推断逆。
+- 3³ CUBE 实际写出后重新解析，以独立伴随矩阵公式核对 81 个 RGB 通道值，Debug／Release 最大绝对误差均为 `2.220446049250313e-16`，阈值保持 `2e-12`。定向 Debug／Release 各 4 项通过；全量 Release 8 个测试包 761 项、0 失败，2 项既有外部样本跳过。工具链、命令、日志哈希和边界见[LUTAnalyst 显式仿射 3D 反求生成验收](native-validation/2026-10-04-lutanalyst-affine-inverse.md)。
+- 只关闭 FULL-05/H10 中调用方已知仿射模型的生成接线子集；任意 3D 逆、全局唯一性证明、自动 TF／颜色分离重建、持久化和 UI 仍未完成，FULL-05、H10 与 Goal 保持 active。
+
+## 2026-10-04 LUTAnalyst 一维反求导出接线
+
+- 先行契约验证严格单值下降方向 1D transfer 经 `.labin` 量化读写、方向与范围／插值 metadata 进入反求计划，并通过 `NativeExportService` 写出 3D CUBE；逐点独立关系 `1 - coordinate` 在 3³ 网格的 81 个通道值上最大绝对误差为 `0.0`，阈值保持 `2e-12`。批次 fingerprint 传播和 1D 输出拒绝丢失反求语义也有契约覆盖。
+- 定向 Debug、Release 各 3 项通过；LUTKit 全量 Release 8 个测试包合计 757 项、0 失败，LUTFormats 两项既有外部样本按原规则跳过。工具链、命令、日志哈希和边界见[LUTAnalyst 一维反求导出接线验收](native-validation/2026-10-04-lutanalyst-inverse-export.md)。
+- 仅关闭严格单值 1D `.labin` transfer 反求到 3D CUBE 的接线子集；自动 TF／颜色分离和重建、任意 3D 逆、9 个 `.labin` 资源和 45 个直接查表注册仍未完成或受资料阻塞，Goal 保持 active。
+
+## 2026-10-04 HLG OOTF 峰值裁切逆向边界
+
+- `HLGOOTF.displayRGBToScene` 现在拒绝任一通道达到显示峰值的 RGB 输入。正向峰值裁切会合并多个场景值，逆函数继续返回数值会制造非唯一的假结果；全黑黑位端点保持原有显式处理。
+- 先行契约覆盖单通道峰值裁切和三通道中性峰值；定向 Debug 通过，Release `HLGOOTFContractsTests` 11 项通过、0 失败。Swift 全量 Release 8 个测试包均通过、0 失败，LUTFormats 两项既有外部夹具按规则跳过；日志和 SHA-256 见[HLG OOTF 峰值裁切逆向边界验收](native-validation/2026-10-04-hlg-ootf-clipped-inverse.md)。
+- 该项只关闭已声明 HLG OOTF RGB 逆函数的非唯一域边界；自动峰值、参考白／黑位、四种 HDR 变体、PQ OOTF、完整 HDR/EDR、ICC、LUTAnalyst、查表替代、UI、真机性能和发布清单仍未完成，Goal 保持 active。
+
+## 2026-10-04 求根容差有限性边界
+
+- `SolveTolerance` 现在统一拒绝无限或负的绝对／相对 x、函数容差；Brent、二分、1D cubic inverse 和全根诊断在调用函数前返回 `.nonFinite`。
+- 先行契约复现旧实现对无限容差的 3 次错误求值；修复后定向 Debug 通过，Swift Release 全量 8 个测试包 0 失败。证据见[求根容差有限性验收](native-validation/2026-10-04-root-tolerance-finite.md)。
+- 该修正只关闭求根边界诊断，不改变合法容差、网格、插值或阈值；完整 LUTAnalyst、查表替代、SUP2/PQ OOTF、HDR/ICC、UI、性能和发布验收仍未完成，Goal 保持 active。
+
+
+## 2026-10-04 LUTAnalyst cubic 平台区间诊断
+
+- 在已有全域 cubic 多根诊断上增加恒值平台的连续非唯一区间输出：`nonUniqueBrackets` 保留平台定义域，孤立根继续逐项报告；没有修改 LUT 节点、插值或任意三维逆语义。
+- 先行契约覆盖平台区间、平台外孤立根和旧 hump 多根；定向 Debug/Release 通过。`swift test -c release --package-path Native/Packages/LUTKit` 全量回归通过，8 个测试包 0 失败，LUTAnalysis 46 项通过。工具链为 Xcode 27.0 (27A266a)、Swift 6.4。
+- 该子集只改善一维 LUTAnalyst 多解诊断；自动 transfer/colour 分离、完整重建、任意 3D 逆、9 个 `.labin`、45 个直接查表注册、PQ OOTF、SUP2 raw、Canon CP IDT、RED DRAGONColor2/IPP2、完整 HDR/ICC、UI、性能、签名和发布清单仍未完成，Goal 保持 active。
+
+
+## 2026-10-04 PQ 绝对亮度单位边界
+
+- `PQTransfer` 新增显式 `cd/m²` API：固定 ST 2084 10,000 cd/m² 参考峰值，并保留原归一化 API；没有把 PQ OOTF、显示峰值或 HDR/EDR 语义混入标量传递函数。
+- 契约先行后实现：定向 Release 2 项通过；16-bit 全部 65,536 个 PQ code 的绝对亮度单调往返最大编码误差 `2.708944180085382e-14`，阈值 `4e-14`。完整 `swift test --list-tests` 为 733 项，Swift Release 退出码 0、失败 0，LUTFormats 2 项既有外部夹具按原规则跳过。命令、日志和 SHA-256 见[PQ 绝对亮度单位边界验收](native-validation/2026-10-04-pq-absolute-luminance.md)。
+- 本批只关闭标准 PQ EOTF/OETF 的单位明确子集；PQ OOTF 冲突、自动峰值、参考白／黑位、四种 HDR 显示变体、完整 HDR/EDR、ICC、LUTAnalyst、查表替代和 Goal 仍未完成，保持 `active`。
+
+## 2026-10-04 HLG OOTF RGB 全网格核验
+
+- 新增独立 `HLGOOTFGridContractsTests`，按现有 HLG OOTF 参数重写系统 gamma、黑位、峰值、BBC 系数和 Rec.2020 luma RGB 耦合；33³ 与 65³ 共 931,686 个通道，前向／逆向最大尺度化误差均为 `0`。首次契约红灯来自独立参照遗漏全黑边界，修正后定向 Release 2 项通过。
+- 当前 Swift Release 全量 8 个测试包共 731 项执行、0 失败，LUTFormats 两项既有外部夹具按设计跳过；完整日志和哈希见[HLG OOTF RGB 全网格核验](native-validation/2026-10-04-hlg-ootf-rgb-grid.md)。
+- 只关闭 HLG OOTF 已声明参数的 RGB 数学参照子集；自动峰值、参考白／黑位、四种 HDR 变体、PQ OOTF 冲突、完整 HDR/EDR、ICC、LUTAnalyst、真机性能、UI 和发布清单仍未完成，Goal 保持 active。
+
+## 2026-10-04 算法闭合核对
+
+- 后续核验补充了 1D LUT 分析三通道聚合契约；Swift Release 8 个测试包共 729 项实际测试、0 失败（LUTFormats 2 项既有外部夹具按设计跳过），7 项现有解析式独立检查仍全部通过。详情见[算法闭合后续核验](native-validation/2026-10-04-algorithm-closure-followup.md)。
+- Null legacy 接入后的现有解析式批量回归通过：Rec.709、S-Log3、LogC4、V-Log、Apple Log／Log 2、Rec.2100 HLG、BT.1886 共 7 个独立检查，退出码 0；日志 `/tmp/lutcalc-algorithm-batch-20261004.log`，SHA-256 `da79f406521ef8ca90111aa4e9ba41d9065c8f3c720b53176808cbf0763bea47`。
+- 当前 66 个相机身份的默认路由实际核对为 legacy `34/66`、published `41/66`；结果包为[相机默认路由可用性核对](native-validation/2026-10-04-camera-default-availability.md)。旧段落中的相机计数保留其历史时间语义，不回写为当前结果。
+- 内置查表替代台账已单独冻结：9 个 `.labin` 资源、45 个直接查表注册逐项记录 SHA-256、旧来源、当前状态和关闭条件；当前计数为 `0/9` 资源、`0/45` 注册完成，见[查表替代台账](native-validation/2026-10-04-lut-replacement-inventory.md)（文档 SHA-256：`9fd83696c5616b9314f8128096f682c490cd75f98b9b3170227c561063c48c75`）。不把旧资源复制、压缩、拟合或改格式作为算法完成。
+- 本轮没有新增算法范围。DJI DLog-M、其余旧查表注册、9 个 `.labin`、Canon CP IDT、RED DRAGONColor2／IPP2、SUP2 raw／连续 EI／shoulder、PQ OOTF 冲突、完整 HDR／ICC／LUTAnalyst 仍按研究阻塞或未完成子集处理，详见[算法闭合核对](native-validation/2026-10-04-algorithm-closure-audit.md)。Goal 保持 active。
+
+### 2026-10-04 H11 既有 Fujifilm F-Log legacy 算法闭合
+
+- 闭合旧注册表 `Fujifilm F-Log` 九参数 `LUTGammaLog` 兼容路径，登记独立身份 `fujifilm.flog.lutcalc-legacy.v1`，并接通两个既有 F-Log 相机的 legacy 默认路由；未把它称为 Fujifilm 官方完整 F-Log 模型。
+- 4 项定向契约通过；Swift Release 全量 **710 项、0 失败**（LUTFormats 既有外部夹具 2 项按原设计跳过）。17³/33³/65³ 共 946,425 通道，独立 Decimal 最大尺度化误差 `1.637708140187745e-16`，门槛 `2e-12`；目录检查为 65 曲线／20 色域／61 预设／66 相机。详见[F-Log legacy 算法验收](native-validation/2026-10-04-flog-legacy-algorithms.md)。
+- 只关闭 F-Log legacy 标量、计划、目录和既有相机路由子集；官方 F-Log 完整设备模型、DJI/其他查表替代和其他算法台账仍欠，H11/FULL 与 Goal 保持 active。
+
+### 2026-10-04 H11 既有 Blackmagic Pocket Film legacy 算法闭合
+
+- 闭合旧 `BMD Pocket Film` 九参数 `LUTGammaLog` 解析兼容路径，登记独立 legacy 身份 `blackmagic.pocket-film.lutcalc-legacy.v1`；没有把 Blackmagic Pocket 的 `Passthrough` 色域或官方身份伪装成已知定义。
+- 4 项定向契约通过；Swift Release 全量 **706 项、0 失败**（LUTFormats 既有外部夹具 2 项按原设计跳过）。17³/33³/65³ 共 946,425 通道，独立 Decimal 最大尺度化误差 `1.3153340910382913e-16`，门槛 `2e-12`；目录检查为 64 曲线／20 色域／60 预设／66 相机。详见[Blackmagic Pocket Film 算法验收](native-validation/2026-10-04-bmd-pocket-film-algorithms.md)。
+- 只关闭 Pocket Film legacy 标量、计划、目录和本地 CUBE 子集；Pocket 真实色域、官方曲线、默认相机路由、DRAGONColor、DJI 查表替代和其他算法台账仍欠，H11/FULL 与 Goal 保持 active。
+
+### 2026-10-04 H11 既有 Canon C-Log legacy 算法闭合
+
+- 闭合旧注册表 C-Log 的解析兼容路径，保留 legacy 身份；CP IDT 的 `.labin` 和完整 Canon 官方定义继续单独阻塞，未伪装为算法完成。
+- 3 项 Canon 定向契约通过；Swift Release 全量 **702 项、0 失败**，legacy C-Log 17³/33³/65³ 共 946,425 通道，独立 90 位 Decimal 最大尺度化误差 `2.1016030534279782e-16`。三平台 Release 目标构建、App 包审计和 157 项源码审计通过。详见[Canon C-Log 算法验收](native-validation/2026-10-04-canon-clog-algorithms.md)。
+- 只关闭 C-Log legacy 标量、计划和目录子集；Canon 官方 C-Log、CP IDT、`.labin` 输出变换和完整设备工作流仍欠，H11/FULL 与 Goal 保持 active。
+
+## 2026-10-04 H11 既有 REDLogFilm 算法闭合
+
+- 闭合旧注册表中的 REDLogFilm Cineon-style 解析路径，保留公开/legacy 两个身份；新增 REDWideGamutRGB 原色矩阵，但没有把 DRAGONColor2 或 Epic DRAGON 默认相机误标为完成。
+- 2 项 RED 定向契约通过；Swift Release 全量 **699 项、0 失败**，两身份共 6 个 17³/33³/65³ CUBE、1,892,850 通道，独立 90 位 Decimal 最大尺度化误差 `9.217626661950362e-14`，门槛 `2e-12`。三平台 Release 目标构建、App 包审计和 157 项源码审计通过。详见[REDLogFilm 算法验收](native-validation/2026-10-04-red-logfilm-algorithms.md)。
+- 只关闭 REDLogFilm 标量、计划、目录和 REDWideGamutRGB 矩阵子集；DRAGONColor2、Epic DRAGON 默认路由及完整 RED 工作流仍欠，H11/FULL 与 Goal 保持 active。
+
+## 2026-10-04 H11 既有 RED Log3G10 legacy 算法闭合
+
+- 闭合旧 `LUTGammaLogLog RED Log3G10` 解析路径，登记 `red.log3g10.lutcalc-legacy.v1`，保留旧 `0.9` legacy-grey 边界和合法数据包装；TransformPlan 只在 scene／legacy 边界缩放一次。
+- 4 项定向契约通过；Swift Release 全量 **714 项、0 失败**（LUTFormats 既有外部夹具 2 项按原设计跳过）。17³/33³/65³ 独立 Decimal CUBE 最大通道误差分别为 `1.5418158111277507e-16`、`1.5418158111277507e-16`、`2.271864703803957e-16`，门槛 `3e-15`；目录检查为 66 曲线／20 色域／62 预设。macOS、generic iOS、generic iOS Simulator Release 构建及三包审计通过。详见[RED Log3G10 算法验收](native-validation/2026-10-04-red-log3g10-algorithms.md)。
+- 只关闭 RED Log3G10 一维 legacy 标量、计划、目录和本地 CUBE 子集；REDWideGamutRGB 完整相机／IPP2／DRAGONColor2、其余查表与 `.labin`、HDR/OOTF、ICC、LUTAnalyst、格式互操作、真机性能和发布签名仍欠，H11/FULL 与 Goal 保持 active。
+
+## 2026-10-04 H11 既有 Blackmagic Film legacy 家族算法闭合
+
+- 闭合旧 `BMD Film`、`BMD Film4k`、`BMD Film4.6k` 三条九参数 `LUTGammaLog` 解析路径，登记独立 legacy 身份和同空间一档曝光预设；不新增缺少证据的 Blackmagic 真实色域或相机默认路由。
+- 3 项定向契约通过；Swift Release 全量 **717 项、0 失败**（LUTFormats 既有外部夹具 2 项按原设计跳过）。三曲线各 17³/33³/65³ 独立 Decimal CUBE 最大通道误差为 `1.4177274504367327e-16`、`2.2304358216004653e-16`、`1.3153340910382913e-16`，门槛 `3e-15`；目录为 69 曲线／20 色域／65 预设。三平台 Release 构建、162 个 Swift 源文件和三个 App 包审计通过。详见[Blackmagic Film legacy 验收](native-validation/2026-10-04-bmd-film-legacy-algorithms.md)。
+- 只关闭三条 BMD Film legacy 一维曲线和同空间曝光子集；真实 Blackmagic 色域／相机、其余查表和 `.labin`、HDR/OOTF、ICC、LUTAnalyst、格式互操作、真机性能和发布验收仍欠，H11/FULL 与 Goal 保持 active。
+
+## 2026-10-04 H11 既有 Bolex/Panalog/DJI X5 legacy 算法闭合
+
+- 闭合旧 `Bolex Log`、`Panalog`、`DJI X5/X7/X9 DLog` 三条九参数 `LUTGammaLog` 解析路径，登记独立 legacy 身份和同空间一档曝光预设；不将旧注册色域元数据扩大为完整相机模型。
+- 3 项定向契约通过；Swift Release 全量 **720 项、0 失败**（LUTFormats 既有外部夹具 2 项按原设计跳过）。三曲线各 17³/33³/65³ 独立 Decimal CUBE 最大通道误差为 `1.7010334240006141e-16`、`1.6428813051717694e-16`、`1.3276478338655292e-16`，门槛 `3e-15`；目录为 72 曲线／20 色域／68 预设。三平台 Release 构建、163 个 Swift 源文件和三个 App 包审计通过。详见[Bolex/Panalog/DJI X5 算法验收](native-validation/2026-10-04-legacy-registered-log-algorithms.md)。
+- 只关闭三条一维 legacy 曲线和同空间曝光子集；DJI DLog-M 查表、完整 Bolex/Panalog/DJI 色域与相机、其余查表与 `.labin`、HDR/OOTF、ICC、LUTAnalyst、格式互操作、真机性能和发布验收仍欠，H11/FULL 与 Goal 保持 active。
+
+## 2026-10-04 H11 既有 Sony S-Log／S-Log2 算法闭合
+
+- 闭合 `S-Log`、`S-Log2` 的公开反射率域与 LUTCalc legacy 灰 0.2 域四个身份；新增独立 Sony S-Gamut 色域和三个既有相机默认路由。未把 Sony 的 daylight/tungsten IDT 或 S-Log3 重复计入本包。
+- 4 项 Sony 定向契约通过；Swift Release 全量 **697 项、0 失败**，四身份共 12 个 17³/33³/65³ CUBE、3,785,700 通道，独立 90 位 Decimal 最大尺度化误差 `1.9981344709861718e-16`，门槛 `2e-12`。macOS、generic iOS、generic iOS Simulator 目标构建产物与三包审计通过，源码审计 155 项。详见[2026-10-04 Sony S-Log／S-Log2 算法验收](native-validation/2026-10-04-sony-log-algorithms.md)。
+- 只关闭 S-Log／S-Log2 标量、计划、目录和本地 CUBE 子集；Sony 完整 ACES IDT、色温矩阵和其他算法范围仍欠，H11/FULL 与 Goal 保持 active。
+
+# 2026-10-04 H11 现有 Nikon N-Log／Generic Cineon 算法闭合
+
+- 按当前用户决定继续优先处理既有算法缺口，UI 和追加真机性能暂缓，其余问题在算法范围完成后处理；未新增相机、厂商风格或新研究范围。
+- Nikon N-Log 官方与旧兼容分别登记；纠正首次把 legacy 系数及额外标度作为官方场景公式的错误。官方保持 `650`／`452` 和反射率 0.18；旧路径保持历史系数及灰 0.2，计划边界只适配一次。官方分段的非严格互逆有最小复现，不平滑公式或放宽数值阈值。
+- 实现已在旧清单中的 Cineon 官方公开公式与旧兼容线性 toe，Generic 默认按策略选择；无定义的官方负值编码显式拒绝。四个算法身份均进入目录、计划、数据／video 单位和项目磁盘往返，目录为 56 曲线／18 色域／52 预设，66 相机中公开默认 37、旧兼容默认 28 可用。
+- 最终 Swift Release 全量 693 项、0 失败，2 项既有外部夹具跳过；四身份共 12 个完整 17³／33³／65³ CUBE、3,785,700 通道，独立 90 位 Decimal 最大尺度化误差 `9.217626661950362e-14`，保持 `2e-12` 门槛。三平台未签名 Release、155 个生产 Swift 源码与三个实际 App 包审计通过；发布检查因真实清单缺失退出 2。
+- 最终独立参照、契约、完整三网格与编译审计证据见[相机传递算法验收](native-validation/2026-10-04-camera-transfer-algorithms.md)；首次 N-Log 结果仅保留为修正前历史，不支持最终官方验收。
+- 只关闭本包四个传递身份及默认路由子项；C-Log、Pocket Film、DJI 旧曲线、SUP2 校准与连续 EI、HDR/OOTF、完整 ICC／LUTAnalyst、直接／间接查表台账仍欠。Sony S-Log／S-Log2、REDLogFilm 及对应已证明的基础色域子集已有独立记录，但 Sony 色温特定 IDT、RED DRAGONColor2 与完整厂商工作流仍欠。H11/FULL-01/FULL-02 与 Goal 保持 active。
+
+## 2026-10-04 H08/H12 项目资产恢复 bookmark 不可读边界非 UI 子集
+
+- `ProjectAssetRecovery` 现在区分 bookmark 无法解析与 bookmark 已解析但源文件不可读：后者返回 `bookmarkSourceUnreadable`，不会从其他授权根按同 SHA-256 猜测替代文件；bookmark 内容变化仍返回 `contentChanged`。
+- 契约先行先在旧实现上复现缺少错误语义的编译红灯；实现后 Debug/Release 定向各 5 项通过。Swift Release 全量 8 个测试包共 681 项、0 失败，LUTFormats 既有外部夹具跳过 2 项；macOS/iOS generic Release 构建、153 个 Swift 源文件审计和两个实际 App 包审计通过。详见[项目资产恢复 bookmark 不可读边界验收](native-validation/2026-10-04-project-asset-recovery-unreadable.md)。
+- 只关闭本地 bookmark 读取错误的 fail-closed 子集；真实 provider 撤权／stale／跨进程替换、祖先目录保护、磁盘故障、后台恢复和签名发布仍欠。UI 暂缓，真实 `full-scope-acceptance.json` 仍缺，H/FULL 与 Goal 保持 active。
+
+## 2026-10-04 H08/H12 项目资产恢复授权根边界非 UI 子集
+
+- `ProjectAssetDiscovery` 继续按用户授权根和 SHA-256 重发现；新增候选相对于授权根的逐级路径检查，授权根内部的符号链接目录不会把搜索带到根外，符号链接候选不会伪装成 regular file。原文件名消歧、重复路径、缺失和歧义错误保持显式。
+- 先行契约在旧实现上复现授权根内目录符号链接逃逸，随后 Debug/Release 定向各 7 项通过；Swift Release 全量 8 个测试包共 680 项、0 失败，LUTFormats 既有外部夹具跳过 2 项。macOS 与 iOS generic Release 构建、153 个 Swift 源文件审计和两个实际 App 包审计均通过。命令、退出码和日志见[项目资产恢复授权根边界验收](native-validation/2026-10-04-project-asset-recovery-boundaries.md)。
+- 只关闭本地授权根内的符号链接逃逸子集；祖先目录身份保护、哈希读取到最终替换的非协作窗口、磁盘故障、真实 iCloud/File Provider 撤权／跨进程语义、后台恢复和实体 iPhone 11 重复性能仍欠。UI 暂缓，真实 `full-scope-acceptance.json` 仍缺，H/FULL 与 Goal 继续保持 active。
+
+## 2026-10-04 H13 ICC RGB/Lab PCS linking 非 UI 子集
+
+- 扩展统一 `ICCRGBProfileLink`：RGB profile 的 PCS 为 `Lab ` 时，源明确使用 `A2B0`、目标明确使用 `B2A0`，按标签类型分派已有 `mft1/mft2` 或 `mAB/mBA` Lab 适配器，经 D50 PCS Lab 连接；PCS 混用、方向错误、缺失标签和未知标签类型显式拒绝。既有 RGB/`XYZ ` matrix/TRC 与有限 LUT 路由未改变。
+- 先行新增两个契约并确认旧入口编译失败；实现后 Debug/Release 定向 8 项通过。Swift Release 全量执行 8 个测试包共 678 项、0 失败；macOS 与 iOS generic Release 构建退出 0。未引入 profile、厂商 LUT、旧 `.labin` 或等价内置采样表，继续使用用户主动提供的 ICC 数据和 Double CPU 路径。详见[ICC RGB/Lab linking 验收](native-validation/2026-10-04-icc-rgb-lab-link.md)。
+- 本子集关闭 RGB/`Lab ` 的有限 `mft2` 与 synthetic `mAB/mBA` linking 及 PCS 分派边界；非 synthetic 的 `mft1`/`mAB`/`mBA` profile 夹具、其他 rendering intent、黑点补偿、gamut mapping、任意通道、系统色彩管理、跨平台独立参照和第三方往返仍欠。发布证据检查仍因缺少真实 `full-scope-acceptance.json` 退出 2，没有创建或伪造清单。UI、真实 provider、实体 iPhone 11 重复性能、签名发布仍缺；H13/FULL 与 Goal 保持 active。
+
+## 2026-10-04 QA-01 iPhone 11 重复性能探针非 UI 子集
+
+- 扩展 `DevicePerformanceProbe` 为独立 schema `native.device-performance-repeat.v1`：支持预热、逐次 Double 耗时样本、最小／中位／最大统计、稳定 bit-pattern 校验和，以及在每次生成边界观察取消请求。原有单次 v1 探针和结果文件保持不变；新增 iOS 环境入口写入 `lutcalc-device-performance-repeat.json`。
+- 先行契约新增 3 项并确认旧实现编译失败；实现后 Debug／Release 定向 7 项通过。完整 Swift Release 的 8 个测试包共执行 675 项、0 失败，其中 LUTSharedUI 161、LUTProject 61、LUTPreview 91、LUTJobs 67，LUTFormats 56（2 项既有外部夹具跳过），LUTCore 183、LUTCatalog 24、LUTAnalysis 32，未改变现有数值门槛。macOS Release generic 构建和 iOS Release generic 签名构建均通过。
+- 本轮尝试安装实体 iPhone 11 时，`devicectl` 返回 CoreDevice `error 4016`，设备随后从 `available (paired)` 变为 `unavailable`，tunnel 与远程服务不可用；没有使用 iPhone Air，也没有把本轮写成真机重复性能正证据。失败命令、退出码、generic 构建产物和日志见[重复性能探针验收](native-validation/2026-10-04-iphone11-performance-repeat.md)。
+- 后续实体 iPhone 11 恢复为 `available (paired)` 且 `connected`，固定 UDID 上重新配对、安装、启动和 appDataContainer 取回均退出码 0。真实 JSON 为 schema `native.device-performance-repeat.v1`，1 次预热、17/33/65 三网格各 5 次重复；节点数、有限 Double 统计和 checksum 经独立 Python 核对通过。文件 SHA-256、命令和结果见[重复性能探针验收](native-validation/2026-10-04-iphone11-performance-repeat.md)及其 artifacts。此次关闭实体设备探针的一次会话子集，但未把它扩展为热稳态或完整性能门槛。
+- 只关闭了重复测量 API、取消边界、跨平台编译和一次实体 iPhone 11 重复探针会话子集；热稳态／内存峰值／取消延迟、批量／图像／写出预算仍欠。UI 暂缓，真实 provider／后台恢复、完整算法范围、签名发布和真实 `full-scope-acceptance.json` 仍缺；H/FULL 与 Goal 继续 active。
+
+## 2026-10-04 H07/H12/FULL-06/FULL-08 项目 inputShaper 资产非 UI 子集
+
+- schema 25 新增 `inputShaper` 清单载荷和独立资产角色，保存用户原始独立 1D 文件字节／SHA，重开后按已有线性 Double 采样器重建单项与批量请求。旧 schema 无载荷读取为 nil 且不回写；未知／重复字段、算法／角色错配、3D 输入和反求冲突拒绝。停用、撤销／重做和后端设置派生保留资产；EditorSession 使用相同文稿请求重建入口，未改 UI。
+- 最终 Debug/Release 定向各 10 项通过；完整 Swift Release 664 项、0 失败、2 项既有外部夹具跳过；三平台未签名 Release 构建、151 个生产 Swift 源文件和三个实际 App 包审计通过。两构建各 18 个 3DL／5,678,550 通道涵盖三 flavor、完整 17³/33³/65³、两曝光，独立 Fraction 逐码完全一致，量化参照误差 0，门槛保持 `2e-12`。契约编译诊断、惰性 wrapper 夹具失败及诊断异常均保留。详见[项目 inputShaper 资产验收](native-validation/2026-10-04-project-input-shaper.md)。
+- 仅关闭项目输入曲线资产持久化与本地 3DL 重建子集；其他参数／布局／格式 shaper、NCP、LUTAnalyst、真实 provider／后台恢复、设备性能、签名发布和完整算法范围仍欠。UI 暂缓，真实全量清单仍缺失，检查退出 2；H/FULL 与 Goal 继续 active。
+
+## 2026-10-04 H08/H12/FULL-08 文件 fingerprint 读取一致性非 UI 子集
+
+- 修复按路径取 inode 后另行打开读字节的实际竞态。身份／SHA 来自同一只读 regular file 描述符；lstat／fstat 前后核对 device、inode、mode、size、mtime／ctime 和实际字节数，O_NOFOLLOW 拒绝末端链接，错误路径关闭描述符。稳定输入保留旧 `device:inode:sha256` 格式，没有修改 Double、网格、位宽、插值或导出字节。
+- 契约先行旧实现八项／六次失败；修复后最终 Debug/Release 各九项通过，包括独立 `/bin/mv` 进程等字节替换。两套实际文件各 11 个／6,291,493 字节由独立 Python stat／SHA／字节参照核对一致，字节差 0。当前完整 Swift Release 654 项、0 失败、2 项既有外部夹具跳过；三平台未签名 Release 构建、150 个生产 Swift 源文件及三个 App 包审计通过。详见[文件 fingerprint 稳定性验收](native-validation/2026-10-04-fingerprint-stability.md)。
+- 只关闭可观察的本地读取一致性子集；哈希返回后至最终替换的非协作写入、祖先目录变化、真实 provider 授权／stale／生命周期、磁盘故障、设备恢复／性能和签名发布仍欠。UI 暂缓，真实发布清单仍缺失，检查退出 2；H08/H12/FULL-08 和 Goal 保持 active。
+
+## 2026-10-03 FULL-06/FULL-08 3DL 批量 flavor 与 schema 24 非 UI 子集
+
+- 接通已有 Flame／Lustre／Kodak 的批量请求、exporter、直接 coordinator、durable staging 和项目预设；默认 Flame 保留此前冻结 fingerprint，非默认 flavor 绑定 `native.3dl-batch-flavor.v1`，变化后拒绝恢复。旧 exporter 非默认选择明确失败；覆盖授权显式传递。未改动 10／12 位、网格、Double、插值或已有 grammar。
+- schema 24 保存 threeDLFlavor 和 3DL 预设格式算法身份；真实 schema 23 项目迁移为 Flame，读取保持源 manifest 字节。严格字段／重复键／旧版本偷带／非法组合、磁盘往返、undo/redo 和文稿后端不可变请求通过。Debug/Release 定向各 8 项；当前完整 Swift Release 645 项、0 失败、2 项既有外部夹具跳过；三平台未签名 Release 构建、150 个生产 Swift 源文件和三个实际 App 包审计通过。
+- 两构建各 30 个实际 3DL／6,041,562 通道独立 Fraction 逐码完全一致，量化参照误差 0，保持 `2e-12` 门槛；完整 17³/33³/65³ 三 flavor 非线性 shaper 和 Lustre header/footer 核对通过。命令、失败／成功日志、项目／LUT／checkpoint、误差与哈希见[3DL 批量 flavor 验收](native-validation/2026-10-03-batch-3dl-flavor.md)。
+- 只关闭现有三 grammar 的本地传递和项目子集；目标软件解释、其他设备布局、任意位宽和全格式参数矩阵、项目 shaper 资产、NCP 写出、真实 provider／设备恢复、性能与签名发布仍欠。UI 暂缓，真实发布清单仍缺失，检查退出 2，H/FULL 与 Goal 继续 active。
+
+## 2026-10-03 FULL-05/FULL-08 输入反求批量恢复身份非 UI 子集
+
+- 修复 `ExposureBatchRequest` 仅绑定输入反求插值名、未绑定有效曲线内容的实际缺陷。`ImportedLUTInversePlan.contentFingerprint` 绑定算法、插值、节点数、六个 domain Double 和全部 RGB 样本位模式；analysis 路由绑定实际使用的 transfer。不同反求拒绝 report／durable checkpoint 恢复，不同 title 不改变数值身份；没有反求请求保留此前构造，旧有反求 checkpoint 明确拒绝。
+- 契约先行红灯 3 项／7 次失败；修复后 Debug/Release 定向各 3 项通过。当前完整 Swift Release 实际执行 637 项、0 失败、2 项既有外部夹具跳过；三平台未签名 Release 构建、150 个生产 Swift 源文件和三个实际 App 包审计通过。两构建各两个 17³ CUBE／29,478 通道独立 Fraction 误差为 0，门槛保持 `2e-12`，内容 SHA-256 与独立 binary contract 一致。详见[输入反求恢复身份验收](native-validation/2026-10-03-batch-inverse-identity.md)。
+- 未改变数值求逆算法，未声称一般 cubic 精度提升；完整 LUTAnalyst、任意 3D 逆、全格式设备 flavor／参数、真实 provider／真机恢复、完整算法／相机／ICC／HDR、性能与签名发布仍欠。UI 暂缓，发布清单仍缺失，检查退出 2；FULL-05/FULL-08 与整体 Goal 保持 active。
+
+## 2026-10-03 H07/H08/H12/H14 曝光批量格式与 inputShaper 非 UI 子集
+
+- 修复逐曝光请求遗漏 `inputShaper` 及恢复 fingerprint 未绑定 shaper 的实际缺陷；样本、domain 和插值身份进入恢复检查，无 shaper 既有身份构造保留。七种不支持 shaper 的格式现在在批量路径同样拒绝，避免静默丢失输入语义。
+- 契约先行红灯后，Debug/Release 定向各 5 项通过；完整 Swift Release 执行 634 项、0 失败、2 项既有外部夹具跳过。三平台未签名 Release 构建、150 个生产 Swift 源文件及三个实际 App 包审计通过。八种格式的本地两曝光批量恢复和 Flame 非线性 `.3dl` 完整 17³/33³/65³，各构建 24 文件／2,193,840 通道的独立 Fraction 核对通过，整数逐码完全一致，最大文本误差 `1.0068426197458456e-16`，保持 `2e-12` 门槛。详见[批量格式与 shaper 验收](native-validation/2026-10-03-batch-format-shaper.md)。
+- 中断为 exporter 协议故障注入和磁盘 checkpoint 重开；全格式参数／设备 flavor、真实 provider／目标软件／进程终止、项目 shaper 资产、NCP 写出、设备性能及签名发布仍未完成。UI 暂缓；发布清单仍缺失，检查退出 2，H/FULL 和 Goal 不标记全量完成。
+
+## 2026-10-03 非 UI 未完成范围核对补记
+
+- 当前可执行核对确认 UI 继续暂缓，Goal 保持 active；完整清单 `docs/native-validation/full-scope-acceptance.json` 仍缺失，发布证据检查继续退出 2。
+- 2026-10-03 当时目录契约为 52 条曲线、18 个色域、48 个预设。66 个相机身份保留；当时公开默认可用 34/66、旧兼容 25/66。2026-10-04 N-Log/Cineon 接线后最新计数见本文顶部，不把历史快照当作当前计数。
+- 非 UI 剩余项、实际命令、日志和哈希见[2026-10-03 非 UI 未完成范围核对](native-validation/2026-10-03-non-ui-remaining-audit.md)。本补记不勾选任何 FULL 或 Goal complete。
+
+## 2026-10-03 H11 BT.2020 10-bit 传递函数非 UI 阶段
+
+- 按本地归档的 ITU-R BT.2020-2 实现独立 scene-linear↔data 的 `rec2020.bt2020-10bit.v1`：10-bit 实用常数 `alpha=1.099`、`beta=0.018`，与既有 Rec.2020 12-bit 身份分开；未沿用旧 Rec.709 legacy 缩放。
+- 新增 Swift Double transfer、TransformPlan 路由、完整 normalized data 单位分类、目录预设、目录检查、项目往返契约和 CUBE CLI 预设。Debug/Release 定向 5 项契约、目录检查、完整 Swift Release（629 项执行、0 失败、2 项既有外部夹具跳过）、macOS/iOS/iOS Simulator 未签名 Release 构建和 3 个 App 包审计通过。17³/33³ 共 122,550 个 Double 通道独立 90 位 Decimal 最大绝对误差 `1.7575598766671658e-16`，保持 `2e-12` 门槛。详见[BT.2020 10-bit 阶段验收](native-validation/2026-10-03-rec2020-tenbit.md)。
+- 只关闭 BT.2020 10-bit 标量／计划／目录／项目／本地 CUBE 子集；完整显示链、HDR/EDR/OOTF、ICC、相机、格式和第三方往返、设备性能、签名发布及真实 `full-scope-acceptance.json` 仍欠。UI 暂缓，Goal active。
+
+# 2026-10-03 H11/H13 Display P3 D65 色域后端非 UI 子集
+
+- 新增 `ColorSpaceID.displayP3`、`ColorPrimaries.displayP3` 和目录登记，明确 Display P3 原色与 sRGB transfer 分离，不把显示色域误写成新的 gamma。
+- 3 项 Debug/Release 定向契约通过；80 位 Decimal 独立 RGB→XYZ 参照最大绝对误差低于 `2e-15`；当前 Swift Release 全量回归、三平台 Release 构建、148 个 Swift 源文件和三个 App 包审计通过。详见[Display P3 D65 色域后端验收](native-validation/2026-10-03-display-p3.md)。
+- 该子集只完成色域身份和 CPU 矩阵，未完成真实显示色彩管理、EDR/HDR、ICC 嵌入与 linking、Core Image/Metal 等价验证、项目 schema、目标软件往返、性能、签名发布或 `full-scope-acceptance.json`；H11/H13 和 Goal 保持 active。
+
+# 2026-10-03 H13 ICC 像素级显式 linking 非 UI 子集
+
+- `ICCRGBProfileLink` 新增显式像素缓冲入口，调用方必须提供输入/输出 alpha 语义；premultiplied 样本按 alpha 解包和重包，透明样本固定为黑色 RGB。
+- `PreviewImageDecoder`、`CPUPreview` 和默认预览路径没有隐式调用该入口，避免把源 ICC provenance 误当成用户已请求的颜色转换。
+- 先行契约 Debug 定向 5 项通过；Release 全量 Swift 回归、macOS/iOS generic/iOS Simulator Release 构建、148 个 Swift 源文件和三个 App 包审计通过。详见[ICC 像素级显式 linking 验收](native-validation/2026-10-03-icc-explicit-pixel-link.md)。
+- 该子集仍不完成完整 ICC 类型／通道／PCS／intent、黑点补偿、gamut mapping、系统色彩管理、项目接入、跨平台独立参照、HDR/EDR、真实 provider、设备性能、签名发布或 `full-scope-acceptance.json`；H13 和 Goal 保持 active。
+
+## 2026-10-03 H13 ICC RGB profile linking 统一分派非 UI 子集
+
+- 新增 `ICCRGBProfileLink` 统一入口：明确分派已有 matrix/TRC route 与有限 LUT route；混合 profile、缺少对应方向、非 RGB、非 `XYZ ` PCS 和 unsupported intent 均显式拒绝，不让调用方猜测颜色管理语义。
+- 契约 Debug/Release 各 4 项通过；当前 Swift Release 全量执行 610 项、0 失败，其中 LUTFormats 的旧 `.labin`／NCP 外部夹具各 1 项按设计跳过；三平台 Release 构建、148 个 Swift 源文件审计和三个 App 包资源审计通过。详见[ICC RGB profile linking 统一分派验收](native-validation/2026-10-03-icc-rgb-profile-link.md)。
+- 该子集仍不完成完整 ICC 类型／PCS／intent、黑点补偿、gamut mapping、像素布局、系统色彩管理、项目接入、跨平台独立参照或第三方软件往返；H13、性能、设备、签名发布和 Goal 继续保持 active。
+
+## 2026-10-03 QA-01 macOS Double 性能基线复跑
+
+- 在当前源码和 Swift Release 工具链重新运行 `LUTPerformanceChecks`，覆盖 17³、33³、65³ `CubeGenerator`；五次完整复跑的中位耗时分别为 `0.000373292` 秒、`0.002521625` 秒、`0.018510042` 秒，中位节点/秒分别为 `13161278.57`、`14251524.31`、`14836541.16`。
+- 五次复跑的 Double 位模式校验和分别保持 `14379552350607772001`、`1336097751165010835`、`15217861669287451768`，与既有基线一致。详见[QA-01 macOS Double 性能基线复跑](native-validation/2026-10-03-qa01-macos-performance-rerun.md)。
+- 同一进程的 `/usr/bin/time -l` 观测最大常驻集为 `16,236,544` 字节；该值包含 Swift 运行时和启动开销，只作当前 Mac 的上界记录，不是跨设备内存预算。
+- 发布证据检查仍按预期退出 `2`，原因是缺少真实 `docs/native-validation/full-scope-acceptance.json`；未创建或伪造该清单。
+- 该结果只证明一台 arm64 Mac 的标量 Release 基线，不证明峰值内存、批量／分析／图像／写出预算、取消延迟、实体 iPhone 11、iPad 模拟器或发布性能；QA-01/02/03 和 Goal 继续保持 active。
+- 本轮 `xcrun devicectl list devices` 显示指定实体 iPhone 11 当前为 `unavailable`；没有用 iPhone Air、镜像或其他设备替代真机性能证据。
+
+## 2026-10-03 H13 ICC LUT profile linking 非 UI 子集
+
+- 新增 `ICCLUTProfileLink`：两个用户提供的 RGB profile 通过 D50 PCS `XYZ ` 连接，源使用 `A2B0`、目标使用 `B2A0`；只接受显式 `relativeColorimetric`、三通道 16 位 `mft2` 或 16 位 CLUT 的 `mAB`／`mBA`。
+- `mft1`、非 `XYZ ` PCS、非 RGB、其他 rendering intent 以及 `mAB`／`mBA` 方向错配明确拒绝；没有打包 profile、厂商 LUT、旧 `.labin` 或等价采样表。
+- 契约 Debug/Release 各 4 项通过；当前 LUTKit Release 全量执行 606 项、0 失败，其中 LUTFormats 的 2 项既有 `.labin`／NCP 外部夹具按设计跳过；macOS、iOS generic、iOS Simulator Release 构建和 147 个 Swift 源文件、三个 App 包原生边界审计通过。详见[ICC LUT profile linking 验收](native-validation/2026-10-03-icc-lut-profile-link.md)。
+- 该阶段只覆盖有限用户导入 LUT profile linking；完整 ICC profile 类型／通道／intent、黑点补偿、gamut mapping、像素布局、独立参照、项目接入和第三方软件往返仍未完成。UI、设备、性能、签名发布、真实 provider 和 `full-scope-acceptance.json` 继续保持未完成，Goal 保持 active。
+
+## 2026-10-03 H08/H12/FULL-08 安全书签 stale 续期 API 非 UI 子集
+
+- `ProjectAssetSecurityBookmark` 新增 `renewedIfStale()`：fresh bookmark 保留原始字节，系统报告 stale 时从解析后的 regular file URL 重新生成书签；非法数据、目录和符号链接继续 fail closed。
+- 先行契约、Debug/Release 定向各 3 项、当前 Release 全量 602 项均为 0 失败；LUTFormats 的旧 `.labin`／NCP 外部夹具各 1 项按既有设计跳过。macOS、iOS generic、iOS Simulator 未签名 Release 构建以及 146 个 Swift 源文件、三个 App 包原生边界审计通过。详见[安全书签 stale 续期 API 验收](native-validation/2026-10-03-project-asset-bookmark-renewal.md)。
+- 该子集只证明本地 Foundation bookmark 的续期 API；真实 iCloud/File Provider stale、撤权、跨进程 provider、后台恢复、磁盘故障、UI、性能、签名发布和 `full-scope-acceptance.json` 仍未完成。H08/H12/FULL-08 与 Goal 继续保持 active。
+
+## 2026-10-03 H08/H12/FULL-08 本地来源身份与自动重发现非 UI 子集
+
+- 新增 `ProjectAssetSourceIdentity` 与 `ProjectAssetDiscovery`：保存资产路径、原始文件名和 SHA-256，在调用方已经授权的本地目录内递归发现 regular file；改名按哈希重发现，相同字节按原始文件名消歧，无法唯一确定、缺失、符号链接、非法根和重复资产路径均显式失败。
+- 先行红灯后新增 6 项契约；Debug/Release 定向均通过。Release 全量实际执行 597 项、0 失败，既有 `.labin`／NCP 外部夹具各 1 项按设计跳过；三平台未签名 Release 构建和源码/App 包原生边界审计通过。详见[本地来源身份与自动重发现验收](native-validation/2026-10-03-project-asset-discovery.md)。
+- 该子集不包含安全书签、真实 iCloud/File Provider 授权撤销、跨进程 provider、目标替换竞争、磁盘故障、后台恢复、UI、性能或签名发布；H08/H12/FULL-08 与 Goal 继续保持 active。
+
+## 2026-10-03 H08/H12/FULL-08 安全书签与并发错误定位非 UI 子集
+
+- 新增 `ProjectAssetSecurityBookmark`：macOS 使用 `.withSecurityScope`，iOS 遵循 SDK 对该选项 unavailable 的约束使用普通 bookmark data；解析报告 stale 状态，目录、符号链接和非法数据 fail closed。
+- 修复 `GenerationCoordinator` 并发 worker 错误定位，收集带 block index 的失败并稳定返回最早样本位置；解决完整 Release 回归中多音调 stage 9 `sampleIndex` 随完成顺序漂移的问题。
+- 安全书签契约 Debug/Release 定向 3 项通过；修复后 Release 全量实际执行 600 项、0 失败，既有 `.labin`／NCP 外部夹具各 1 项跳过；三平台 Release 构建及源码/App 包审计通过。详见[项目来源安全书签与并发错误定位验收](native-validation/2026-10-03-project-asset-bookmark.md)。
+- 该子集不包含真实 iCloud/File Provider 撤权、stale 续期、跨进程 provider、目标替换竞争、磁盘故障、后台恢复、UI、性能或签名发布；H08/H12/FULL-08 与 Goal 继续保持 active。
+
+## 2026-10-03 H08/H12/FULL-08 项目包目标替换竞争非 UI 子集
+
+- `ProjectStore.saveExisting` 现在通过 `NSFileCoordinator` 在发布回调内再次校验 manifest 字节以及项目目录设备号／inode／SHA-256；目标被其他写入者替换时返回 `.concurrentModification`，不覆盖竞争者。
+- 先行红灯后新增 2 项项目存储竞争契约；Debug/Release 定向通过。Release 全量实际执行 602 项、0 失败，既有 `.labin`／NCP 外部夹具各 1 项跳过；三平台 Release 构建及源码/App 包审计通过。详见[项目包目标替换竞争验收](native-validation/2026-10-03-project-store-replacement.md)。
+- 该子集仍不包含真实 iCloud/File Provider provider 事务、跨进程不合作写入者、授权撤销、stale 续期、磁盘故障、后台恢复、UI、性能或签名发布；H08/H12/FULL-08 与 Goal 继续保持 active。
+
+## 2026-10-03 H13 ICC PCS XYZ 用户导入非 UI 子集
+
+- 新增 `ICCXYZPCS`，按 ICC.1:2022-05 §6.3.4.2 Table 11 实现 16 位 PCS XYZ 的 `u1Fixed15` 连续编码；`0x8000` 对应 `1.0`，不做隐式 clamp。
+- 新增用户导入 `mft2` 的 `ICCMFTXYZTransform` 以及 16 位 `mAB/mBA` 的 `ICCMABXYZTransform`；非 RGB、非 `XYZ ` PCS、错误方向、八位 CLUT 和没有八位 PCS XYZ 定义的 `mft1` 均明确拒绝。
+- 新增 7 项契约，Debug/Release 均通过；Release 全量实际执行 591 项、0 失败，旧 `.labin`／NCP 外部夹具各 1 项跳过；三平台未签名 Release 构建和 App 包原生边界审计通过。详见[ICC PCS XYZ 用户导入接入验收](native-validation/2026-10-03-icc-pcs-xyz.md)。
+- 该子集不代表完整 H13：其他 ICC profile 类型／通道、rendering intent、黑点补偿、gamut mapping、像素布局、其他 profile linking、项目接入、跨平台参照、HDR/EDR、性能和发布仍未完成。Goal 保持 active。
+
+## 2026-10-03 FULL-05 严格 1D cubic 反求项目／批次／导出接线非 UI 子集
+
+- `ProjectManifest` schema 23 新增 `UserLUTInputInverseSettings`，把严格 `tricubicLegacyV1` 反求算法与唯一用户 LUT 资产路径一起保存；项目清单、哈希资产和包重开均严格校验，旧 schema 偷带字段拒绝。
+- `LUTProjectDocument.makeGenerationRequest` 从重开的用户资产重建 `ImportedLUTInversePlan`；曝光批次复制反求并把插值身份纳入请求指纹；1D 导出遇到该 3D 输入反求明确拒绝有损表示，3DL shaper 冲突仍显式失败。
+- 新增契约 Debug／Release 共 5 项通过；完整 Debug／Release 各实际启动 584 项、2 项既有外部夹具跳过、0 失败；三平台 Release 构建和 App 包原生资源审计通过。详见[严格 1D cubic 反求项目持久化与导出传播验收](native-validation/2026-10-03-cubic-inverse-project-persistence.md)。
+- 该子集不完成完整 LUTAnalyst、任意 3D 逆、完整分析元数据／方向／量化兼容、内置资源算法替代、真实设备性能或发布验收；FULL-05、FULL-07、H07、H10、H14 和 Goal 继续保持 active。
+
+## 2026-10-03 FULL-05 严格 1D cubic 反求生成计划非 UI 子集
+
+- 新增 `ImportedLUTInversePlan`：只接受已有严格单值 `tricubicLegacyV1` 1D transfer，构造时逐通道冻结 `LegacyCubicCurve1D` 并检查全部 cubic 导数临界点；平段、导数换向、多根、任意 3D LUT 和其他插值明确拒绝。
+- `LUTGenerationRequest` 现在可显式携带 `inputTransferInverse`。3D 生成的每个 Double 网格坐标先逐通道反求，再进入 `TransformPlan`；与 `inputShaper` 同时提供时直接失败，默认请求和既有 1D 服务路径不变。新增 3 项契约 Debug／Release 均通过。
+- 当前源码 Release 全量 Swift 回归实际执行 579 项、0 失败，LUTFormats 的 2 个既有 `.labin`／NCP 外部夹具按设计跳过；定向最终日志 `/tmp/lutcalc-cubic-generation-plan-release-20261003-r2.log`，SHA-256 `6e8f803e339ab3a2643858fe518d52c6bf770df5e6b26091cb325eeeae0849f2`；全量最终日志 `/tmp/lutcalc-cubic-generation-plan-full-release-20261003-r2.log`，SHA-256 `0475877447e01cc0eff3fe0e13230c541fb66365d2e8cf02dc5ab8f297e0e49b`。
+- 该子集只接入 3D `LUTGenerationRequest`，尚未接入项目 schema／持久化、批次与全部导出服务，也没有把 cubic 反求扩展成组合颜色分离或任意 3D 逆；FULL-05、H07、H10、H14 和 Goal 继续保持 active。详见[严格 1D cubic 反求生成计划验收](native-validation/2026-10-03-cubic-generation-plan.md)。
+
+## 2026-10-03 H08/H12 项目事务孤儿回收非 UI 子集
+
+- `ProjectStore.recoverOrphanedStaging`、`recoverOrphanedBackups` 与 `recoverOrphanedTemporaryEntries` 现按年龄阈值回收精确命名的旧 `.lutcalc-*.staging`／`.lutcalc-*.backup`／`.lutcalc-*.tmp` 条目，保留新条目、无关临时目录和符号链接，并对非法父目录／年龄拒绝；不改变项目保存和替换语义。
+- Debug／Release 定向各 5 项通过；Release 全量日志实际无失败，三平台未签名 Release 构建退出码均为 0，App 包审计通过，详见[项目事务孤儿回收验收](native-validation/2026-10-03-project-staging-recovery.md)。
+- `ProjectEditingSession(opening:)`、`ProjectStore.saveNew`、`saveExisting` 和 `ProjectExportSession.start` 已接入同目录或系统临时目录 staging／backup／temporary 的 3600 秒宽限期尽力回收；Debug／Release 定向各 7 项、Release 全量 574 项、三平台构建及包审计通过。
+- 该子集仍不完成真实 iCloud/File Provider 授权失效、目标替换竞争、磁盘故障、iPhone 11 后台恢复或跨进程提供商行为；H08/H12/FULL-08 和 Goal 继续保持 active。
+
+## 2026-10-03 H13 ICC mAB/mBA PCS Lab 接入非 UI 子集
+
+- `ICCMABLabTransform` 现将用户提供 RGB profile 的 `A2B0`／`B2A0` mAB/mBA 三通道管线接入连续 PCS `Lab `，通过既有 D50 `CIELABColor` 和 ICC PCS Lab 编码边界转换；非 RGB、非 `Lab ` PCS、缺失方向或非法 section 明确拒绝。
+- 原有 mAB/mBA 契约加新接入契约共 15 项通过；Release 全量实际执行 566 项、0 失败，两个既有外部夹具跳过；macOS、iOS generic、iOS Simulator 未签名 Release 构建和 App 包审计通过。详见[ICC mAB/mBA PCS Lab 验收](native-validation/2026-10-03-icc-mab-pcs-lab.md)。
+- 仍不代表完整 H13：`mft1/mft2` PCS Lab、完整 profile 类型／通道、其他 rendering intent、黑点补偿、gamut mapping、像素布局、跨平台参照和项目接入仍未完成。Goal 保持 active。
+
+## 2026-10-03 H13 ICC mft1/mft2 PCS Lab 接入非 UI 子集
+
+- `ICCMFTLabTransform` 现将用户提供 RGB profile 的 `mft1`／`mft2` 三通道管线接入连续 PCS `Lab `，复用既有矩阵、输入表、CLUT、输出表和 Double 计算；非 RGB、非 `Lab ` PCS、非三通道或非法方向明确拒绝。
+- Debug／Release 定向各 8 项通过；合并 ICC 定向 27 项、Release 全量 568 项均为 0 失败，两个既有外部夹具跳过；三平台未签名 Release 构建和 App 包审计通过。详见[ICC mft PCS Lab 验收](native-validation/2026-10-03-icc-mft-pcs-lab.md)。
+- 该阶段仍不完成完整 H13：完整 profile 类型／通道、其他 rendering intent、黑点补偿、gamut mapping、像素布局、跨平台独立参照、项目接入以及 UI／设备／性能／发布仍未完成。Goal 保持 active。
+
+## 2026-10-03 H13 ICC PCS Lab 编解码非 UI 子集
+
+- 新增 `ICCLabPCS`，按 ICC.1:2022-05 §10.15–§10.16 实现用户提供数据的 8 位／16 位 PCS Lab 编解码，连接既有 D50 `CIELABColor` 与 `XYZ64`；错误长度、越界和非有限值明确拒绝，不做隐式 clamp。契约先行，Debug／Release 定向各 4 项通过。
+- 当前 Release 全量 Swift 回归实际执行 563 个测试、0 失败，三个未签名 Release 构建退出码均为 0，App 包未包含 WebView／JavaScript／C/C++ 源资源。命令、日志 SHA-256、工具链和结果包见[ICC PCS Lab 验收](native-validation/2026-10-03-icc-pcs-lab-subset.md)。
+- 该子集不等于完整 H13：`Lab ` PCS 的 `mAB/mBA`／`mft1/mft2` 端到端 profile 接入、其他 profile 类型和 rendering intent、黑点补偿、gamut mapping、像素布局、跨平台参照、UI、设备、性能和发布仍未完成。Goal 保持 active。
+
+## 2026-10-03 FULL-05 旧 1D cubic 反求非 UI 子集
+
+- 新增 `LegacyCubicSegment` 只读系数和 `LUTAnalysis` 的 `LegacyCubicCurve1D.inverse`。逐段检查 cubic 导数临界点后，只接受全域严格单值曲线；导数换向、常值段和多根明确返回 `nonUnique`。
+- `ImportedLUTAnalyzer.inverseTransfer` 增加显式插值参数；`tricubicLegacyV1` 使用 cubic 反求，默认线性反求保持不变。Debug/Release 定向共 20 项、0 失败。独立 80 位 Decimal Hermite 目标恢复误差低于 `2e-12`。
+- 完整 `swift test --package-path Native/Packages/LUTKit` 实际执行 549 项、0 失败；LUTFormats 的 2 个既有 `.labin`/NCP 外部夹具跳过，退出码 0，日志 `/tmp/lutcalc-cubic-inverse-full-20261003.log`。
+- 当前工作区完整 Release `swift test -c release --package-path Native/Packages/LUTKit` 实际执行 549 项、0 失败，2 项既有外部夹具跳过；日志 `/tmp/lutcalc-cubic-inverse-release-full-20261003-r2.log`。
+- 该子集不接入生成计划、项目持久化、组合 shaper cubic 反求或任意 3D 逆；FULL-05/H07/H10/H14 与 Goal 保持 active。详见[旧 1D cubic 反求验收](native-validation/2026-10-03-legacy-cubic-inverse.md)。
+
+## 2026-10-03 HLG OOTF nits 计划归一化子集
+
+- 先补红灯契约 `HLGOOTFContractsTests.testPlanNormalizesNitsBeforeHLGOETFAndRejectsWrongTransfer`，确认 PQ 输出仍拒绝，并要求 HLG 输出的 `.nits` 计划把绝对亮度只在进入 HLG OETF 前除以 1000；stage 130 保留 nits 显示单位。
+- `TransformSettings.validateParameterizedTransfers()` 现允许 `.nits` 与 `.normalizedBy1000`；`TransformPlan` stage 13 和 post-gamma secondaryScene 旁路均在 HLG OETF 边界执行相同归一化。Debug 定向 8 项、Release 定向 8 项均为 0 失败。
+- 完整 `swift test --package-path Native/Packages/LUTKit` 实际执行 546 项、0 失败，LUTFormats 的 2 个既有 `.labin`/NCP 外部夹具跳过，退出码 0；日志 `/tmp/lutcalc-hlg-nits-full-20261003-r2.log`。stage 130 默认 1000 nit、scene 0.18 为 `6.476039825649833`，Decimal 独立 HLG OETF 参照与 stage 13 的绝对误差为 `1.83e-18`（参照值见验收记录）。
+- 该阶段只完成 nits 计划的单位边界和回归证据；四种 HDR 变体、PQ/HLG 自动峰值／参考白／黑位、完整限幅／裁剪统计、HDR/EDR 屏幕和发布验收仍未完成，FULL-03/FULL-04 与 Goal 保持 active。
+
+## 2026-10-03 H13 ICC matrix/TRC profile linking 非 UI 子集
+
+- 新增 `ICCMatrixTRCProfileLink`，把两个用户提供的 RGB matrix/TRC profile 通过 PCS XYZ 连接；只允许显式 `relativeColorimetric`，对其他 intent 和 PCS 白点不一致明确拒绝。
+- 新增 3 项 linking 契约；完整 `LUTPreviewTests` 实际 63 项、0 失败，Release `ICCMatrixTRCContractsTests` 18 项、0 失败。独立连接点最大通道误差低于 `2e-14`，既有 33³/65³ round-trip 仍低于 `2e-12`。详见[ICC linking 验收](native-validation/2026-10-03-icc-matrix-trc-profile-link.md)。
+- 该子集不完成完整 ICC 类型、PCS Lab、其他 rendering intent、黑点补偿、gamut mapping、所有像素布局或 UI/HDR/第三方软件验收；H13/FULL-03 和 Goal 继续保持未完成。
+
+## 2026-10-02 FULL-02 Blackmagic Gen5 非 UI 阶段
+
+## 2026-10-02 FULL-02 Canon C-Log2/Cinema Gamut 非 UI 阶段
+
+- 固定 ACES 提交 `29b722bccd529460696a8382394504cae2e88419` 的 Canon C-Log2 双向 CTL，解析公开 `0.9` 场景标度、Cinema Gamut 原色和 CAT02 矩阵；旧 LUTCalc 九参数保留为独立 legacy 身份。
+- 新增 `canon.c-log2-published.v1`、`canon.c-log2-lutcalc-legacy.v1`、`canon.cinema-gamut.v1`、两个 AP0 预设和三个已有 C-Log2 相机默认；C-Log、C-Log3、CP IDT 继续拒绝。
+- schema21 拒绝 schema1–20 偷带 Canon C-Log2 transfer、色域或 disabled 调节引用；5 项核心契约、目录/项目契约、全部 Swift Package 回归相关筛选和三平台 Release 构建通过。
+- published/legacy 各完成 33³/65³ CUBE，共 1,863,372 通道，独立逐点最大相对误差 `9.769962616701378e-15`，阈值 `2e-12`。详见[Canon 验收](native-validation/2026-10-02-canon-clog2.md)。
+- 该包不完成 C-Log/C-Log3、CP IDT、连续 EI、sensor 单位、真实 shoulder、全部 Canon 机型、UI、设备、性能、签名发行或最终全量清单；Goal 保持 active。
+- 2026-10-02 追加 90 位 Python `Decimal` 独立矩阵与四个实际 CUBE 逐点重读；published/legacy 的 33³/65³ 最大相对误差均低于 `1.2e-14`。当前源码完整 Swift 回归实际执行 526 项、0 失败、2 项既有夹具跳过。该补验只更新证据，不把 FULL-02 或 Goal 标记完成。
+
+## 2026-10-02 FULL-03/04 HLG 显示 OOTF 数学子集
+
+- 新增 `HLGOOTF` Swift `Double` 内核，覆盖 BT.2100/LUTCalc 公开峰值、黑位、nits/归一化标度、BBC 系数、标量逆向和 RGB 亮度耦合；4 项先行契约通过，80 位 Decimal 参照见[HLG OOTF 验收](native-validation/2026-10-02-hlg-ootf.md)。
+- 现新增 `HLGOOTFSettings`、schema 22、算法版本登记、严格旧 schema 拒绝、`TransformSettings` 复制/Codable，以及 `TransformPlan` 的显式 130 子阶段。计划现允许 HLG 输出的 nits 与归一化标度；stage 130 的 `displayLuminance` 保留声明单位，只有进入既有 HLG OETF 的 stage 13 前才完成 nits 到归一化值的转换。完整 HDR 显示单位链仍未闭合。
+- 新增 2 个核心契约和 1 个项目契约；另修复文稿参数化 Gamma 编辑丢失 `hlgOOTF` 的设置复制缺陷并新增文稿契约。定向 HLG／schema／文稿测试通过。最终完整 Swift 回归实际执行 534 项，0 失败，2 项既有 `.labin`/NCP 夹具跳过；没有运行 UI、设备或签名发布。
+- 该包不代表四种 HDR 变体、PQ/HLG 自动峰值/参考白准备、完整 HDR 限幅／裁剪统计、真实 HDR/EDR 或 UI 完成；FULL-03/FULL-04 仍保持未完成，Goal active。详见[HLG OOTF schema22/计划阶段验收](native-validation/2026-10-02-hlg-ootf-schema22.md)。
+
+## 2026-10-02 非 UI 设置派生路径审计
+
+- 对生产 Swift 中所有 `TransformSettings` 派生路径完成静态核对：`TransformPlan.with...` 系列、相机／批次／文稿项目快照和资产更新均保留 `hlgOOTF`；输出 transfer 改变时按契约清除。显示预览对 HLG/PQ 仍明确拒绝，不把独立 SDR 显示设置误作项目计划。
+- 新增派生设置保留契约，定向执行 7 项、0 失败；同时修复 `LUTDocumentExportChecks.changed` 手工重建丢失可选阶段的问题，改用 `withExposureStops` 保留完整设置。完整 HDR nits 链、四种 HDR 变体、ICC、格式互操作、文件提供商故障、性能和发布仍按下方未完成表保留。
+- 修复后完整 Swift 回归于 2026-10-03 实际执行 535 项、0 失败，旧 `.labin` 与 NCP 外部夹具各 1 项跳过；日志 `/tmp/lutcalc-settings-audit-full-20261002.log`。该回归只证明当前代码与契约稳定，不改变任何 FULL 范围完成状态。
+
+## 2026-10-03 FULL-06 `.3dl` Lustre/Kodak 纯 Swift 子集（接入前快照）
+
+- `ThreeDLFlavor` 新增 Lustre/Kodak；Lustre 严格解析/序列化 `3DMESH`、Mesh 规格、线性 shaper 和 `LUT8/gamma 1.0` 尾部，Kodak 严格解析纯整数行并拒绝 Lustre 标记。`parseAuto` 已接入用户主动 `.3dl` 导入，显式 `3DMESH` 才选择 Lustre，否则保持无厂商标记的 Flame/Kodak 兼容行解析。本节记录解析/序列化子集，流式 sink 接入见下节。
+- 定向 `ThreeDLContractsTests` 8 项和 `UserLUTImportContractsTests` 10 项通过，日志见[`.3dl` Lustre/Kodak 子集验收](native-validation/2026-10-03-3dl-lustre-kodak-subset.md)。当时 Lustre/Kodak 流式导出、第三方软件往返、NCP 写出、UI、设备和完整 FULL-06 仍未完成。
+- 随后完整 Swift 回归实际执行 538 项、0 失败，旧 `.labin` 与 NCP 外部夹具各 1 项跳过；日志 `/tmp/lutcalc-3dl-lustre-kodak-full-20261003.log`，退出码 0。该回归不改变 FULL-06 或 Goal 的未完成状态。
+
+## 2026-10-03 FULL-06 `.3dl` Lustre/Kodak 流式导出
+
+- `FileCubeSink` 新增显式 `ThreeDLFlavor`：Lustre 生成 `3DMESH`、`Mesh 3...7`、均匀 shaper 和 `LUT8/gamma 1.0` 尾部；Kodak 生成无厂商标记的纯整数行。`NativeExportService` 增加非 UI flavor 入口，原有 `.3dl` 服务默认仍为 Flame。
+- 9³ Lustre 与 2³ Kodak 分块写出、严格解析读回、Lustre 尾部和默认覆盖/取消边界通过；定向 7 项通过。完整 Swift 回归实际退出 0，日志与哈希见[流式导出验收](native-validation/2026-10-03-3dl-flavored-stream-export.md)。
+- 该阶段不完成非线性 shaper、NCP 写出、其他设备布局、全部参数组合、第三方软件往返、UI、设备、性能、签名发行或完整 FULL-06；真实全量清单仍缺失，Goal 保持 active。
+
+- 新增公开 Blackmagic Film Gen5／Wide Gamut Gen5 与独立 legacy 身份、两个预设和 schema20。公开 CTL 固定提交、旧 JS 参数和实际默认 resolver 均保存来源；四个 Blackmagic Gen5 相机身份现在可按策略选择明确算法。公开默认31／66，旧兼容22／66，其他 Pocket Film 等仍拒绝。
+- 公开／legacy 20,534 个分支点最大误差1.4077780908170443e-14；64个矩阵方向576值最大9.910082886630748e-16；四套实际文件各3726744通道独立读回最大1.3828205532518545e-12，阈值2e-12不变。Release519项／0失败／2跳过，三平台未签名构建、数值、源码和App审计通过。详见[Gen5验收](native-validation/2026-10-02-bmdgen5.md)。
+- 该阶段不完成其余Blackmagic模型、全部相机实测／sensor／shoulder、目标软件往返、设备后台、性能、签名发行或UI。真实全量清单缺失、检查退出2；FULL-02不勾选，Goal active。
+
+## 2026-10-02 FULL-02 相机身份与曝光状态非 UI 阶段
+
+- 当前schema19、46曲线／15色域／42转换预设，另有66个稳定相机身份。相机ISO三类政策、精确binary64四位stop舍入、手动stop／ISO编辑、批次override和黑白辅助标记已接入计划、项目及文稿后端；资产、请求、批次指纹、revision与撤销保留。辅助clip不自动限幅。
+- 先行契约和原失败保留；最终Debug9＋1项、完整Release512项／0失败／2项既有夹具跳过；三平台新路径未签名构建、数值子集、源码及实际App包审计通过。1992个独立Decimal值最大1.436449758384103e-15；每套8个完整33³／65³ CUBE＋4个1024点SPI1D、3739032通道，三套独立重读最大2.220305848821056e-16，维持2e-12。真实schema18来源读取前后字节不变。详见[相机后端验收](native-validation/2026-10-02-camera-state.md)。
+- 默认公开策略可用31／66，旧兼容策略22／66，缺失明确拒绝，不全部称为研究阻塞。66项身份／曝光政策不等于完整相机默认、Generic、camClip分析、sensor生成、SUP2校准、连续EI或真实shoulder完成。
+- UI继续暂缓；提供商／设备后台、跨平台数值与性能、完整ICC/HDR、LUTAnalyst／格式／旧功能和签名发布仍欠。真实全量清单缺失，检查退出2；FULL-02／FULL-08／H12／H14不勾选，Goal active。非UI剩余见[最新清单](native-validation/2026-10-02-non-ui-remaining-current.md)。
+
+## 此前归档：2026-10-02 AWG3 与显式 EI 非 UI 阶段
+
+- `arri.awg3.v1` 从 ARRI 公开原色／D65 推导 Double 矩阵；SUP 3 scene 的 11 个显式 EI 预设接入，目录现为46曲线、15色域、42预设。schema18拒绝旧版本偷带输入／输出／高光／次级AWG3引用，真实冻结schema17项目读取原字节不变。阶段3／4 trace记录实际工作空间，矩阵顺序不变。
+- 8项Debug、502项Release（0失败、2既有夹具跳过）、三平台新路径未签名构建、数值子集和源码／实际App审计通过。60有理数矩阵／探针最大2.220446049250313e-15；675840全码通道最大4.246603069191224e-15；每轮8个完整33³/65³ CUBE／3726744通道独立重读最大7.063100104787168e-14，保持2e-12。文稿磁盘重开、EI编辑／资产／批次指纹／undo-redo、worker、取消／stage2定位与跨色域1D拒绝通过。
+- 初轮参照D-Gamut2原色错误已保留并明确终止，修正从原始CTL解析并核对来源SHA，只有修正轮计通过。来源、失败、命令、工具链、结果与冻结哈希见[AWG3验收](native-validation/2026-10-02-awg3.md)；SUP2 raw矩阵光源／目标语义和P3标题冲突见[研究复现](native-validation/2026-10-02-sup2-raw-matrix-research.md)。
+- 完整66相机／默认规则／ISO-EI／裁剪／Generic、sensor生成、SUP2校准和实际shoulder仍欠；其他旧算法／HDR-ICC／分析-格式／提供商-后台／性能-签名继续保留。真实全量清单缺失，检查退出2；UI暂缓，FULL-01／02和整体Goal不勾选，Goal active。下面较早的“AWG3未接线”保持历史时间语义。
+
+## 2026-10-02 非 UI 剩余范围最新核对
+
+- UI 全部暂缓，最终 H01–H14／FULL-01 至 FULL-08 范围保留。当前完整冻结基准仍为 Log C scene 的 schema 17／494 项 Release；新增 AWG3 先行契约因生产接口缺失编译失败，不计通过。
+- AWG3 独立生成器的 D-Gamut2 原色错误已确认，保留初轮脚本／日志后终止生成，子进程退出 -15；产物未验收。仍需来源修正、生产接线、项目／任务／完整网格和新平台验收；阶段 3／4 工作空间 trace 元数据也待修复。
+- 七类非 UI 缺口及已完成子集见[最新核对](native-validation/2026-10-02-non-ui-remaining-current.md)。发布证据检查再次退出 2，真实全量清单缺失；没有新增 UI／设备操作或签名发行，Goal 保持 active。
+
+## 2026-10-02 Log C scene 显式 EI 与非 UI 生成接线
+
+接续公开内核，SUP 2／3 的 scene exposure 共 22 个配置已接通 TransferID、阶段 2／13、共用输出锚点、schema 17、文稿后端 EI 编辑和请求／批次指纹。参数和算法必须显式匹配，缺参不默认 EI 800；sensor signal 仍独立表达，不混入 scene reflectance。当前目录 46 曲线、14 色域、31 预设，未新增相机默认映射。
+
+8 项 Debug、完整 Release 494 项（0 失败、2 跳过）、三平台新路径未签名构建、数值子集、源码／三个实际 App 包审计已通过；schema 16 原字节文件留存和退出等待观察修复后的完整复验已通过，终态见[接线验收](native-validation/2026-10-02-logc-scene-routing.md)。22 配置全码和边界最大 `1.29121509482886e-14`，10 CUBE／4 SPI1D／4,670,718 通道独立全点最大 `2.8464710760791997e-15`，维持 `2e-12`。
+
+这是公开 scene 曲线的非 UI 接线，不证明 AWG3／SUP 2 raw 默认色域、sensor 生成单位、实际相机 shoulder、完整相机 ISO/EI 和全部组合。UI 暂缓，真实全量清单缺失、检查退出 2，原 FULL-01／02、H06／H12／H14 保持未完成，Goal active。下节“未接线”仅指其历史内核包状态。
+
+## 2026-10-02 Log C 公开公式内核与相机研究接续
+
+新增 Double `ARRILogCCompact`，完整覆盖公开 SUP 2／3、sensor／scene、11 EI 的 44 组解析配置，拒绝未公开 EI 和非有限结果；未接入 TransferID／TransformPlan／项目参数／App 生成路由，项目仍 schema 16。先行红灯后最终 3 项 Debug／485 项 Release（0 失败、2 跳过）；全部配置 10/12-bit 全码及边界的 226,160 值最大尺度化误差 `1.29121509482886e-14`，四配置的 16 个完整 33³／65³ 网格／7,453,488 通道最大 `8.145382178624779e-16`，均维持 `2e-12`。三平台编译、数值子集、源码及实际 App 包审计通过，证据见[公开内核验收](native-validation/2026-10-02-logc-compact.md)。
+
+公开六位小数参数有接缝，旧高 EI 标量／数组及域外解码互相冲突；已保存官方来源和最小复现，实际 shoulder 的完整公式／独立参照按项[研究阻塞](native-validation/2026-10-02-logc3-shoulder-research.md)。不使用厂商采样表补足，不声称完整 Log C、相机、连续唯一反求或 FULL-02 已完成。继续 EI 参数／计划／项目／生成接线和完整相机状态模型。研发 CLI 已修正预设硬编码输出，当前实际目录为 44 曲线、14 色域、31 预设，不能据数量推算完成率。
+
+UI 继续暂缓；真实全量清单缺失，证据检查退出 2，未签名发行。全部原范围保持，Goal active。
+
+## 2026-10-02 批次项目预设非 UI 阶段
+
+UI 按用户要求继续暂缓，保留原最终范围。schema 16 批次项目预设现完成实际 schema 15 磁盘读取不改写契约、6 项定向 Debug／482 项 Release（0 失败、2 跳过）、三平台当前源码未签名构建、数值子集及源码／实际 App 包审计。Debug／最终 Release 的 8 个实际文件／443,532 通道独立有理数读回误差全 0。首轮导入警告已修复，最终三个构建日志均无该警告。代码、命令、错误、结果与冻结证据见[批次预设验收](native-validation/2026-10-02-batch-project-preset.md)。
+
+剩余重点为完整相机 ISO/EI、旧曲线／色域／调节链、ICC/HDR、LUTAnalyst／格式兼容、真实提供商／设备后台恢复、性能和签名发布。当前证据检查实际退出 2，真实全量清单缺失。命令、日志及剩余范围见[当前非 UI 核对](native-validation/2026-10-02-non-ui-scope-audit.md)。Goal 保持 active。
+
+批次预设仅保存配置，并以项目内自包含资产重建数学请求；目录／覆盖授权仍由调用方显式输入，不自动启动任务。来源自动发现、安全书签、真实提供商恢复、全部格式批量、设备预算和完整相机仍欠；FULL-08、H08/H12/H14 不勾选。历史 schema 15 工作包记录保留其冻结时状态，不回写历史证据。
+
+日期：2026-09-23。关联：[总体设计](native-swift-design.md)、[精度规范](native-swift-precision.md)。
+
+用户已确认全 Swift 原生、内置变换全部算法实现及生成精度不退化。已完成项见下方；其余任务尚未实施，研究归档不代表算法已经可用。任务只有在交付物与验收证据齐全后才能勾选；代码存在或构建成功不等于数学验收通过。
+
+> **范围决议（2026-09-25）**：旧 App 的单文件设置读取、识别、候选映射和迁移均已删除，今后不再作为功能、待办或验收项。历史阶段记录仅作审计留痕；原生 `.lutcalc` 项目格式保持独立校验与拒绝未知结构。
+
+> **执行顺序决议（2026-10-02）**：按用户要求，所有 UI 相关实现和交互验收暂缓，后续重新制作；停止 iPad 界面／模拟器交互环境排查。计算、解析、调度、项目存储、文件事务、来源、性能和发布继续推进。暂缓不等于完成，不删除已有证据，也不缩减最终 H01–H14／FULL-01 至 FULL-08 范围。当前非 UI 缺口以[10 月 2 日范围核对](native-validation/2026-10-02-non-ui-scope-audit.md)为准，下方早期表格和阶段记录保留其历史时间语义。
+
+## 0. 当前完成情况
+
+### 2026-09-23 原生实现进度
+
+| 工作包 | 代码状态 | 已实际验证 | 未满足的验收 |
+| --- | --- | --- | --- |
+| H01 | 已创建 `Native/LUTCalc.xcodeproj`、双 App target、共享 Swift Package、功能草稿 UI；iPhone/iPad 方向与系统启动屏声明已补齐 | Xcode 27.0/Swift 6.4 的 macOS、iOS Simulator、iOS generic 三个 Release 未签名构建均通过；Swift 52 项 XCTest 通过；macOS 窗口及 iPhone/iPadOS 模拟器首次启动已核对；iPhone Air 签名安装、界面生成与单项 CUBE 数值参照已确认 | 双端完整文档交互、支持矩阵、真机旋转与多窗口尚未验收，APP-01 不勾选 |
+| H02 | Double RGB、范围、域、网格、0.9 标度已实现 | 12 个范围点、27 个网格点、内存尺寸和错误路径由 Swift 契约入口通过；XCTest 和双端 Release 构建通过；iPhone Air 的 D-Log2 单链导出已逐节点对独立参照通过 | 完整内核覆盖、其他 iOS 数值链运行未验收，APP-02/CORE-05 不勾选 |
+| H03 | 3×3 LU、条件数/残差、原色、CAT02 与 Bradford 已实现 | 非对称矩阵、D-Gamut2→AP0 与 V-Gamut→AP0 独立参照通过；Panasonic 预设明确保存 Bradford | 全部 CAT/自定义空间、手册与 ACES 矩阵差因及实际平台数值验证未完成，CORE-01 不勾选 |
+| H04 | CUBE 基础 1D/3D、三种旧方言及 Resolve shaper+3D 已实现；SPI1D/SPI3D、Flame `.3dl`、VLT、ILUT、OLUT、Assimilate 1D `.lut` 各有严格格式子集与草稿导出路径 | 格式契约、独立读回、SPI1D/SPI3D/其他已接线格式的本地服务契约通过；macOS SPI1D 系统面板取样及 iPhone Air SPI3D 容器取回、4,913 节点独立比对、一次 Files 保存提交后的界面状态通过 | 目标软件导入、剩余方言/格式、组合 DOMAIN 语义、Files 文件独立读回/取消和第三方往返未完成，FLOW-01/FULL-06 不勾选 |
+| H05 | D-Log2 解析公式、legal/data、D-Gamut2 矩阵已实现 | 独立参照、10/12-bit 全码、1D 双范围、33³ 往返通过 | 完整旧管线兼容、阶段误差和双平台测试未完成，CORE-02 不勾选 |
+| H06 | 不可变最小计划、活动阶段 trace、3D Double 生成与 CUBE CLI 已实现 | 4 个非恒等点、17³/33³/65³ 独立参照；旧版无调节链 Data→Data 同尺寸及 17³ 四种 Data/Legal、33³/65³ Legal→Legal 全节点对照通过；比较器最大/RMS/P99、三类故障检出及 32 固定种子节点的解码/色域曝光/编码阶段诊断通过 | 旧调节/限制完整管线、不同设置快照、多平台导出与文件事务未完成，CORE-04/FLOW-02 不勾选 |
+| H07 | 用户 3D LUT 三线性/四面体采样已实现；功能草稿已接入用户主动选择 LUT 的只读检查，并增加单份原始文件作为 `.lutcalc` 资产保存/重开的包级路径 | 14 个冻结插值结果、六种轴序、相等边界、端点和域外策略通过；八种格式导入检查；macOS 系统文件面板选取 SPI1D 后直接取样已核对；项目资产写盘、删除源文件后重开取样和篡改拒绝的定向契约通过 | 其他旧插值/cubic、项目资产的实际系统文稿交互与多窗口协调、新增格式的真实系统面板选取、Files/File Provider 真机选中与解析、完整 LUTAnalyst 未完成；用户 LUT 尚未进入生成计划，CORE-06/FULL-05 不勾选 |
+| H08 | 有界 TaskGroup 生成、单 writer、流式临时文件与提交已实现基础版；同一 sink 可按显式坐标流式写出 SPI3D | 1/2/4 worker、1/17/4096 块、写失败/取消、9 个内存/文件写块边界、`committing`、强制乱序及本地授权覆盖保护通过；SPI3D 的 3³ 分块 81 个 Double 位型和格式专属部分写入取消、默认拒绝覆盖契约通过 | File Provider/权限授权、最终替换竞争与故障、真机取消和设备预算未验收，FLOW-02/QA-02 不勾选 |
+| H09 | 双端 App 场景已接入共享 SwiftUI `DocumentGroup` 项目草稿；文档窗口导出会话负责快照、取消与晚返回隔离；增加 CUBE/SPI3D 格式草稿选择 | 包级契约与双端 Release 构建通过；macOS 窗口及 iPhone Air 真机均在界面生成 17³、4,913 节点 CUBE；SPI3D 文档会话包级生成并读回 4,913 节点，后续 iPhone Air 真机 SPI3D 生成、App 容器取回和 4,913 节点独立比对通过，最大缩放误差 `3.064215547965432e-14`，系统分享面板实际打开并显示“保存到‘文件’”；锁屏后重连镜像，在 Files 的“我的 iPhone”位置点击“保存”后返回 LUTCalc 文稿，确认保存提交后的应用状态 | 用户将单独设计 UI；当前仅功能草稿。Files 第二次进入目录时镜像中断，取消按钮返回及取消后的应用状态、项目包重开、iPad 交互、文件授权仍未验收，FLOW-03/06 不勾选 |
+| H10 | 单变量二分/Brent、用户单调 1D 分析，以及调用方显式已知仿射 3D 模型的反求生成子集已实现 | 端点、无根、平段、非有限、未收敛、取消注入、7 个交叉目标和显式仿射 3D CUBE 独立参照通过 | 任意 3D LUT 反求、完整 LUTAnalyst、真实任务取消和更多病态曲线未验收，FULL-05 不勾选 |
+| H11 | sRGB 双版本、Rec.709 旧兼容、Sony S-Log3 双版本、ARRI LogC4、Panasonic V-Log、Apple Log 与 Apple Log 2 已进入最小计划；BT.2100-3 HLG 场景 OETF/逆函数已接入；BT.1886 参数化参考显示 EOTF/逆函数已接入；新增 Fujifilm F-Log2 v1.1 官方解析式与 F-Gamut 身份，并保留独立旧版 F-Log2 兼容候选；Insta360 I-Log 2026 公式与 Rec.2020 身份；Xiaomi Mi-Log 2024 公式与 Rec.2020 身份；Leica L-Log V1.9 BT.2020 相机子集已接入；KineLOG3 与 Kinefinity Wide Gamut 已接入官方同色域子集 | 既有曲线的阶段证据见各项记录；F-Log2 官方同色域 33³/65³ 最大尺度化误差 `2.0677889068274172e-16`；旧版 F-Log2 兼容候选同色域 33³/65³ 均低于 `2e-12`；I-Log 线性输出 33³/65³ 最大尺度化误差 `3.229725256219298e-16`；Mi-Log 线性输出 33³/65³ 最大尺度化误差 `3.933118393877112e-16`；ACEScct 同 AP1 33³/65³ 最大尺度化误差 `1.1102230246251565e-16`；L-Log 线性输出 33³/65³ 最大尺度化误差 `3.049417739399331e-16`；KineLOG3 线性输出 33³/65³ 最大尺度化误差 `1.1150635581761299e-15`；BT.1886 33³/65³ 独立公式网格最大绝对误差 `0` | F-Log2C、I-Log 旧 8-bit/机型范围、Mi-Log 手机型号范围、Leica BT.709 设备范围、KineLOG3 跨色域矩阵与设备全范围、富士相机预设、跨色域与双端运行未验；BT.1886 的真实设备参数、HDR/OOTF、HLG OOTF、显示 EOTF、HDR/EDR、PQ、旧完整链等未完成，CORE-03 不勾选 |
+| APP-03 子集 | Swift 注册表登记 40 曲线、13 色域、26 个研发预设；CLI 从注册表取得预设 | 唯一性、来源、别名、悬空引用及当前预设 CLI 独立读回通过；L-Log、KineLOG3、旧版 F-Log2、简单 Gamma、ProPhoto/BBC、CIE L* 与 BBC WHP283 批次的 33³/65³ 独立逐节点读回通过 | 旧版完整条目、相机/格式与真实平台交互未完成，APP-03 不勾选 |
+| H12 | 纯 Swift `.lutcalc` 目录包、新建/打开/覆盖、自包含资源及完整清单的编辑会话、撤销/重做、另存为已实现；`FileDocument`/`DocumentGroup` 草稿接线已实现，重复字段含 Unicode 转义同名会拒绝；Bradford、legal、3D 网格、显式输入域、精确注册曲线/色域对、严格位深与输出精度、相机 stop correction 与调节开关均按原生项目字段处理 | Debug/Release Double 位精确与符号零、未知项拒绝、两窗口保存冲突、资源移动/另存为、文档历史/导出快照、`FileWrapper`/磁盘包互通、哈希/篡改/超限拒绝通过；Bradford 项目包、原生字段歧义拒绝契约通过；macOS 系统界面保存重开项目包通过 | 原生项目的 iOS Files/File Provider 与双端保存交互仍未完成，APP-04/FLOW-04 不勾选；旧 App JSON 设置不属于原生输入，入口会明确拒绝 |
+| H13 | CPU Double 参考路径、四字段身份会话、ImageIO RGB/monochrome 8/16 位原始样本解码；源 ICC provenance、PNG/ICC 结构与只读 metadata 摘要；独立显示计划、后台整图 CPU 预览和显式 sRGB RGBA8 位图草稿；ICC RGB matrix/TRC CPU 子集现支持 `curv(count=0)` 恒等、`count=1` u8Fixed8 gamma、`count>1` 用户 profile uInt16 曲线及 `para(type=0...4)`；另有用户导入三通道 `mft1/mft2/mAB/mBA` CPU 子集 | 图像/身份/alpha/方向/预算/ICC/CRC 契约及显示 OETF、HLG 拒绝、固定 RGBA8 字节、后台取消门控通过；ICC 解析式与 sampled TRC 的 CPU 矩阵路径、反求歧义拒绝和 33³/65³ 往返通过；`mft1/mft2/mAB/mBA` 独立顺序/边界/Double 契约通过；本阶段完整 Swift Release 342 项（2 项可选夹具跳过）和 macOS/iOS Simulator/generic iOS 三平台 Release 构建通过 | 完整 ICC 类型、任意通道数、LUT profile/color-management linking、Core Image/Metal 等价、HDR/EDR、其他像素布局、真实显示色彩管理、真机/Files 仍未完成，H13/FLOW-05/UI-03 不勾选 |
+| 验证入口 | 静态原生边界、实际 App 包资源审计、Swift 子集契约和全量发布门槛脚本已建立 | 旧版 F-Log2 接线后旧 Node 11 项、Python 审计契约 3 项、最新 Swift Release XCTest 165 项、macOS/iOS Simulator/iOS generic 三个 Release 构建及对应三个 App 包禁用资产检查通过；L-Log、KineLOG3、旧版 F-Log2 33³/65³ 独立逐节点读回通过；iPhone Air SPI3D 单项结果见独立真机记录；最新日志 `/tmp/lutcalc-h13-duplicate-iccp-release-20260925.log` | 本次入口因缺少真实全量发布清单退出 2；新增曲线尚无真机数值运行；二进制等价采样表与许可的完整审计、全部 H 包与发布证据未完成，不计发布通过 |
+
+本阶段的实际命令、误差、源码与夹具哈希见[H01–H05 验收记录](native-validation/2026-09-23-h01-h05.md)、[H04 方言阶段记录](native-validation/2026-09-23-h04-cube-dialects.md)、[H04 组合 CUBE 记录](native-validation/2026-09-23-h04-shaper-cube.md)、[H06–H07 验收记录](native-validation/2026-09-23-h06-h07.md)、[H06 旧路径对照](native-validation/2026-09-23-h06-legacy-full-path.md)、[H06 Legal 范围对照](native-validation/2026-09-23-h06-legal-range.md)、[BASE-05 比较器阶段记录](native-validation/2026-09-23-base05-comparator.md)、[BASE-05 阶段诊断记录](native-validation/2026-09-23-base05-stage-diagnostics.md)、[H08 验收记录](native-validation/2026-09-23-h08.md)、[H08 块边界取消记录](native-validation/2026-09-23-h08-block-cancellation.md)、[H08 文件取消记录](native-validation/2026-09-23-h08-file-cancellation.md)、[H08 提交边界记录](native-validation/2026-09-23-h08-commit-boundary.md)、[H08 强制乱序记录](native-validation/2026-09-23-h08-forced-reorder.md)、[H08 本地覆盖记录](native-validation/2026-09-23-h08-local-overwrite.md)、[H09 草稿记录](native-validation/2026-09-23-h09-ui-draft.md)、[H10 验收记录](native-validation/2026-09-23-h10.md)、[H11 sRGB 阶段记录](native-validation/2026-09-23-h11-srgb.md)、[APP-03 注册表阶段记录](native-validation/2026-09-23-app03-catalog.md)、[H12 项目基础阶段记录](native-validation/2026-09-23-h12-project-foundation.md)、[H12 已有项目记录](native-validation/2026-09-23-h12-existing-project.md)、[H13 CPU 预览阶段记录](native-validation/2026-09-23-h13-cpu-preview.md)、[H13 身份门控记录](native-validation/2026-09-23-h13-preview-identity.md)及[验证入口阶段记录](native-validation/2026-09-23-validation-entry.md)。下一项是 H13 图像/平台接入、H08 File Provider/设备事务和其余格式与发布验证。UI 视觉与完整交互等待用户另行设计，当前草稿不视为定稿。表中的通过只覆盖对应样本，不代表完整迁移。
+
+新增图像解码阶段的文件哈希、实际命令和数值结果见[H13 ImageIO 原始样本记录](native-validation/2026-09-23-h13-imageio-source.md)。
+
+2026-09-24 的项目模型进展见[H12 项目编辑会话记录](native-validation/2026-09-24-h12-edit-session.md)。
+
+项目草稿界面与保存接线见[H09/H12 项目草稿接线记录](native-validation/2026-09-24-h09-h12-project-draft.md)。
+
+项目切换后的导出结果隔离见[H09 导出身份记录](native-validation/2026-09-24-h09-export-identity.md)。
+
+Rec.709 分段边界与逆函数空隙见[H11 Rec.709 研究记录](native-validation/2026-09-24-rec709-boundary.md)。
+
+项目切换时保留未保存编辑的模型契约见[H12 未保存切换保护记录](native-validation/2026-09-24-h12-unsaved-switch.md)。
+
+首次保存前具有撤销历史的新项目会话见[H12 新项目会话记录](native-validation/2026-09-24-h12-new-project.md)。
+
+Rec.709 旧兼容曲线的独立数值结果见[H11 Rec.709 阶段验收](native-validation/2026-09-24-h11-rec709-legacy.md)。
+
+Rec.709 旧兼容 33³/65³ 全网格与研发 CUBE 读回见[H11 Rec.709 全网格验收](native-validation/2026-09-24-h11-rec709-grid.md)。
+
+系统文档包模型与原有目录项目互通见[H12 FileDocument 阶段验收](native-validation/2026-09-24-h12-file-document.md)。
+
+双端系统文档场景、功能草稿及项目类型声明见[H09/H12 DocumentGroup 阶段验收](native-validation/2026-09-24-h09-h12-document-group.md)。
+
+文档窗口导出快照、取消、晚返回隔离及真实 17³ CUBE 读回见[H09 文档导出会话阶段验收](native-validation/2026-09-24-h09-document-export-session.md)。
+
+ImageIO 图像导入到文档单像素 Double 数值取样见[H13 文档取样阶段验收](native-validation/2026-09-24-h13-document-sampling.md)。
+
+H13 的源文件 ICC 与 ImageIO 解码空间来源区分见[H13 ICC 来源阶段验收](native-validation/2026-09-24-h13-icc-provenance.md)：仅把 `kCGImagePropertyProfileName` 作为源嵌入 ICC 的已证实证据；缺少该键时标为源 ICC 未证实，`CGColorSpace` ICC 数据不冒充源文件资料，也不执行隐式转换。该子集契约已通过，嵌入 ICC 字节校验、显示空间转换、整图显示、Core Image、HDR/EDR 与双端运行仍未完成，H13/UI-03 不勾选。
+
+Sony S-Log3 官方与旧兼容解析版本的标量、全码和曝光计划阶段见[H11 S-Log3 阶段验收](native-validation/2026-09-24-h11-slog3-scalar.md)。
+
+Sony S-Log3 双版本 33³/65³ CUBE 全节点校验见[H11 S-Log3 全网格验收](native-validation/2026-09-24-h11-slog3-grid.md)。
+
+Sony/ACES CTL 的 S-Gamut3.Cine→线性 AP0 矩阵、10 点及 33³/65³ 全网格验证见[H11 S-Log3 跨色域验收](native-validation/2026-09-24-h11-slog3-ap0.md)。
+
+Sony/ACES CTL 的 S-Gamut3（非 Cine）→线性 AP0 矩阵、10 点及 33³/65³ 全网格验证见[H11 S-Gamut3 跨色域验收](native-validation/2026-09-24-h11-sgamut3-ap0.md)。
+
+ARRI LogC4/AWG4 的公式、旧标量差异、公布矩阵与 33³/65³ CUBE 验证见[H11 LogC4 阶段验收](native-validation/2026-09-24-h11-logc4.md)。Xcode 27 下双平台构建、Swift 测试与剩余发布证据见[Xcode 27 平台构建阶段记录](native-validation/2026-09-24-xcode27-builds.md)。
+
+macOS 草稿实际新建与生成、iPhone/iPadOS 模拟器首次启动及未验收交互见[双端原生草稿运行记录](native-validation/2026-09-24-native-runtime-draft.md)。
+
+Panasonic 手册和 ACES CTL 的 V-Log/V-Gamut 公式、Bradford 矩阵差异、旧曲线比较及 33³/65³ CUBE 逐节点结果见[H11 V-Log 阶段验收](native-validation/2026-09-24-h11-vlog.md)。
+
+ACES CTL 定义的原始 Apple Log/Rec.2020 与 Apple Log 2/Apple Wide Gamut 公式、旧标量缺陷及双版本 CUBE 验证见[H11 Apple Log 阶段验收](native-validation/2026-09-24-h11-applelog.md)。这是新增候选与旧能力分别跟踪的阶段结果。
+
+可用 iPhone 首次开发签名因团队不匹配失败；使用当前 Xcode 账户的团队后，签名构建、安装与进程启动通过，交互及数值未验收，见[真机签名与启动阶段记录](native-validation/2026-09-24-device-signing.md)。
+
+Bradford 设置在原生项目清单和草稿编辑中曾丢失，先失败后修复的契约及剩余 H12 范围见[H12 适应设置持久化记录](native-validation/2026-09-24-h12-adaptation-persistence.md)。
+
+iPhone Air 功能草稿的 17³ D-Log2 CUBE 已从 App 容器取回并与独立参照全节点比对，见[真机 D-Log2 CUBE 阶段验收](native-validation/2026-09-24-iphone-dlog2-cube.md)。系统“保存到文件”和项目包重开仍未确认。
+
+实际构建的三个 Release App 包和已签名 iPhone Debug 包的 LUT/脚本/直接框架链接边界已检查，见[App 包资源审计阶段记录](native-validation/2026-09-24-built-app-resource-audit.md)。二进制等价采样表与完整发布审计仍未完成。
+
+iOS/iPadOS 的系统启动屏和各设备方向声明已按 Apple 平台资料补齐，两个实际 iOS Release App 包读回通过，见[启动与方向声明阶段记录](native-validation/2026-09-24-ios-platform-plist.md)；旋转与多窗口体验仍需实测。
+
+macOS 功能草稿已通过真实系统保存面板创建项目包并在关闭后重开读回，iPad Air 模拟器已启动至原生文档浏览器，见[macOS 项目界面往返阶段记录](native-validation/2026-09-24-mac-project-ui-roundtrip.md)。iPad 新建和保存尚未验收。
+
+`.spi1d` 的公开格式参照、纯 Swift 解析/写出、先失败后通过的六项契约及剩余平台接入见[`.spi1d` 格式阶段验收](native-validation/2026-09-24-spi1d-format.md)。FULL-06 保持未完成。
+
+`.spi3d` 的蓝轴最快文件顺序、坐标落位、重复索引拒绝和 Double 往返见[`.spi3d` 格式阶段验收](native-validation/2026-09-24-spi3d-format.md)；与 `.spi1d` 合计 11 项格式契约通过，草稿入口接线见下文。
+
+功能草稿中用户主动导入 CUBE/SPI1D/SPI3D 的后台解析、临时数值取样和晚返回隔离见[用户 LUT 导入阶段验收](native-validation/2026-09-24-user-lut-import-draft.md)。macOS 系统面板的单项 SPI1D 已完成；iPhone Air 入口和 Files 选择器已实测，选中后的授权解析、iPad 与项目资产持久化未完成。
+
+SPI3D 的分块流式写出、文档草稿格式选择、17³ 包级读回及 52 项 XCTest/三平台 Release 回归见[SPI3D 流式导出阶段验收](native-validation/2026-09-24-spi3d-stream-export.md)。后续 iPhone Air 实机安装、生成、容器取回和 4,913 节点独立比对已通过；Files 在“我的 iPhone”提交保存后返回文稿的 UI 状态见[真机 SPI3D 验收](native-validation/2026-09-24-spi3d-device-export.md)。取消后的状态及独立 Files 读回未验证，FULL-06、FLOW-02/03 仍未完成。
+
+`.spi1d` 的纯 Swift Double 独立通道生成、临时文件提交、文档会话导出及 D-Log2 同色域逐通道参照见[SPI1D 生成阶段验收](native-validation/2026-09-24-spi1d-generation.md)。该实现拒绝跨色域和非标量域等不可无损表示的请求，固定 1024 点；真机/Files 往返、目标软件导入和 FULL-06 其他格式仍未完成，不能勾选 FULL-06。
+
+SPI1D 本地文件事务的受控写块取消、拒绝默认覆盖及外部改写检测见[SPI1D 文件事务阶段验收](native-validation/2026-09-24-spi1d-file-transaction.md)。8 项生成契约通过；File Provider、真机文件保存及 FULL-06 保持未完成。
+
+旧 S-Log3 冻结基线验证入口的跨 Node 运行时舍入差异与结构化核验见[旧 S-Log3 基线运行时验收](native-validation/2026-09-24-slog3-legacy-baseline-runtime.md)。冻结源码哈希、结构和 Double 精度门槛保持不变。
+
+`.3dl` Flame/Assimilate 整数子集的纯 Swift 解析、量化写出、文件轴序转换及拒绝契约见[H04 `.3dl` Flame 阶段验收](native-validation/2026-09-24-3dl-flame-format.md)。后续 App 接线见下文；Lustre/Kodak 方言和第三方软件尚未验证，FULL-06 不勾选。
+
+`.vlt` Varicam 3D `17³`、12-bit 整数文本子集的纯 Swift 解析/写出和拒绝契约见[`.vlt` Varicam 阶段验收](native-validation/2026-09-24-vlt-varicam-format.md)。现已接入文档草稿流式导出，4913 节点读回及 2 项服务契约通过，见[`.vlt` App 导出阶段验收](native-validation/2026-09-24-vlt-app-export.md)；可变尺寸/1D 方言、真机文件流程和第三方软件未验，FULL-06 不勾选。
+
+`.ilut` DaVinci Resolve 固定 16,384 行、14-bit 1D 整数子集的纯 Swift 解析/写出、先失败后通过的四项格式契约，以及文档导出服务/草稿格式选择接线见[`.ilut` 阶段验收](native-validation/2026-09-24-ilut-format.md)。导出限制单位域、同色域和可表示输出，未验证 Resolve 导入；FULL-06 不勾选。
+
+`.olut` 固定 4,096 点、12-bit 六列重复 RGB 的纯 Swift 格式子集及旧写读标度冲突见[`.olut` 阶段验收](native-validation/2026-09-24-olut-format.md)。格式模块 4 项契约通过；用户主动只读导入草稿见[用户导入阶段验收](native-validation/2026-09-24-user-lut-olut-assimilate-import.md)，文档导出服务和事务边界见[`.olut` 原生文档导出阶段验收](native-validation/2026-09-25-olut-app-export.md)。尚未验证 Resolve 导入、系统保存面板、File Provider 或真机文件往返，FULL-06 不勾选。
+
+Assimilate 1D `.lut` 的纯 Swift `LUT: 1/3 N` 解析与三通道块写出、4,096 点往返及 6 项定向契约见[Assimilate `.lut` 阶段验收](native-validation/2026-09-24-assimilate-lut-format.md)。已接入用户主动只读导入草稿，尚未接入导出或验证 Assimilate 实际软件导入，FULL-06 不勾选。
+
+此前 `devicectl` 曾显示物理 iPhone Air、iPhone SE 和 iPhone SE 3 均为 `unavailable`，见[物理设备状态复核](native-validation/2026-09-24-device-status-after-olut.md)。iPhone Air 随后恢复连接，已完成本版 SPI3D 实机生成、容器取回和逐节点比对；系统文件保存流程仍未闭环，见[真机 SPI3D 验收](native-validation/2026-09-24-spi3d-device-export.md)。
+
+`.3dl` Flame/Assimilate 子集已接入原生文档草稿导出：分块生成按目标文件轴序定位写入，10/12-bit 整数文件经解析读回，取消与默认拒绝覆盖保持既有目标；5 项新增契约及全包 Swift 测试通过，见[`.3dl` App 导出阶段验收](native-validation/2026-09-24-3dl-flame-app-export.md)。第三方导入、其他方言和真机文件流程未验收，FULL-06 仍不勾选。
+
+上述源码状态的完整回归见[`.3dl` 子集后发布门槛记录](native-validation/2026-09-24-after-3dl-release-gate.md)：旧 Node 9 项、Python 审计契约 3 项、Swift Release XCTest 66 项、三平台 Release 构建和三包审计通过；入口仍因缺少真实全量验收清单退出码 2。
+
+三种 1D 格式子集及 `.ilut` 接线后的再次完整回归见[92 项 Swift 回归与发布门槛记录](native-validation/2026-09-24-after-ilut-olut-assimilate-release-gate.md)：旧 Node 11 项、Python 审计契约 3 项、Swift Release XCTest 92 项、三平台 Release 构建和三包审计通过；入口仍因缺少真实全量验收清单退出码 2。该结果只对应日志中的源码状态，后续接线须重新验证。
+
+本版 SPI3D 的真机尝试因 iPhone Air 当前被 `devicectl` 列为 `unavailable` 而未能构建/安装；iPhone Air 模拟器已安装启动本版并显示原生文档首页，但没有模拟器界面 SPI3D 导出结果。精确命令、退出码和截图见上述流式导出记录。用户要求本轮落盘后停止，并在新对话继续，交接摘要见[原生迁移续接记录](native-validation/2026-09-24-native-continuation-handoff.md)。Goal 保持未完成。
+
+续接时设备不可用的历史状态见[最新版 SPI3D 真机状态记录](native-validation/2026-09-24-spi3d-device-status-followup.md)。其后物理 iPhone Air 已恢复，SPI3D 真机生成、App 容器取回和逐节点比较见[真机 SPI3D 验收](native-validation/2026-09-24-spi3d-device-export.md)；同名模拟器未计入真机证据。
+
+H12 原生清单版本审查见[原生项目版本审查记录](native-validation/2026-09-24-h12-native-manifest-version-audit.md)：当前原生写入只接受 schema v2；没有可验证的旧版本升级契约，未知 schema/engine/catalog 和旧 schema 均严格拒绝，不做版本迁移。
+
+H11 场景 HLG 的独立 33³/65³ 网格检查及同色域黑位修正见[HLG 全网格阶段验收](native-validation/2026-09-24-h11-hlg-grid.md)。它不涵盖显示 EOTF/OOTF 或 HDR 实屏。
+
+`.ncp` 在旧写出研究后，已新增严格的 638 字节 `0100` 只读子集，并以公开实样、独立 Perl 解析器和 Release XCTest 核对；见[`.ncp` 只读子集记录](native-validation/2026-09-25-h04-ncp-0100-read.md)与[早期写出阻塞记录](native-validation/2026-09-24-ncp-research-blocker.md)。本轮先写失败契约，再加入 `NCP0100Writer` 的显式 `.writeUnsupported` 边界；已有目标文件保持不变，定向 LUTFormats Release 构建通过，见[`.ncp` 写出边界记录](native-validation/2026-09-25-h04-ncp-write-boundary.md)。尚无机型/固件及 Nikon 软件、相机导入证据，不开启写出，不勾选 FULL-06。
+
+当前源码的完整验证见[99 项 Swift 回归与发布门槛记录](native-validation/2026-09-24-after-hlg-vlt-release-gate.md)：旧 Node 11 项、Python 3 项、Swift Release XCTest 99 项、三平台 Release 构建及三包资源审计通过；入口因真实全量清单缺失退出 2，发布仍未通过。
+
+F-Log2、ACEScct、I-Log、Mi-Log 与 Leica L-Log 的公式接线采用批量契约、共享 Release 构建及 33³/65³ 独立读回；当前 L-Log 阶段详情见[H11 Leica L-Log 阶段验收](native-validation/2026-09-25-h11-llog-stage.md)。L-Log 只覆盖手册明确的 BT.2020 相机子集，未混入 BT.709 设备范围。
+
+KineLOG3 接线采用同一批量流程；阶段详情见[H11 KineLOG3 阶段验收](native-validation/2026-09-25-h11-kinelog3-stage.md)，完整回归见[145 项 Swift 回归与发布门槛记录](native-validation/2026-09-25-after-kinelog3-release-gate.md)。当前只覆盖官方页面给出的 Kinefinity Wide Gamut 同色域计划，跨色域矩阵和设备范围仍未冻结。
+
+旧版 F-Log2 兼容候选的独立公式、身份和 33³/65³ 批量验收见[H11 旧版 F-Log2 阶段记录](native-validation/2026-09-25-h11-flog2-legacy-stage.md)；随后完整 151 项回归见[旧版 F-Log2 批量回归记录](native-validation/2026-09-25-after-flog2-legacy-release-gate.md)。
+
+33³/65³ 数值案例现由[曲线批量生成与独立读回阶段验收](native-validation/2026-09-25-batched-cube-validation.md)的显式清单统一调度：当前 20 个案例、40 个生成/读回对分成“先生成、后独立读回”两阶段，默认 2 个受控 worker，保持原有 preset、Double 节点和 `2e-12` 门槛。该优化只改变调度，不改变结果，也不覆盖真机或发布门槛。
+
+- [x] DOC-01：检查项目规则、计算核心、格式注册、调节入口和既有数值测试。
+- [x] DOC-02：落盘总体设计、精度规范和可执行迁移清单。
+- [x] DOC-03：2026-09-23 运行 `node --test tests/*.test.js`，9 项通过、0 项失败；它只证明现有覆盖范围，未验证原生实现。
+
+- [x] DOC-04：运行注册表生成 114/43/66 快照，记录 9 个二进制资源与 45 个直接查表注册项；这不是完整算法依赖证明。
+- [x] DOC-05：完成首批覆盖调查、官方资料归档、来源哈希与冲突登记；原生设计增加禁止内置 LUT/采样表要求。
+
+- [x] DOC-06：细化数值、运行与文件契约，拆分 H01–H14 实现工作包；新增 7 项旧行为复现和基础有理数/解析器夹具。尚无 Swift 实现。
+
+实际交接从[实现 AI 入口](native-swift-handoff.md)开始；H 工作包是本清单的执行拆分，不替代或取消原任务。未解决的算法来源、任意 3D 反求及复杂算子预算保持研究状态。
+
+## 1. 阶段与依赖
+
+```mermaid
+flowchart LR
+    P0[P0 冻结行为与参照] --> P2[P2 基础数值内核]
+    P1[P1 原生工程与模型] --> P2
+    P2 --> P3[P3 首条端到端链路]
+    P3 --> P4[P4 完整功能迁移]
+    P3 --> P5[P5 预览与平台交互]
+    P4 --> P6[P6 性能与完整验收]
+    P5 --> P6
+    P6 --> P7[P7 发行准备]
+```
+
+先建立参照和可重跑的数值验证，再以 D-Log2/D-Gamut2 → `.cube` 打通两端。此后分批补齐功能。先在 Mac 完善操作体验，同时持续编译并测试 iOS，避免到最后才发现平台依赖问题。
+
+## 2. P0：盘点、基线和独立参照
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | BASE-01 | 从实际运行的注册表抽取曲线、色域、相机、默认值、格式与方向能力；盘点调节和分析功能 | 机器可读能力清单；每项有稳定 ID、源位置、别名、输入/输出方向和迁移状态；排除注释代码 |
+| [ ] | BASE-02 | 冻结散装代码、三个 bundle、相关资源及测试夹具 | 源码/资产 SHA-256 清单、Node 版本、运行配置；覆盖未跟踪文件；识别 bundle 差异 |
+| [ ] | BASE-03 | 实现旧引擎无界面调用器，加载内置 LUT，执行真实参数与完整生成管线 | `tools/native-validation/` 内可重复命令；输出 Float64 原始数据和元数据，覆盖 1D/3D 与关键调节 |
+| [ ] | BASE-04 | 建立独立公式及资产来源清单，迁入 D-Log2 现有夹具 | 每条首批曲线/矩阵有资料、版本、哈希、定义域；高精度参考生成脚本与现有 NumPy 参照明确区分 |
+| [ ] | BASE-05 | 建立比较器、固定种子采样、阶段诊断和误差报告 | 具备最大/RMS/P99/最差样本报告；用故意扰动、轴序交换和量化错误证明能检出问题 |
+| [ ] | BASE-06 | 冻结首批测试域、每项阈值、舍入预算与已知旧偏差 | 精度规范中的待定表有可追踪实例；无“先移植失败再自动放宽阈值”的流程 |
+
+**退出条件**：能从同一基线重复产生相同样本数据；真实 `.cube` 端到端生成可验证；数值参照与现有兼容基准各自有来源。
+
+### P0 补充：纯算法替代与新覆盖资料
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | ALG-01 | 完成全依赖审计，补齐已识别 9 个资源和 45 个注册项之外的间接查表 | 逐项台账、所有 bundle/预览/特殊输出依赖检查；明确哪些是公式参数、哪些是样本 |
+| [ ] | ALG-02 | 为遗留查表功能建立算法替代方案 | 每项公开定义或可验证模型、误差预算、与旧版差异；缺失资料保持未完成，不静默删除 |
+| [ ] | SRC-01 | 补齐 Samsung Log 等受限资料与 LUT-only 项目的公式，并核实 Apple Log 2 的原厂白皮书与设备范围 | 精确版本与设备范围、合法取得的原文、公式/矩阵；Apple Log 2 的 ACES CTL 解析式已取得但设备适用仍待核实，其他获取失败可追踪 |
+| [ ] | SRC-02 | 裁决 OPPO 等资料冲突，确认 GoPro 负值域与手机场景标度 | 技术决策记录、独立对照及最差样本；不混用不一致的真值 |
+| [ ] | SRC-03 | 将覆盖调查的可用公式转成独立参考夹具 | ACEScct、F-Gamut C、L-Log、KineLOG3、I-Log、Mi-Log、BT.1886 等逐项冻结；不加入产品运行资源 |
+
+## 3. P1：原生工程与数据模型
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | APP-01 | 建立 macOS/iOS targets、共享 Swift Package、测试 targets；固定工具链和支持矩阵 | `Native/` 工程；两平台可构建，记录 Xcode/Swift/SDK、最低 OS、支持架构和可重复命令 |
+| [ ] | APP-02 | 定义 Double 数学类型、稳定 ID、信号范围、域、标度、设置快照 | 类型单测验证矩阵方向、单位与数据往返；核心包不依赖 UI |
+| [ ] | APP-03 | 建立注册表加载、能力查询和算法参数机制 | 单一来源、ID 唯一性、别名和预设引用完整性测试；公式来源及版本可核对；运行 target 不包含研究 LUT |
+| [ ] | APP-04 | 建立项目编辑会话、撤销/重做、版本化项目包 | 精确数值保存/读回；资源引用、自包含项目和未知版本处理有测试 |
+| [ ] | APP-05 | 建立任务状态、服务注入、错误与诊断模型 | 主线程 UI 与后台 CPU 工作边界明确；请求不可变；严格并发检查通过 |
+
+**退出条件**：空壳应用可以在两端创建/保存/打开测试项目；基础模型双端共享。此时不宣称已具备 LUT 精度。
+
+## 4. P2：基础 Double 引擎
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | CORE-01 | 建立 Double 标量数学基准、矩阵运算、适应模型和域外规则 | 独立参考、负通道、非对称矩阵、病态输入、失败诊断通过 |
+| [ ] | CORE-02 | 首先实现 D-Log2/D-Gamut2，包括 data/legal 和内部 0.2/场景 0.18 标度 | 现有严格门槛全部保留；10/12-bit、分段邻域、负值/HDR 与标量/向量一致性通过 |
+| [ ] | CORE-03 | 实现 S-Log3、LogC4、Apple Log、V-Log、Rec.709、sRGB、线性及相应色域的首批集合 | 每项注册、方向、来源和阈值齐全；每项独立验证后才能出现在可用 UI 中 |
+| [ ] | CORE-04 | 从旧代码提取并实现不可变变换计划，覆盖范围、曝光、输出限制 | 中间阶段对照、非恒等链路、参数顺序及格式覆盖默认值通过 |
+| [ ] | CORE-05 | 实现 1D/3D 网格生成、块索引及确定性合并 | 现有要求的维度、首尾节点、轴序、完整网格及分块一致性通过 |
+| [ ] | CORE-06 | 实现基础插值、节点/域外策略及测试工具接口 | 同模式下节点与网格间误差检查通过；不把不同插值混同 |
+
+**退出条件**：无 UI 的 Swift 命令行验证器可以生成首批 LUT，并在定义的输入域内通过 JS 兼容和独立参考双重检查。
+
+## 5. P3：首条可用链路与原生预览版
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | FLOW-01 | 实现 `.cube` 1D/3D 解析与三种现有方言写出 | 高保真/固定小数策略、域、轴序、非有限值拒绝和独立解析检查通过 |
+| [ ] | FLOW-02 | 实现生成进度、取消、文件授权、暂存与原子提交 | Mac/iOS 实际导出读回；取消和失败不破坏已有文件，无虚假完成状态 |
+| [ ] | FLOW-03 | 完成输入、输出、范围、曝光、尺寸和导出设置 UI | 两端有效设置相同；精确数值输入、撤销、非法输入、格式限制行为通过 |
+| [ ] | FLOW-04 | 完成项目打开/保存和系统文件分享 | Finder/Files、重开项目和携带资源往返通过；保存不舍入参数 |
+| [ ] | FLOW-05 | 建立 CPU 参考图像预览及 RGB 数值取样 | 已知图像与精确样本对照通过；图像位深和源空间明确 |
+| [ ] | FLOW-06 | 对首批曲线做完整两端验收并制作报告 | Release 构建、33³/65³、首批目标软件导入与误差报告通过；列明未迁移功能 |
+
+**退出条件**：可交付首批功能的原生预览版。其范围由已通过项目决定，不能替代完整版本验收。
+
+## 6. P4：完整功能与文件兼容
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | FULL-01 | 迁移其余当前有效曲线、色域和特殊空间 | 能力清单逐项有实现与测试；所有有效输入/输出注册可用；遗留近似有出处和状态 |
+| [ ] | FULL-02 | 迁移相机、ISO/EI、裁剪设置和 Generic 行为 | 默认曲线/色域/范围联动、相机切换、预设导出链路验证；不补造缺失参数 |
+| [ ] | FULL-03 | 迁移自定义色域、白平衡、ASC-CDL、PSST-CDL、Multitone | 各自中性/边界/典型参数、组合和顺序敏感测试通过 |
+| [ ] | FULL-04 | 迁移 Highlight Gamut、Knee、黑白电平、Black Gamma、SDR Saturation、显示转换、Gamut Limiter、False Colour | 对应阶段和域外语义与基线一致；修正项有独立证据及版本记录 |
+| [ ] | FULL-05 | 迁移全部现有插值、样条、Brent 反求及 LUTAnalyst | 恢复误差、收敛与失败路径有报告；不对非可逆数据假装成功 |
+| [ ] | FULL-06 | 迁移 `.3dl` 各方言、`.vlt`、`.ilut`、`.olut`、`.lut`、`.spi1d`、`.spi3d`、`.ncp` | 按原有读写方向与设备限制验收；整数、字节序、舍入、轴序和溢出测试通过 |
+| [ ] | FULL-07 | 迁移用户 `.lacube` / `.labin` 读写，算法替换全部内置风格资源 | 文件格式往返独立验证；9 个旧资源与代码采样表逐项有算法/误差证据；公式缺失项明确阻塞；禁止把资源换格式后打包 |
+| [ ] | FULL-08 | 迁移曝光组生成和原生预设 | 批次命名、覆盖处理、取消状态、精确曝光序列通过；不支持的设置由原生项目格式明确拒绝 |
+
+**退出条件**：功能能力清单无未解释的缺失。新增的 ACEScct 等覆盖扩充单独立项，不用新增功能数量抵消旧功能遗漏。
+
+## 7. P5：图像预览、分析与平台体验
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | UI-01 | 完善 Mac 分栏、检查器、菜单、快捷键、多窗口和拖放 | 项目隔离、焦点、撤销和导入导出交互测试通过 |
+| [ ] | UI-02 | 完善 iPhone 分页、iPad 自适应、Files 和分享 | 紧凑/宽屏、旋转、前后台、内存压力及文件权限失效测试通过 |
+| [ ] | UI-03 | 实现原生图像解码、位深和色彩空间管理 | 8/16-bit 输入、方向、alpha、嵌入空间与显式 Log 输入流程验证 |
+| [ ] | UI-04 | 加入 Core Image 交互预览与缓存 | 语义对齐 CPU 路径；不匹配插值/域时可回退；预览阈值先冻结再验收 |
+| [ ] | UI-05 | 迁移波形、矢量示波器、RGB Parade、曲线、色度图和 RGB Sampler | 分析数据阶段、单位、图表轴与数值取样一致；相应旧功能清单全覆盖 |
+| [ ] | UI-06 | 验证 PQ/HLG 数值和 HDR/EDR 显示支持范围 | 数值测试与屏幕实测分别出报告；不支持的显示方式有明确行为 |
+| [ ] | UI-07 | 完成中文/英文、动态字体、VoiceOver、键盘与错误状态 | 关键操作可访问；数值格式与计算无关；不因本地化改变文件小数点 |
+
+**退出条件**：已发行预览功能误差预算达标，两端交互与文件流程真机验证完成。
+
+## 8. P6：性能、回归与发布门槛
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | QA-01 | 测量标量 Double 基线，选择代表性 Mac/iPhone/iPad | 固定设备和工作负载，记录33³/65³、批量、LUTAnalyst、图像预览的耗时与峰值内存 |
+| [ ] | QA-02 | 冻结设备性能预算，实施分块、流式输出、缓存与有界并发 | CPU 不阻塞主线程，取消及时，内存峰值达标；任何优化通过同一数值门槛 |
+| [ ] | QA-03 | 根据剖析选择 Double SIMD/Accelerate 优化 | 标量/优化、Debug/Release 对照通过；保存性能收益和精度报告 |
+| [ ] | QA-04 | 建立快测、完整数值验证和发行验证入口 | CI 可重复执行；失败会阻止发布；报告包含版本、哈希、平台和未覆盖项 |
+| [ ] | QA-05 | 完成全量能力与误差回归 | 所有发行功能阈值已冻结；无未处理数值偏差；完整精度规范清单通过 |
+| [ ] | QA-07 | 建立纯算法发行检查 | 资源允许列表、archive/包资源检查、源码与依赖图审计；不提供研究 LUT 时仍能运行内置变换 |
+| [ ] | QA-06 | 完成目标软件/设备兼容、文档往返和故障场景验收 | 有实际版本/设备及文件证据；未实测格式不标记完全兼容 |
+
+计划新增的验证入口如下，目前均尚未创建：
+
+```text
+node --test tests/*.test.js                 # 现有 JS 测试，当前可执行
+swift test --package-path Native/Packages/LUTKit  # 原生包建成后可执行
+Scripts/verify-native-fast.sh               # 计划：包测试、首批数值对照、两端构建
+Scripts/verify-native-numerics.sh           # 计划：完整注册表、参考、格式与优化验证
+Scripts/verify-native-release.sh            # 计划：所有数值与平台发行门槛及报告汇总
+```
+
+脚本必须明确读取实际工程 scheme 和设备配置，不依赖某个开发者机器上的默认 Xcode 路径。签名/真机/目标软件手工验证结果需作为单独证据输入，不能用模拟器构建代替。
+
+## 9. P7：发行准备
+
+| 状态 | ID | 要完成的工作 | 交付物与完成标准 |
+| --- | --- | --- | --- |
+| [ ] | REL-01 | 确定产品标识、发行渠道、最低系统、签名和资源许可 | 配置及来源清单可复核；GPLv2 相关分发要求按实际方式处理 |
+| [ ] | REL-02 | 完成签名安装包/归档与所选渠道需要的检查 | 新安装、升级、原生项目重新打开验证通过；保留构建信息 |
+| [ ] | REL-03 | 写中文使用说明、精度说明、兼容范围和版本变更 | 说明何种结果与旧版相同、何种经过修正；所有准确度提升有报告支持 |
+| [ ] | REL-04 | 汇总完整发行报告 | 功能、数值、格式、预览、性能、构建与真机各项状态独立列明，无将部分成功写成全量完成 |
+
+## 10. 每个功能的完成定义
+
+每个能力清单条目至少记录以下字段：
+
+```text
+ID / 原有名称与别名 / 源代码位置 / 方向与参数范围
+Swift 实现位置 / 原始资料及资产哈希 / 算法版本
+输入域与样本集合 / 独立参照 / 兼容基线
+误差阈值与舍入预算 / 当前最差误差 / 最差输入
+格式及预览影响 / macOS 与 iOS 测试状态
+已知偏差及决定 / 验证报告路径 / 完成状态
+```
+
+完成状态按“待盘点 → 待实现 → 实现完成 → 数值通过 → 平台通过 → 可发布”推进。任务分解可调整，但完整迁移和精度门槛不能因时间预算而隐式缩减。
+
+## 11. 后续扩展候选
+
+- [ ] FUTURE-01：根据误差测量和目标软件支持评估 129³ 或更高尺寸。
+- [ ] FUTURE-02：按[覆盖调查](colour-research-2026-09-23.md)的 G01–G14、S01–S06、W01–W02 实现新增能力，厂商风格和相机预设分别立项；资料收集已完成首轮，实现与验收尚未开始。
+- [ ] FUTURE-03：视频预览与逐帧应用；需要新的解码、时序和颜色元数据测试。
+- [ ] FUTURE-04：iCloud 同步、快捷指令等系统集成。
+
+这些候选不计入当前完整迁移完成率，也不阻塞已有范围的交付。
+
+Assimilate 1D `.lut` 已接入原生文档功能草稿导出：固定 4,096 点 Double 独立通道生成，按既有整数三通道块写出并经解析读回；新增 7 项接线契约、1 项格式边界契约及全包 107 项 Swift Release XCTest 通过。位模式精确单位域（拒绝 `-0.0`）、同色域、可表示码值及默认拒绝覆盖均为显式约束。阶段详情见[Assimilate `.lut` App 导出验收](native-validation/2026-09-24-assimilate-lut-app-export.md)；系统保存、真机文件流程和目标软件导入未验，H04/FULL-06 不勾选。
+
+SPI1D 生成请求与文件 sink 的节点上限已和本方解析器的 64 MiB 解码预算对齐；两个越界契约先失败后通过，定向 10 项、全包 111 项 Swift Release XCTest 通过，见[SPI1D 读回预算阶段验收](native-validation/2026-09-24-spi1d-decoded-budget.md)。这只封闭可构造性与本地文件准备边界，真机保存、目标软件导入及完整 1D 兼容仍待验，H04/FULL-06 不勾选。
+
+SPI3D 的本地已有文件保护和部分写入后取消现有格式专属契约：定向 Release 4 项通过，新增 2 项确认目标原字节保持且临时文件清除，见[SPI3D 文件事务阶段验收](native-validation/2026-09-25-spi3d-file-transaction.md)。生产实现未改；File Provider、最终替换竞争与真机取消仍未验收，真机“保存到文件”一次提交后返回文稿的 UI 证据已补入[SPI3D 真机验收](native-validation/2026-09-24-spi3d-device-export.md)，H08/FLOW-02/QA-02 不勾选。
+
+ILUT/OLUT 固定整数 1D 导出的输入域前置判定现与 writer 的位模式规则一致，拒绝 `-0.0` 冒充单位域；先失败后通过的 3 项定向 Release 契约、当前全包 120 项 Swift Release 回归和三平台构建见[输入域符号零阶段验收](native-validation/2026-09-25-ilut-olut-signed-zero-domain.md)。本项不改变 Double 生成与量化，Files/第三方往返和 FULL-06 仍未完成。按用户最新安排，连接不稳定的真机测试集中到最后完成。
+
+CUBE 样本首通道 `NaN`/`Infinity` 现在与后续通道一致返回带行号的 `nonFiniteValue`，避免误报为未知指令。失败契约先复现、修复后 7 项 CUBE Release 定向测试通过，且整合后 121 项 Swift Release 回归及三平台构建通过，详情见[H04 CUBE 首通道非有限值阶段验收](native-validation/2026-09-25-h04-cube-leading-nonfinite.md)。H04/FLOW-01 仍未完成。
+
+H13 图像数值取样会话现于文稿 ID 切换时撤销源解释确认、清除前一文稿图像与取样，并拒绝旧加载的迟到结果。先失败后通过的 Release 命令行契约、Double 样本不退化及整合后 121 项 Swift Release 回归见[文稿切换图像身份阶段验收](native-validation/2026-09-25-h13-document-switch-image-gate.md)。整图显示和显示色彩管理仍未完成，H13/FLOW-05/UI-03 不勾选。
+
+Xiaomi Mi-Log 的三段公式和 10-bit/Rec.2020 边界见[H11 阶段验收](native-validation/2026-09-25-h11-milog-stage.md)；33³/65³ 共 310,562 节点独立 Decimal 参照最大尺度化误差 `3.933118393877112e-16`。当前仅接入白皮书第三方公式，硬件曲线和设备范围另行核对。
+
+Insta360 I-Log 的官方分段公式和 Rec.2020 身份见[H11 阶段验收](native-validation/2026-09-25-h11-ilog-stage.md)；33³/65³ 共 310,562 节点独立 Decimal 参照最大尺度化误差 `3.229725256219298e-16`。当前仅接入 2026 10-bit 官方版本，旧 8-bit 与机型范围另行核对。
+
+ACEScct 的公开 AP1 分段公式、AP1 原色和 ACEScct 上限处理见[H11 阶段验收](native-validation/2026-09-25-h11-acescct-stage.md)；先失败后通过的 3 项契约及 33³/65³ 共 310,562 节点独立 Decimal 参照最大尺度化误差 `1.1102230246251565e-16`。当前仅登记 ACEScct 官方解析式和同 AP1 研发计划，ACEScct 旧完整链及其他 ACES 交互仍未验收。
+
+Fujifilm F-Log2 官方 v1.1 分段公式的来源、切点和旧版差异见[独立研究记录](native-validation/2026-09-25-fuji-flog2-reference-research.md)；Swift 标量、F-Gamut 独立身份及同色域 33³/65³ 全节点验证见[H11 阶段验收](native-validation/2026-09-25-h11-flog2-official-stage.md)。旧 JS 的 0.9 线性标度和截断参数须另作兼容版本，不能以官方公式结果冒充旧完整链；富士相机预设与真机仍未验收。
+
+F-Log2 接线后的历史入口见[125 项 Swift 回归与发布门槛记录](native-validation/2026-09-25-after-flog2-release-gate.md)；I-Log 接线后的历史入口见[133 项 Swift 回归与发布门槛记录](native-validation/2026-09-25-after-ilog-release-gate.md)；Mi-Log 批次见[137 项 Swift 回归与发布门槛记录](native-validation/2026-09-25-after-milog-release-gate.md)；当前 L-Log 批次见[H11 Leica L-Log 阶段验收](native-validation/2026-09-25-h11-llog-stage.md)及[141 项 Swift 回归与发布门槛记录](native-validation/2026-09-25-after-llog-release-gate.md)。三平台 Release 构建与三包资源审计通过，发布入口仍因缺少真实全量验收清单退出码 2。后续继续采用批量来源清单、共享契约入口及集中构建推进已有可信公式，逐项保留独立误差和兼容状态。
+
+验证入口已做批量化：一次 Release 构建后直接复用产品目录运行 24 个命令行契约/生成检查；优化前 100 秒、优化后 42 秒，20 组数值 JSON 逐字一致，全部退出码 0。后续新增公式按来源清单批量接入和测试，单项定向契约仍保留用于定位。
+
+H13 ICC tag payload 的只读语义摘要见[ICC payload 阶段验收](native-validation/2026-09-25-h13-icc-payload.md)、[ICC 固定点阶段验收](native-validation/2026-09-25-h13-icc-fixed-point.md)和[PNG iCCP CRC 阶段验收](native-validation/2026-09-25-h13-icc-png-crc.md)：`text`、`desc`、`mluc`、`XYZ `、`sig ` 受限解码，未知或采样型 payload 保持 opaque；payload 固定头、ASCII/UTF-16、s15Fixed16、`mluc` 记录表边界、iCCP CRC 和真实 sRGB 共享 `curv` 范围通过。当前批量 Release 回归为 163 项 Swift 测试，日志 SHA-256 为 `6b51b1362368aa56a7602b0be3ecaec73dd6797e027eae6014535d599beacef5`；三平台构建和 App 审计通过，发布入口仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出 2。完整 ICC 类型覆盖、显示/工作空间转换、整图显示、HDR/EDR、真机和 Files 读回/取消仍未完成。
+
+H13 固定结构 tag 的只读摘要见[ICC 固定结构 tag 阶段验收](native-validation/2026-09-25-h13-icc-fixed-structure-tags.md)：新增 `curv` entry count、`chrm` 通道/色彩剂与 fixed-point 数值、`para` function type/参数、`view` 六项 XYZ 与 illuminant word、`meas` backing/flare 与三个 word；所有摘要只读，不保存曲线或 LUT 采样表，也不做颜色转换。定向 `PreviewContractsTests` Release 12 项通过，真实 ImageIO 夹具保持通过；本轮未运行全量发布门槛，完整 ICC 类型覆盖和 H13 显示色彩管理边界不变。
+
+H13 PNG 源 ICC 读取现拒绝重复 `iCCP` chunk：首个 profile 完成校验后继续扫描到 `IEND`，第二个 `iCCP` 返回 `invalidPNG`。先失败后通过的图像夹具契约见[重复 iCCP 阶段验收](native-validation/2026-09-25-h13-icc-duplicate-iccp.md)；原生子集入口退出码 0。其他 PNG CRC、完整 ICC 类型、显示转换与双端/真机验收仍未完成。
+
+重复 `iCCP` 接线后的完整 Release 回归为 165 项 Swift 测试，三平台 Release 构建和 3 个 App 包资源审计通过；日志 `/tmp/lutcalc-h13-duplicate-iccp-release-20260925.log`，SHA-256 为 `9fe80a68a4804661b419b256744b4f7e13abc17ba670a3a65c5796a7ebab0ee2`。发布证据检查仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出码 2。
+
+H13 PNG 源读取现对所有 chunk 执行 CRC-32 校验，损坏的 ancillary `tEXt` 也会拒绝；先失败后通过的契约和完整回归见[PNG 全 chunk CRC 阶段验收](native-validation/2026-09-25-h13-png-all-crc.md)。最新完整回归为 165 项 Swift 测试，日志 `/tmp/lutcalc-h13-png-all-crc-release-20260925.log`，SHA-256 为 `838b6d208fb81774abdd4f739082936628533e241a3927d72c83078183fce325`；发布门槛仍因真实全量清单缺失退出 2。
+
+H13 固定结构 tag 批次后的集中 Release 回归已完成：`swift test --list-tests` 为 167 项，Swift Release XCTest、旧 Node/Python 契约、33³/65³ 批量数值逐节点检查、macOS/iOS Simulator/iOS generic Release 构建和 3 个 App 包资源审计均通过。完整日志为 `/tmp/lutcalc-h13-fixed-structure-release-full.log`，SHA-256 `362db274dc63c2545ca436d83f4c26cb69a634d3649e4b2943ad6e82363534fb`；发布入口仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出 2，未伪造清单，真机与完整 ICC/显示色彩管理范围继续未完成。
+
+H13 ICC 标量 metadata 批次已接入 `cicp` 四字段、`dtim` 六字段（含实际公历月天数与闰年边界）和 `data` ASCII/binary flag 与 payload 长度的只读摘要；不保存 payload 内容，不做颜色转换。定向 `PreviewContractsTests` 14 项和真实 ImageIO 夹具通过。集中批量 Release 回归为 169 项 Swift 测试，33³/65³ 数值逐节点检查、macOS/iOS Simulator/iOS generic Release 构建及 3 个 App 包资源审计通过；日志 `/tmp/lutcalc-h13-dtim-release-full.log`，SHA-256 `3a9d366e05ab0f49867aa47d8448bc7f6b99b2d109bac66a505bb7158d8117c0`。发布入口仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出 2；完整 ICC 类型覆盖、显示色彩管理、Files/真机和 SPI3D 真机读回仍未完成。
+
+H13 ImageIO 灰度布局批次已接入 `.monochrome` 8/16 位单通道与灰度+alpha PNG；灰度复制到 RGB Double，alpha 独立保留，不做隐式色彩转换。真实 `LUTImageChecks` 夹具通过，集中 Release 回归仍为 169 项 Swift 测试，三平台 Release 构建和 3 个 App 包资源审计通过；日志 `/tmp/lutcalc-h13-grayscale-release-full.log`，SHA-256 `c1cae3b1566b08cc24c186242d0d57aae026115bb3eee6a2ec0b2e1d1f8d42b4`。阶段详情见[H13 ImageIO 灰度像素布局阶段验收](native-validation/2026-09-25-h13-grayscale-layout.md)。其他像素布局、完整 ICC/显示色彩管理、Files 和真机验收仍未完成。
+
+H13 ICC `clro` colorant order 批次已接入只读结构摘要：报告 count 与无重复、范围内的 UInt8 排列，不保存 payload 或采样数据，不做颜色转换。定向 `PreviewContractsTests` 16 项、真实 ImageIO 夹具、33³/65³ 批量数值和三平台 Release 构建通过；完整回归为 171 项 Swift 测试，日志 `/tmp/lutcalc-h13-clro-release-full.log`，SHA-256 `fcb1b304e4c78a42470bdbecf4dfbcfad4a7b2716922610ab216858aa15da0d1`。阶段详情见[H13 ICC clro colorant order 阶段验收](native-validation/2026-09-25-h13-icc-colorant-order.md)。发布入口仍因缺少真实全量清单退出 2，完整 ICC/显示色彩管理、Files 和真机证据仍未完成。
+
+同日已补齐 `clro` count 与 profile header 设备色彩空间通道数的一致性：`5CLR` 五色合法，RGB 五色与 CMYK 三色拒绝；未知通道数不猜测。定向 17 项通过；最新完整 Release 回归为 172 项 Swift 测试、33³/65³ 数值逐节点检查、三平台构建和三包审计通过，日志 `/tmp/lutcalc-h13-clro-channel-release-full.log`，SHA-256 `b94b2bf1dc802cd91fab54b3833fcb5acdcaece2aed90cb7587c251069810834`。发布入口仍因缺少真实全量清单退出 2；完整 H13、真机与发布验收未完成。
+
+H13 图像显示预览草稿已接通：整图先走既有 CPU Double `TransformPlan`，再通过独立显示计划还原到线性 sRGB，最后使用 W3C extended sRGB 编码；显示夹取只发生在最后一步，HLG 因缺少 HDR 显示参数明确拒绝。新增后台整图预览任务、取消和四字段身份门控，功能草稿提供“生成屏幕预览”入口。定向 `PreviewContractsTests` 20 项；合并 H12 后集中 Swift Release 回归 178 项、LUTKit Release 构建及 macOS/iOS Simulator/iOS generic Release 构建通过，详情见[H13 图像显示预览草稿阶段验收](native-validation/2026-09-25-h13-display-preview-draft.md)。Core Image/Metal、HDR/EDR、完整 ICC 工作空间转换、真实屏幕位图、Files 和真机仍未完成，H13/FLOW-05/UI-03/发布门槛保持未勾选。
+
+H13 显示位图子段已增加显式 RGBA8 量化与 sRGB `CGImage`，功能草稿可显示整图；固定字节与 Double 隔离的定向 Release 契约通过，阶段详情见[H13 sRGB 显示位图阶段验收](native-validation/2026-09-25-h13-display-bitmap.md)。集中 Swift Release 回归 175 项及 macOS/iOS Simulator/iOS generic Release 构建通过；三个 App 包资源审计通过；发布门槛因真实全量验收清单缺失退出 2，H13/FLOW-05/UI-03 不勾选。
+
+- H13 后台显示位图合并回归已完成；三平台 Release 构建与 App 资源审计通过，完整发布入口仍等待真实全量验收清单。
+
+2026-09-27 后台恢复交接复验：补充了取消晚返回、空闲挂起与恢复重试的 2 项契约，定向 `ProjectExportLifecycleContractsTests` 共 6 项通过；iOS generic Debug 构建和全包 Release 回归通过。实体 iPhone 11 上后台恢复测试实际进入测试体后连续失败 8 次，即使将 Debug 慢导出延长到 15 秒并把后台停留延长到 3 秒，仍未显示“生成已取消”；显式点击取消测试单独通过。实现尝试了 SwiftUI `scenePhase`、`willResignActive`/UIKit 通知和 iOS `onDisappear` 保守取消边界，最后一次 generic Debug 构建通过，但该最后改动尚未取得真机正证据。详见[后台恢复阶段验收](native-validation/2026-09-27-background-recovery.md)。H08/FLOW-02/QA-02 继续不勾选。
+
+2026-09-27 文件提交失败路径补充：新增父目录缺失和符号链接目标拒绝契约，`LocalCommitRaceContractsTests` Debug/Release 各 8 项通过；覆盖本地暂存文件创建前的授权/路径失败和不安全目标保护。该结果不替代真实 iCloud/File Provider 授权撤销、协调错误和磁盘故障证据，H08/FLOW-02/FLOW-04/QA-02 继续不勾选。详见[文件提交协调与替换竞态阶段验收](native-validation/2026-09-27-file-coordination-commit.md)。
+
+2026-09-27 ICC LUT 结构阶段：`ICCProfileValidator` 现在对 `mft1`、`mft2`、`mAB `、`mBA ` 做严格结构校验并返回通道/网格/表项元数据；没有保存或采样 LUT payload，也没有接入颜色转换。`PreviewContractsTests` Release 26 项通过。该阶段不勾选完整 ICC、H13、UI-03 或 UI-06；详见[ICC LUT 标签结构阶段验收](native-validation/2026-09-27-icc-lut-tag-structure.md)。
+
+2026-09-27 ICC `mft1/mft2` 用户导入转换阶段：新增受完整 profile 校验保护的单次 payload 提取和 RGB 3×3 `mft1/mft2` Double 转换，固定顺序为矩阵→输入表→首通道最慢的三线性 CLUT→输出表；新增 6 项契约，Debug/Release 定向测试和全包 Swift Release 回归通过。`mft2` 输入表与输出表允许使用不同表项数。该阶段只覆盖用户主动导入的 `mft1/mft2`，不保存或内置采样表；后续 `mAB/mBA` 三通道 CPU 子集的顺序、边界和参数曲线修正另见最新阶段记录。完整 ICC、LUT profile linking、系统色彩管理、HDR/EDR 和真实显示仍未完成，H13、UI-03、UI-06 及完整 FULL 范围继续不勾选。详见[ICC mft1/mft2 用户导入转换阶段验收](native-validation/2026-09-27-icc-mft-transform.md)。
+
+2026-09-27 真实系统 sRGB ICC 用户 profile 阶段：使用 macOS `/System/Library/ColorSync/Profiles/sRGB Profile.icc` 作为不入库、不打包的用户文件夹具，新增 1 项 Release 契约，验证真实 RGB/XYZ 标签、TRC 读取及编码 RGB↔XYZ Double 往返。该证据只加强用户 ICC matrix/TRC 子集，不扩大为系统色彩管理或完整 ICC；H13、UI-03、UI-06 和完整 FULL 范围继续不勾选。详见[系统 sRGB ICC 用户 profile 验收](native-validation/2026-09-27-icc-system-srgb-profile.md)。
+
+H13 显示位图又补齐了 premultiplied alpha 的固定 RGBA8 字节契约；先发现并修正一项舍入期望后通过。合并 H12 后集中 Swift Release 回归为 179 项，Double 取样与导出语义未改变；真机、完整色彩管理和发布门槛仍未完成。
+
+H13 显示预览现与单像素取样共用显式源曲线/色域确认门控；未确认不创建后台位图任务。真实 ImageIO 夹具命令行检查通过，三平台 Release 构建通过，Log 码值不会静默按 sRGB 显示；真机和完整色彩管理仍未完成。
+
+H13 显示位图预乘 alpha 量化现于 RGBA8 边界固定 `RGB ≤ A`：新增契约先在 Release 定向测试中复现 `[255,128,0,26]` 的违规字节，再通过 alpha 字节钳制为 `[26,26,0,26]`。`PreviewContractsTests` 23 项和 `verify-native-subset.sh` 均通过，阶段详情见[H13 预乘 alpha 显示位图量化阶段验收](native-validation/2026-09-25-h13-premultiplied-quantization.md)。该项不改变有效 Double 显示样本、取样或导出语义；完整 H13、真机、完整色彩管理和发布门槛仍未完成。
+
+## 2026-09-25 H13 ICC rendering intent 补记
+
+- ICC profile header 的 offset 64 rendering intent 现按大端 UInt32 严格读取，仅接受 0–3；未知值拒绝，摘要不参与显示或 LUT 计算。定向 `PreviewContractsTests` 通过，阶段详情见[H13 ICC rendering intent 头部元数据阶段验收](native-validation/2026-09-25-h13-icc-rendering-intent.md)。
+- 该项不等于完整 ICC 类型覆盖、工作空间/显示转换、Core Image/Metal、HDR/EDR、真机或发布完成；H13 继续不勾选。
+
+## 2026-09-25 H13 rendering intent 后完整回归补记
+
+- ICC rendering intent 接线后，`swift test --list-tests` 为 **206 项**；Swift Release XCTest 通过，公开 NCP 实样因未设置路径按设计跳过 1 项。
+- 6 个批量公式检查、36 对 33³/65³ CUBE 生成与独立读回、macOS/iOS Simulator/iOS generic Release 构建及 3 个 App 包资源审计通过。
+- 最新完整入口日志为 `/tmp/lutcalc-h13-rendering-intent-release-20260925.log`，SHA-256 为 `b41d7d356ef351050394ef2ed74bd52f13054a506c3fb4887db3753306264d5c`；发布证据检查仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出码 2，Goal 保持 active。
+
+## 2026-09-25 H11/H08 公式契约批量调度补记
+
+- 既有 Rec.709、S-Log3、LogC4、V-Log、Apple Log/Log 2 与 Rec.2100 HLG 独立 Swift 契约现由 `tools/native-validation/run-check-batch.py` 以默认 2 个受控 worker 批量运行；每个产品仍保留原始夹具、Double 计算、全码/矩阵/计划比较和 `2e-12` 门槛。定向 Python 契约 4 项、Release 构建和 `verify-native-subset.sh` 通过；日志为 `/tmp/lutcalc-batch-formula-subset.log`，SHA-256 `5a0c49a67bb84de20c4c7c035c1e0f771e792c1d0e916f4b0a7e739167b74692`。
+- 该项只改变独立检查进程的调度，未改变数值结果、导出节点、架构或资源；不计真机、完整迁移或发布门槛完成。
+
+## 2026-09-25 CUBE 预设批量清单补齐及模拟器运行补记
+
+- 批量清单补入既有 DJI D-Log2→线性 AP0、D-Log2→sRGB W3C 两条预设；先失败后通过的清单契约要求当前 18 条可独立验证预设。33³/65³ 合计 36 个生成与独立逐节点读回对全部通过，最大尺度化误差为 DJI sRGB 65³ 的 `2.739475313262574e-13`，冻结门槛 `2e-12` 保持不变。详情见[批量 CUBE 清单补齐验收](native-validation/2026-09-25-batched-cube-catalog-completion.md)。
+- 合并 6 个公式契约并行调度后，完整 Release 入口的 Swift 179 项测试、macOS/iOS Simulator/iOS generic 三平台构建与 3 个 App 包审计通过；发布入口仍因缺少真实全量验收清单退出码 2。日志和哈希见上述验收记录；Goal 保持 active。
+- 已启动的 iPhone Air 模拟器上，当前 Debug App 构建、安装和启动成功，文稿首页正常显示；“创建文稿”点击后当前功能草稿未出现可见导航变化，仅记录运行事实，不计完整文档交互验收。真机连接不稳的剩余 Files/取消项目按用户要求最后集中处理。
+
+## 2026-09-25 H07 用户 LUT 导入格式接线补记
+
+- 用户主动只读导入草稿已批量接通既有 Flame `.3dl`、Resolve `.ilut` 与 Panasonic `.vlt` 纯 Swift 解析器，保留 security scope 与 Double 取样会话；先失败后通过的真实临时文件定向契约 3 项，分别验证 2³、16,384 点和 17³ 的格式身份、维度及固定取样。阶段详情见[H07 扩展格式导入验收](native-validation/2026-09-25-h07-expanded-user-lut-import.md)。
+- 当时完整 Release 回归为 180 项 Swift XCTest、6 个批量公式契约、36 对 CUBE 生成/独立读回、三平台 Release 构建和 3 个 App 包审计通过；发布证据仍缺真实全量清单，完整入口退出码 2。当时真机 Files/File Provider、用户 LUT 项目资产、完整 LUTAnalyst 与目标软件兼容尚未验收；项目资产后续包级进展见下节，H07/FULL-05 不勾选，Goal 保持 active。
+
+## 2026-09-25 H07 用户 LUT 项目资产补记
+
+- 用户主动选取后的原始 LUT 字节现可作为单份项目资源加入 `.lutcalc/Resources`，清单记录 SHA-256；包级写盘、删除外部源文件后重开只读取样、资源篡改拒绝，以及带资产项目的生成请求拒绝均有定向契约。导入文件读取受 256 MiB 上限约束，八种现有解析格式共用原始字节。详情见[H07 用户 LUT 项目资产验收](native-validation/2026-09-25-h07-user-lut-project-asset.md)。
+- 这只验证包级保存/重开，实际 macOS/iOS 系统文稿保存、Files/File Provider 真机流程及多窗口文件协调待验收。每项目当前只支持一份用户 LUT，导入资产会清空旧撤销/重做记录；资源不进入生成计划，H07/FULL-05 仍不勾选。
+
+## 2026-09-25 H10 灰轴提取补记
+
+- 纯 Swift `LUTAnalysis` 已新增三维 LUT 输入域归一化灰轴提取和沿该线的中点重建残差报告；显式记录插值方法，不改变 Double 生成链。先失败后通过的 Release 定向契约 3 项，批量覆盖仿射、非线性交叉项和不等通道域；详情见[H10 灰轴提取阶段验收](native-validation/2026-09-25-h10-gray-axis-extraction.md)。完整 LUTAnalyst、设备和发布仍未完成，H10/FULL-05 不勾选。
+
+H07 项目资产与 H10 灰轴合并后的 Release 入口执行了 185 项 Swift XCTest、6 个公式检查、36 对 33³/65³ CUBE 生成及独立逐节点读回；macOS、iOS Simulator、iOS generic 三个 Release 构建和 3 个 App 包审计通过。发布证据仍缺真实全量清单，入口退出码 2；本轮真机未执行。日志与 SHA-256 见[合并回归记录](native-validation/2026-09-25-h07-h10-combined-release.md)，Goal 保持 active。
+
+## 2026-09-25 H10 用户 LUT 灰轴接线补记
+
+- 灰轴分析现可直接读取用户三维 CUBE，组合 shaper 的原始输入域也正确纳入采样；一维格式显式拒绝。文稿功能草稿增加只读“检查灰轴”入口，报告样本数、沿线中点数及最大通道残差。先失败后通过的定向 Release 契约合计 5 项，阶段详情见[H10 用户 LUT 灰轴接线验收](native-validation/2026-09-25-h10-imported-gray-axis.md)。H10/FULL-05、真机和发布仍未完成。
+
+H04 NCP `0100` 只读子集与 H10 灰轴接线合并后的 Release 入口执行 190 项 Swift XCTest、6 个公式检查和 36 对 CUBE 独立逐节点读回；macOS、iOS Simulator、iOS generic 三平台构建及 3 个 App 包审计通过。日志、SHA-256 与各门槛见[本批合并回归](native-validation/2026-09-25-h04-h10-combined-release.md)。发布入口仍因缺少真实全量验收清单退出码 2，Goal 保持 active。
+
+## 2026-09-25 H07 项目资源共存补记
+
+- 修正了把所有项目资源误当成“已有用户 LUT”的判断。当前 schema v2 清单只按显式 `assetRoles` 识别单份用户 LUT，其他 `Resources` 字节与 SHA-256 保留；原生 schema v1→v2 兼容按既定内部规则升级并保留其他资源。旧网页 App 设置 JSON 仍拒绝，用户 LUT 生成语义、真机和发布保持未完成。
+
+H07 资源共存接线后稳定源码重新执行完整 Release 入口：80 个 Swift 源文件的静态边界、Swift XCTest 190 通过/1 项可选 NCP 实样跳过、6 个公式检查、36 对 CUBE 逐节点读回、三平台 Release 构建和 3 个 App 包审计通过。发布入口仍因缺少真实全量清单退出码 2；本批真机未执行。见[稳定源码合并回归](native-validation/2026-09-25-h07-resource-h10-ncp-release.md)，Goal 保持 active。
+
+## 2026-09-25 H08 本地原子发布补记
+
+- 默认拒绝覆盖的本地文件提交现使用同目录临时文件的 POSIX `link` 原子发布；若竞争方在最终发布前创建目标，内核拒绝替换。CUBE/SPI3D/3DL/VLT 与四种 1D sink 共用该路径。先失败后通过的 Release 定向契约 2 项，详情见[H08 本地原子发布验收](native-validation/2026-09-25-h08-local-atomic-publish.md)。显式授权覆盖瞬间、File Provider/iCloud 与真机取消尚未验收，H08/FLOW-02/QA-02 不勾选。
+
+本地原子发布接线后完整入口的 193 项 Swift Release 测试中 192 项通过、1 项可选公开 NCP 实样跳过；6 个公式检查、36 对 CUBE 生成与独立逐节点读回、三平台 Release 构建和 3 个 App 包审计通过。日志哈希见上述 H08 记录；发布入口仍因缺真实全量清单退出码 2，Goal 保持 active。
+
+## 2026-09-25 H08 本地目标边界与文件身份竞争补记
+
+- 本地导出 sink 在创建临时文件前统一拒绝不存在/非目录父路径及不可写父目录；新增 `FileDestinationContractsTests` 2 项，覆盖 sink 保持 `idle`、目标目录不产生临时文件。显式覆盖指纹加入本地文件身份与 SHA-256，等字节新 inode 竞争现返回 `targetChanged` 并保留竞争方。
+- CUBE、SPI3D/3DL/VLT、SPI1D、ILUT、OLUT、Assimilate 1D 共用该本地边界。`LUTJobsTests` Release 30 项通过，阶段详情见[H08 本地目标边界与文件身份竞争验收](native-validation/2026-09-25-h08-destination-and-identity.md)。
+- 该段只覆盖本地文件系统；File Provider/iCloud 授权、系统分享保存提交、提供商最终替换竞争、真机取消和设备预算仍未验收，H08/FLOW-02/QA-02 不勾选，Goal 保持 active。
+
+## 2026-09-25 H12 原生资源角色边界补记
+
+- 当前 schema v2 只接受显式 `other`/`userLUT` 角色；原生 schema v1 读取时按既定内部规则升级为 `legacyUserLUT`/`other`，不与旧网页 App 设置迁移混用。
+- 用户 LUT 主动导入仍写入显式 `userLUT`，编辑设置、保存重开、资源字节与哈希校验保持通过。拒绝契约见[旧 App 设置迁移移除验收](native-validation/2026-09-25-h12-legacy-app-import-removed.md)。
+
+## 2026-09-25 H11 BT.1886 与 H04 NCP 写出边界合并回归
+
+- BT.1886 参数化参考显示 EOTF/逆函数与 NCP `0100` 只读写出边界合并后，`swift test --list-tests` 为 **212 项**；Swift Release XCTest 通过，NCP 公开实样 1 项按设计跳过。
+- 7 个独立公式检查、36 对 33³/65³ CUBE 生成与独立读回、macOS Release、iOS Simulator Release、iOS generic Release 和 3 个 App 包资源审计均通过。BT.1886 33³/65³ 各 35,937/274,625 节点，独立公式最大绝对误差 `0`；NCP writer 明确拒绝写出且不创建或改写目标。
+- 合并日志为 `/tmp/lutcalc-after-bt1886-ncp-release-20260925-rerun.log`，SHA-256 `cd1ca8a07166fd816ae852cf2d22cb3d54e2c61cb3f71dd545cf28dc8f6a0f62`。发布入口仍退出码 2，唯一直接原因是缺少真实 `docs/native-validation/full-scope-acceptance.json`；未伪造清单。
+- BT.1886 真实显示参数、HDR/OOTF、真机显示和 UI 仍未验收；NCP 真实公开实样/设备软件往返仍未验收；H11、H04/FULL-06、真机和发布门槛继续保持未完成。
+
+## 2026-09-25 H11 Rec.2100 PQ 标量补记
+
+- 新增纯 Swift `PQTransfer`，按公开 SMPTE ST 2084 / ITU-R BT.2100 常数实现归一化绝对亮度的 Double 编解码；10/12-bit 码值批次、边界和错误路径通过。`TransformPlan` 与算法目录登记 `.rec2100PQ` 及 Rec.2020 同空间参考预设。阶段详情见[H11 Rec.2100 PQ 标量与原生计划验收](native-validation/2026-09-25-h11-pq-transfer.md)。
+- 这只完成可追溯数值子段；PQ 显示峰值、OOTF、HDR/EDR、真机屏幕和完整 UI 仍未完成，CORE-03/UI-06/FULL-01 不勾选。
+
+本段合并 Release 回归中，Swift 测试、批量公式/节点检查、三平台 Release 构建和 App 包审计通过；发布证据入口仍因缺少真实全量清单退出码 2。日志与哈希见[H11 PQ 阶段验收](native-validation/2026-09-25-h11-pq-transfer.md)。
+
+PQ 显示预览现在在缺少 HDR 显示参数时明确拒绝，避免 PQ→sRGB 的隐式显示；完整峰值/OOTF/EDR 和真机显示仍未完成。
+
+## 2026-09-25 H11 BT.1886 参考显示 EOTF 补记
+
+- 新增参数化 `BT1886Transfer`，按 ITU-R BT.1886 Annex 1 实现参考显示 EOTF 与逆函数；增加零黑位归一化同空间计划、目录身份和 33³/65³ 独立全节点检查。阶段详情见[H11 BT.1886 阶段验收](native-validation/2026-09-25-h11-bt1886.md)。
+- 该段只覆盖公开标量公式和显式 `LB/LW` 参数，不宣称真实显示设备、HDR/OOTF、跨色域、UI 或真机验收；H11、CORE-03、UI-06 继续未完成。
+
+## 2026-09-25 H04 `.3dl` Flame 元数据边界补记
+
+- `ThreeDLParser` 现拒绝 shaper/数据之后出现的数值元数据，并拒绝冲突的 `NUMBER OF NODES`、`NUMBER OF ROWS`、`INPUT RANGE`、`OUTPUT RANGE` 声明；新增契约先失败后通过。定向 `ThreeDLContractsTests` 5 项与全包 Release Swift 回归通过，详见[H04 `.3dl` 元数据边界阶段验收](native-validation/2026-09-25-h04-3dl-metadata.md)。只收紧 Flame 整数子集解析边界，Lustre/Kodak、目标软件导入及 FULL-06 仍未完成。
+
+## 2026-09-25 H08/H12 合并完整 Release 回归
+
+- 完整入口日志：`/tmp/lutcalc-after-h08-h12clip-release-20260925.log`；SHA-256：`e0828fe76a523e761648542810f309c58d447ba8531149d163ce65dc32df42c5`。
+- 入口最终退出码仍为 2，唯一直接原因是缺少真实 `docs/native-validation/full-scope-acceptance.json`；未伪造清单。File Provider/iCloud、真机取消、完整 H12/FULL-08 和发布验收继续未完成。
+
+## 2026-09-25 H11 简单 Conventional Gamma 批次
+
+- 按旧 `js/gamma.js:LUTGammaGam` 的可追溯公式新增 γ1.5–γ2.6 共 12 条纯 Swift `Double` 曲线，接入 `TransformPlan`、输入/输出编码和算法注册表；不打包旧脚本、`.labin` 或等价采样表。阶段详情见[H11 简单 Conventional Gamma 批次验收](native-validation/2026-09-25-h11-conventional-gamma-stage.md)。
+- 定向 4 项公式契约和 1 项注册表契约通过；当前 Swift 测试清单为 222 项。完整 Release 入口的数值检查、三平台构建和 App 资源审计通过，发布证据检查仍因缺少真实全量清单退出码 2。
+- 本批覆盖简单 γ1.5–γ2.6；ProPhoto 与 BBC 0.4/0.5/0.6 已按解析式接入并完成同空间最小计划契约。任意参数持久化 Gamma、ProPhoto 完整 D50↔D65 工作流、HDR/OOTF、相机范围、真机、原生项目 Files/File Provider 和完整 H11/CORE-03/FULL-01 仍未完成，Goal 保持 active。阶段记录见[H11 ProPhoto 与 BBC 验收](native-validation/2026-09-25-h11-prophoto-bbc-stage.md)。
+
+## 2026-09-25 H12 旧 App 设置迁移移除
+
+- 按用户决定，旧 App 单文件 JSON 设置不再是原生应用的输入格式；删除读取、识别、候选映射、无损迁移入口及其契约。
+- 原生 `.lutcalc` 仅接受自身 schema；遇到旧 `version`/`lutBox`/`gammaBox` 结构必须拒绝，不创建原生项目、不复制旧资源。
+- 这项范围决定已从 Goal、H12 和 FULL-08 的待完成项中移除。原生项目保存、Files/File Provider、真机与发布验收继续按路线图推进。
+- 验证记录见[H12 旧 App 设置迁移移除验收](native-validation/2026-09-25-h12-legacy-app-import-removed.md)。
+
+## 2026-09-25 H04/H08/H12 范围收紧与批量回归
+
+- H04 NCP `0100` writer 保持明确拒绝；H08 本地目标父目录、权限和文件身份竞争边界通过。定向 NCP 4 项（公开实样 1 项按设计跳过）、FileDestination 2 项和 LUTJobs 30 项通过，详见[H04 NCP 写出边界](native-validation/2026-09-25-h04-ncp-write-boundary.md)与[H08 本地目标边界](native-validation/2026-09-25-h08-destination-and-identity.md)。
+- H12 删除旧网页 App 设置迁移；原生 schema v1→v2 角色兼容保留，schema v2 仍拒绝缺少 `assetRoles` 或按文件名推断角色的输入。旧网页 `version`/`lutBox`/`gammaBox` JSON 拒绝契约通过。
+- 原生子集批量回归通过：7 个批量公式检查、36 对 33³/65³ CUBE 生成与独立读回、H08/H09/H10/H12/H13 命令行契约均通过；日志 `/tmp/lutcalc-after-no-legacy-h04-h08-subset-20260925.log`，SHA-256 `95e58c6d3e389b44beddc40b18702ba6f98a91a79e37e35893b988b89ac39b95`。
+- 该批不代表完整迁移、真机或发布完成；真实 `full-scope-acceptance.json` 仍缺失，Goal 保持 active。
+
+## 2026-09-25 H11 ProPhoto / ROMM 与 BBC 参数化 Gamma 子集
+
+- 新增纯 Swift `Double` 的 ProPhoto / ROMM（16 倍低段、gamma 1.8、RIMM-ROMM/D50 主色）与 BBC 0.4/0.5/0.6（旧 `LUTGammaBBCGam` 显式参数、分段和 data wrapper），接入 `TransformPlan`、注册表和最小研发预设；没有打包旧脚本、`.labin` 或采样表。阶段详情见[H11 ProPhoto/BBC 子集验收](native-validation/2026-09-25-h11-prophoto-bbc-stage.md)。
+- 批量 Release 定向验证为 LUTCore 5 项、LUTCatalog 1 项通过，保持 Double 和逆函数门槛。该段不覆盖任意参数持久化 Gamma、BBC WHP283、HDR/OOTF、设备范围、跨色域全链、真机、Files/File Provider 或发布验收；H11、CORE-03、FULL-01 和 Goal 继续未完成。
+
+## 2026-09-25 H12 旧 App 设置范围最终确认
+
+- 用户再次确认不支持任何旧 App 单文件 JSON 设置迁移；旧设置读取、识别、候选映射、无损转换和导入入口不属于 Goal，后续路线只保留原生项目格式与原生工作流。
+- 回归契约 `ProjectContractsTests.testExternalLegacyAppSettingsAreRejected` 批量拒绝 `v4.09`、`v4.10` 及缺失分区的旧设置形状；原生 schema v1→v2 兼容仍单独保留。验证记录见[H12 旧 App 设置迁移移除验收](native-validation/2026-09-25-h12-legacy-app-import-removed.md)。
+- 本轮完整 Swift Release 测试退出码 0；原生子集静态与命令行契约、40 对 33³/65³ CUBE 批量生成/读回均通过。日志 `/tmp/lutcalc-no-legacy-full-swift-20260925.log`、`/tmp/lutcalc-no-legacy-subset-20260925.log`。这不代表双端真机、完整 H01–H14 或发布门槛完成，Goal 保持 active。
+
+## 2026-09-25 H11 通用参数化 Gamma 阶段
+
+- 新增 `ParameterizedGammaTransfer`：纯 Swift `Double` 的可追溯分段幂函数，显式保存低段斜率、offset、linearCut 和独立 encodedCut；现有 γ1.5–γ2.6 固定条目复用该核心。没有新增任意运行时 `TransferID` 或项目参数字段。
+- 定向参数与注册表契约、完整 Swift Release 和原生子集批量回归通过。阶段详情见[H11 通用参数化 Gamma 阶段验收](native-validation/2026-09-25-h11-parameterized-gamma-stage.md)。
+- CIE L* 固定条目已在下一批完成；任意参数持久化载体、HDR/OOTF、设备范围、跨色域、真机、Files/File Provider 和发布门槛仍未完成，H11、CORE-03 和 Goal 保持 active。
+
+## 2026-09-25 H11 CIE L* 固定曲线阶段
+
+- 按 BT.2380 §3.3 / ISO 11664-4 的精确分数切点接入纯 Swift `Double` 的 CIE L* 1D transfer，注册固定 ID `cie.l-star.v1`、同空间曝光研发预设与 CLI。它仍与完整 CIELAB 色彩空间分开。
+- 定向、完整 Swift Release、原生子集及 21 案例/42 对 33³/65³ CUBE 独立读回通过；CIE L* 两种网格最大尺度化误差均为 `0`，门槛 `2e-12`。中文详情见[H11 CIE L* 固定曲线阶段验收](native-validation/2026-09-25-h11-cie-lstar-stage.md)。
+- 任意参数持久化、完整 CIELAB、BBC WHP283、HDR/OOTF、设备范围、跨色域、真机、Files/File Provider 和发布仍未完成；H11、CORE-03 与 Goal 保持 active。
+
+## 2026-09-26 H11 CIELAB 前置契约阶段
+
+- 新增纯 Swift `Double` 的 `XYZ64`、D50/D65 参考白点与 `CIELABColor`，按 ISO 11664-4 / ITU-R BT.2380-0 §3.3 实现 XYZ↔CIELAB 分段公式；L* 归一化到 0…1，a*/b* 保留传统单位，负值与超白保留，非有限值拒绝。
+- 先失败后通过的 3 项契约、D50/D65 各 33³/65³ 共 621,124 个独立 Decimal 参考样本及全量 Swift Release 均通过；独立最大绝对误差 `1.7763568394002505e-15`，门槛 `2e-13`。阶段详情见[H11 CIELAB 前置契约阶段验收](native-validation/2026-09-26-h11-cielab-prerequisite.md)。
+- 本批没有把 Lab 当作 RGB 矩阵色域，也未接入 `TransformPlan`、项目持久化、显示转换、Delta E、Core Image/Metal、HDR/EDR、真机或发布验收；完整 CIELAB D50↔D65 工作流仍未完成，H11、CORE-03 与 Goal 保持 active。
+
+## 2026-09-26 H11 BBC WHP283 400%/800% 兼容批次
+
+- 依据旧 `js/gamma.js` 的 `LUTGammaBBC283` 接入两个固定解析候选：400% `m=0.139401137752`、800% `m=0.097401889128`，固定 `s=1`，保留严格分支和旧 data wrapper；新增稳定 ID、同空间预设、CLI 和批量 verifier。
+- `BBCWHP283ContractsTests` 4 项、注册表契约、独立 33³/65³ 公式检查均通过；最大尺度化误差 `5.551115123125783e-17`。批量清单现为 23 个案例、46 对 33³/65³ 生成与独立读回，详情见[BBC WHP283 兼容阶段验收](native-validation/2026-09-26-bbc-whp283-compatibility.md)。
+- 当前资料不足以宣称 BBC WHP283 标准、设备峰值、HDR/OOTF 或显示等价；这些条目只作为旧解析兼容候选。真机、Files/File Provider、完整 H11 和发布门槛继续未完成，Goal 保持 active。
+
+本轮 CIELAB/WHP283 合并 Release 回归为 220 项 Swift 测试；macOS、iOS Simulator、iOS generic Release 构建和三个 App 包资源审计通过。发布入口仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出码 2，未伪造清单。
+
+### CIE L* 三平台 Release 与发布状态
+
+- 合并版本的 macOS、iOS Simulator、iOS generic Release 构建及三个 App 包资源审计通过；完整入口日志 `/tmp/lutcalc-cie-lstar-release-20260925.log`，SHA-256 `5ee99d4305b1ba046bf44d14eb6b9c83e8ab194b115977828fd7038c95d7bb35`。
+- 发布门槛仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出码 `2`；真机新增曲线按用户安排最后集中，代码/构建/数值阶段结果不替代真机和发布验收。
+
+## 2026-09-26 H11 CIELAB 非矩阵计划阶段
+
+- 在 CIELAB 前置 XYZ↔Lab 数学契约之上新增独立 `CIELABTransformPlan`；显式固定源 XYZ 白点、Lab 白点、目标 XYZ 白点、CAT 选择、L* 归一化和 a*/b* 传统单位。阶段记录见[H11 CIELAB 非矩阵计划阶段验收](native-validation/2026-09-26-h11-cielab-plan-stage.md)。
+- 先失败后通过的定向契约 5 项覆盖白点适应阶段、Lab/XYZ 通道分离、非有限拒绝、独立 Bradford 样本及 33³/65³ 往返；全量 Swift Release 为 225 项列出、1 项既有可选 NCP 实样按设计跳过，其余通过。
+- macOS、iOS Simulator、iOS generic Release 构建及三个 App 包审计通过；原生子集通过。发布入口仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出码 2，未伪造清单。
+- 本批不把 Lab 塞进 RGB `ColorSpaceID`/`TransformPlan` 或项目 schema，不宣称完整 CIELAB、Delta E、显示转换、HDR/EDR、真机或完整迁移；后续接入仍需独立的 RGB↔XYZ↔Lab 工作流和持久化契约。
+
+## 2026-09-26 H11 RGB↔XYZ↔CIELAB 桥接计划阶段
+
+- 在 CIELAB 非矩阵计划之上新增独立 `CIELABRGBTransformPlan`，显式执行 RGB→XYZ→白点适应→Lab，以及 Lab→XYZ→白点适应→XYZ→RGB；不修改现有 RGB `TransformPlan`、`ColorSpaceID` 或项目 schema。阶段详情见[H11 RGB↔XYZ↔CIELAB 桥接计划阶段验收](native-validation/2026-09-26-h11-cielab-rgb-plan-stage.md)。
+- 先失败后通过的定向契约 5 项通过；sRGB D65→D50 独立 Bradford 样本门槛为 `2e-14`，33³/65³ RGB→Lab→RGB 网格最大绝对误差低于 `2e-12`。全量 Swift Release、原生子集和三平台 Release 构建及 App 包审计通过。
+- 发布入口仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出码 2，未伪造清单。本批不宣称完整 CIELAB、Delta E、显示色彩管理、HDR/EDR、真机或完整迁移；真机继续最后集中，Goal 保持 active。
+
+## 2026-09-26 H13 ICC RGB 矩阵/TRC CPU 子集阶段
+
+- 新增独立 `ICCMatrixTRCTransform`，只解析 ICC `RGB `/`XYZ ` 的 `rXYZ/gXYZ/bXYZ/wtpt` 与 `curv(count=1)`、`para(type=0/4)`，显式保留 encoded/linear/matrix/XYZ 阶段；不改变默认显示 provenance 或隐式色彩管理。阶段详情见[H13 ICC RGB 矩阵/TRC CPU 子集阶段验收](native-validation/2026-09-26-h13-icc-matrix-trc.md)。
+- 先失败后通过的定向契约 5 项、33³/65³ 往返、全量 Swift Release、原生子集和三平台 Release 构建通过；当前 Swift 测试清单为 235 项。
+- 未支持的 ICC 色彩空间、PCS、曲线类型、缺失标签和域外输入均明确拒绝。完整 ICC 类型覆盖、工作空间/显示转换、Core Image/Metal、HDR/EDR、真机和发布清单仍未完成，H13/UI-03/Goal 保持 active。
+
+## 2026-09-26 H11 任意参数化 Gamma 持久化阶段补记
+
+- 在既有 `ParameterizedGammaTransfer` 解析式之上新增 `ParameterizedGammaSettings`、稳定 `TransferID.parameterizedGamma` 以及 `TransformSettings` 的输入/输出参数槽位；`TransformPlan` 现在使用项目保存的 Double 参数执行输入解码和输出编码。缺少参数或槽位错配明确拒绝，未引入采样表或旧运行时。
+- 原生 `.lutcalc` 项目清单已保存/读回任意参数，缺失参数的清单返回 `invalidSettings`；原生 schema v1→v2 兼容和旧网页 App JSON 拒绝边界保持不变。阶段详情见[H11 任意参数化 Gamma 持久化阶段验收](native-validation/2026-09-26-h11-parameterized-gamma-persistence.md)。
+- 本批定向契约、全量 Swift Release（238 项列出）、原生子集、macOS/iOS Simulator/iOS generic Release 构建和三个 App 包资源审计通过。发布入口仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出码 2；HDR/OOTF、显示 EOTF/EDR、设备范围、完整旧调节链、真机和发布门槛继续未完成。
+
+## 2026-09-26 H13 ICC 参数曲线类型 1/2 阶段补记
+
+- 在既有 ICC RGB matrix/TRC CPU 子集上新增 `para` function type 1/2 的可追溯解析式和逆函数：type 1 为带阈值的幂函数，type 2 增加低段常数 `c`；不保存采样表，不改变 provenance 或默认显示路径。
+- 先失败后通过的 `ICCMatrixTRCContractsTests` 共 6 项通过，type 3 和其余未覆盖曲线仍明确拒绝。阶段详情见[H13 ICC 参数曲线类型 1/2 CPU 阶段验收](native-validation/2026-09-26-h13-icc-parametric-types-1-2.md)。
+- 本批仍不等于完整 ICC、工作空间/显示转换、Core Image/Metal、HDR/EDR、真机或发布完成；下一步只继续处理有明确公开解析式的本地子段。
+
+## 2026-09-26 H13 ICC 参数曲线类型 3 阶段补记
+
+- 在 type 1/2 之后补齐 ICC `para` function type 3：`X >= d` 使用 `(aX+b)^g+c`，低段使用 `fX`；同时修正 `ICCProfile` 对 type 3 的参数数目为规范的 6 个。
+- 先失败后通过的 `ICCMatrixTRCContractsTests` 现为 7 项；新增独立低段/高段样本、逆函数以及 33³/65³ RGB 网格往返，最大绝对误差低于 `2e-12`。`LUTPreviewTests` 31 项通过，固定结构 tag 夹具同步为 6 参数。
+- type 0/1/2/4、矩阵/TRC、metadata 和未知类型拒绝保持通过。完整 ICC 类型、采样型 LUT、工作空间/显示转换、Core Image/Metal、HDR/EDR、真机和发布清单仍未完成。阶段记录见[H13 ICC 参数曲线类型 3 CPU 阶段验收](native-validation/2026-09-26-h13-icc-parametric-type-3.md)。
+- 本批最终 Swift Release 为 240 项列出并通过（NCP 公开实样 1 项按设计跳过）；7 个批量公式检查、46 对 33³/65³ CUBE 读回、三平台 Release 构建和 App 审计通过。日志 `/tmp/lutcalc-h13-type3-native-release-20260926.log`，SHA-256 `38f3c794ad775cc014f49ac559dfe8d24abaa6f62a9206ade98a29fc62eb3b39`；发布入口仍因缺少真实全量清单退出 2。
+
+## 2026-09-26 H13 ICC 参数曲线反求歧义补记
+
+- type 1/2 的平段、type 3/4 的分段断层与重叠已用先失败后通过的合成 ICC 契约固定；反求现对无解报 `outsideDomain`，对多解报 `nonUnique`，不把任意分支候选当作颜色结果。详见[H13 ICC 反求歧义阶段验收](native-validation/2026-09-26-h13-icc-inverse-ambiguity.md)。
+- 定向 10 项、Swift Release 全包（清单 243 项，公开 NCP 实样 1 项按设计跳过）、原生子集、macOS/iOS Simulator/iOS generic Release 构建及三个 App 包资源审计通过。完整发布脚本因真实全量验收清单缺失退出 2；本变更未做真机 ICC 文件交互，H13/UI-03 与 Goal 继续未完成。
+
+## 2026-09-26 H13 ICC 零节点曲线补记
+
+- 根据 ICC `curveType` 公开语义接入 `curv(count=0)` 恒等解析分支；合成 ICC 契约先失败后通过，逐位往返误差 0；`curv(count=2)` 采样形式继续明确拒绝。详见[H13 ICC 零节点曲线阶段验收](native-validation/2026-09-26-h13-icc-curv-identity.md)。
+- 定向 11 项、Swift Release 全包（清单 244 项，公开 NCP 实样 1 项按设计跳过）、原生子集、三个 Release App 构建与包资源审计通过。完整发布入口仍因真实全量验收清单缺失退出 2；完整 ICC、显示色彩管理、真机文件交互及全量迁移继续未完成。
+
+## 2026-09-26 H07/H12 普通项目资源生成边界补记
+
+- 修复 `FileDocument` 与编辑会话把所有项目资源当作用户 LUT 拒绝生成的问题：仅显式 `userLUT`/`legacyUserLUT` 角色触发尚未接线的用户 LUT 计划拒绝；普通 `other` 资源不影响计划。五个旧命令行夹具补明 `userLUT` 角色，原有拒绝断言保持。阶段详情见[项目资源角色与生成边界验收](native-validation/2026-09-26-h07-project-asset-role-generation.md)。
+- 带普通资源的项目实际导出 17³ CUBE，4,913 节点读回，五个坐标最大绝对误差 0。最新 Swift 清单 246 项、7 个公式检查、46 个 33³/65³ CUBE 对、原生子集、三平台 Release 构建与三个 App 包审计通过；发布入口仍因真实全量清单缺失退出 2。用户 LUT 尚未进入生成计划，Finder/Files 真机与全量 H07/H12 保持未完成。
+
+## 2026-09-26 H07 用户 LUT 原始导出补记
+
+- 原生项目中的显式 `userLUT` 资源现可通过 Swift `FileDocument` 与 SwiftUI `.fileExporter` 导出；导出前重新校验 SHA-256，保留原始字节和文件扩展名。没有资源或资源被篡改时分别返回明确错误。阶段详情见[H07 用户 LUT 原始导出验收](native-validation/2026-09-26-h07-user-lut-export.md)。
+- 定向 6 项用户资源契约、Swift 清单 246 项、7 个公式检查、46 个 33³/65³ CUBE 生成/读回对、原生子集、三平台 Release 构建和三个 App 包资源审计通过。发布入口仍因真实全量清单缺失退出 2；Files/File Provider 真机回调及用户 LUT 参与生成计划仍未完成。
+
+## 2026-09-26 H07 LUTAnalyst `.lacube` / `.labin` 格式接入阶段
+
+- 新增共享 Swift `LUTAnalysisFile` 模型和严格 `LACubeParser` / `LABinParser`，保留 1D transfer、可选 3D colour LUT、输入矩阵、插值和来源元数据；解析全部使用 little-endian、`Double` 和受限分配。`.labin` 的旧 Int32 `2^30` 样本缩放、独立矩阵缩放和 `±1.99` 有损哨兵均显式处理，命中旧压缩边界返回 `lossyRepresentation`，不静默当作无损值。
+- 新增 `LACubeWriter` / `LABinWriter`，写出前拒绝超出旧格式可表示域的值；`UserLUTFormat`、原生导入会话、项目资源原始导出和 SwiftUI 文件选择器已接入 `.lacube` / `.labin`。用户分析文件作为分析资产保存，兼容现有 `CubeLUT` 直接取样入口，不作为内置算法资源。
+- 先失败后通过的 4 项格式契约、用户会话接线契约通过；`V709.labin` 研发夹具成功读取，`Cine709.labin` 的旧有损哨兵按契约报告或拒绝。当前范围仍只覆盖格式读写和资产接线，不宣称完整 LUTAnalyst 分析、任意 3D 反求、旧 cubic/tricubic 语义、真机 Files/File Provider 或全量迁移。
+
+## 2026-09-26 H10 严格单调 1D 分析阶段
+
+- 在既有 `RootSolver` / `MonotonicCurve1D` 之上新增 `MonotonicCurve1DAnalysis`：只读报告递增、递减、常量或反单调方向，保留平段/反转索引、首尾步长和步长范围，并显式给出是否严格单调、是否可用单值反求。
+- 反单调输入继续拒绝构造 `MonotonicCurve1D`；平段保留原样并返回既有 `nonUnique`。没有复制旧网页首尾斜率修补，也没有改变 Double 采样或求根容差。
+- 新增 4 项定向契约；`swift test --package-path Native/Packages/LUTKit -c release` 当前 256 项通过。阶段详情见[H10 严格单调 1D 分析阶段验收](native-validation/2026-09-26-h10-strict-monotonic-analysis.md)。完整 LUTAnalyst、任意 3D 反求、真机和发布仍未完成。
+- 本阶段变更后的 `verify-native-release.sh` 已重新执行：三平台 Release 构建、7 个公式检查、46 对 CUBE 生成/读回和三个 App 包资源审计通过；日志 `/tmp/lutcalc-h10-strict-monotonic-release-20260926.log`，SHA-256 `2d94d758dfa06250452a64b5241fa5efdcbd476c76732d09a493cb1141ff94ff`。入口仍因缺少真实全量发布清单退出码 `2`。
+
+## 2026-09-26 H10 已知可逆仿射 3D 分析阶段
+
+- 新增 `KnownAffine3DTransform`，只接受显式矩阵加偏置模型；构造时复用矩阵条件数/单位残差检查，反求时检查输入输出域和前向重建残差。
+- 新增 3 项定向契约：非对角矩阵往返、域外/裁剪结果拒绝、奇异矩阵拒绝。阶段详情见[H10 已知可逆仿射 3D 分析阶段验收](native-validation/2026-09-26-h10-affine-3d-analysis.md)。当前测试清单 259 项。
+- 该模型不扩展到任意 3D LUT 反求；局部 Jacobian、阻尼/回溯、信赖范围及全局唯一性仍是研究阻塞。完整 LUTAnalyst、真机和发布仍未完成。
+- 仿射阶段后的最新 `verify-native-release.sh` 仍为三平台 Release 构建、7 个公式检查、46 对 CUBE 生成/读回和三个 App 包审计通过；日志 `/tmp/lutcalc-h10-affine-3d-release-20260926.log`，SHA-256 `4605238e7c6f58bf0c9204ba8f4f13f46168dd3cf300a537b6a5efeca50179aa`。发布证据检查因缺少真实全量清单退出码 `2`。
+
+## 2026-09-26 H10 导入 LUT 结构分析与一维反求接线阶段
+
+- 用户导入的 1D LUT、组合 CUBE shaper 及 `.lacube/.labin` transfer 分节现可分别报告 R/G/B 的单调方向、平段、反转和单值反求条件；严格单调 transfer 可通过既有 Double `MonotonicCurve1D` 逐通道反求。导入会话切换、清除或关闭时清除旧报告与反求结果；SwiftUI 提供结构检查与 1D 反求入口。
+- `.lacube/.labin` 的独立 3D colour 分节不被当作 transfer；灰轴按钮可检查该分节。任意 3D LUT 即使视觉上接近仿射，也不从采样推断可逆性，反求明确拒绝。该阶段没有 TF/颜色完整分离、任意 3D 求解器或旧 cubic/tricubic 语义。详情见[H10 导入分析阶段验收](native-validation/2026-09-26-h10-imported-lut-analysis.md)。
+- 先失败后通过的 6 项新契约、完整 Swift Release 测试、7 个公式检查、46 对 CUBE 生成/读回、macOS/iOS Simulator/iOS generic Release 构建与三个 App 包资源审计通过。发布入口因缺少真实全量验收清单退出码 `2`；真机 Files/File Provider、完整 LUTAnalyst、H10/FULL-05 和 Goal 继续未完成。
+
+## 2026-09-26 H07/H10 分析文件独立 3D 分节取样阶段
+
+- `.lacube/.labin` 用户分析文件的 `1D transfer` 与 `3D colour` 现有显式取样分节选择；原有无参数调用继续只取主 LUT。缺少独立 colour 分节时明确拒绝，切换或清除会话清除分节结果。新增合成分节契约先失败后通过，详情见[独立 3D 分节取样验收](native-validation/2026-09-26-h07-analysis-colour-section-sampling.md)。
+- 这只提供用户导入文件的直接 Double 取样，不把两分节自动组合为生成计划，也不推断 3D 可逆或完成 TF/颜色分离；H07/H10/FULL-05 继续未完成。
+- 本段变更后的完整发布入口：7 个公式检查、46 对 CUBE 生成/读回、Swift Release、三平台 Release 构建与三个 App 包资源审计通过；日志 `/tmp/lutcalc-h07-colour-section-native-release-20260926.log`，SHA-256 `0c55d174aa764d3267df32f353d86d2eeb88881823773e18a490b7f191957dbd`。真实全量验收清单仍缺，入口退出码 `2`。
+
+## 2026-09-26 H11/H12 项目编辑保留参数化 Gamma 阶段
+
+- 修复两个原生编辑入口修改曝光与输入范围时丢失 `inputGamma`/`outputGamma` 的问题；切换到固定输出目标时只清除已不匹配的输出参数，保留输入参数、CAT、位深和其他设置。复制规则集中在 `TransformSettings`，`EditorSession` 与 `ProjectDocumentView` 共用。项目保存/重开契约覆盖输入参数保留和输出参数清除。阶段详情见[项目编辑 Gamma 保留验收](native-validation/2026-09-26-h11-h12-gamma-editor-preservation.md)。
+- 最新 Swift 测试清单 268 项；7 个独立公式检查、46 对 33³/65³ CUBE 读回、macOS/iOS Simulator/iOS generic Release 构建及三个 App 包审计通过。日志 `/tmp/lutcalc-gamma-edit-native-release-20260926.log`，SHA-256 `8aa464e0e681d4011e004b3499e1f527a13e76d5bdf968e518258c87841f3f54`。真实全量清单缺失导致发布入口退出码 `2`，H11/H12、真机及 Goal 继续未完成。
+
+## 2026-09-26 H09/H12 目录预设项目界面阶段
+
+- 原生项目文稿界面可从现有算法目录选择转换预设；应用时保留项目 ID、尺寸、输入域、资源哈希与角色，并可撤销/重做、保存重开。新增两个契约分别核对资源保留与目录全部预设的项目/生成请求有效性，其中资源保留契约先失败后通过。详情见[H09/H12 预设界面验收](native-validation/2026-09-26-h09-h12-preset-editor.md)。
+- 本阶段只接入现有可验证预设，不把新增候选公式冒充完整旧功能，也不覆盖任意参数的可视化编辑器。最新 Swift 测试清单 270 项、7 个公式检查、46 对 CUBE 读回、三平台 Release 构建和三个 App 包审计通过；日志 `/tmp/lutcalc-preset-ui-native-release-20260926.log`，SHA-256 `8e45d0db88b22ec3341258855cdc342119710189e3eea0548ba51475b731186a`。缺少真实全量清单，发布入口退出码 `2`；H09/H12、真机和 Goal 仍未完成。
+- 本机 Release App 进程可见，但桌面 UI 自动化返回 `AXError.apiDisabled`，未取得窗口呈现或点击证据；不以进程存在替代 macOS 交互验收。
+
+## 2026-09-26 H09/H11/H12 自定义 Gamma 原生编辑阶段
+
+- 项目界面增加输入/输出两侧的参数化 Gamma 编辑表单，分别填写 `exponent`、`linearSlope`、`offset`、`linearCut` 和可选 `encodedCut`。表单提交时先把字符串解析为有限 Double，再用已有解析式参数校验；项目修订不一致、非法数字和非法参数均不提交。编辑动作保留项目 ID、尺寸、域和资源，支持撤销/重做与包级保存重开。详见[自定义 Gamma 编辑验收](native-validation/2026-09-26-h09-h11-gamma-editor.md)。
+- 两项新增契约先因缺少草稿与项目提交 API 而编译失败，实施后通过。最新 Swift 测试清单 272 项；7 个独立公式检查、46 对 33³/65³ CUBE 生成读回、macOS/iOS Simulator/iOS generic Release 构建和三个 App 包审计通过。日志 `/tmp/lutcalc-gamma-ui-native-release-20260926.log`，SHA-256 `f6324000a0fc9a191182d718e4028175e8f81e06a9e96ac3030a8db2d54953e5`。发布入口仍因真实全量清单缺失退出码 `2`；界面实际点击、真机文件交互、完整 H09/H11/H12 和 Goal 未完成。
+
+## 2026-09-26 H09/H11 项目范围与白点适应编辑阶段
+
+- 项目文稿界面现暴露输出 Data/Legal、范围位深 8/10/12 和 CIE CAT02/Bradford；设置复制方法保留两侧参数化 Gamma。非法位深不会写入项目，12 位 Legal + Bradford 与两侧 Gamma 的保存/重开/生成请求契约通过。详情见[范围与适应编辑验收](native-validation/2026-09-26-h09-h11-range-adaptation-editor.md)。
+- 最新 Swift 测试清单 274 项；7 个公式检查、46 对 CUBE 生成/读回、三平台 Release 构建和三个 App 资源审计通过。日志 `/tmp/lutcalc-range-editor-native-release-20260926.log`，SHA-256 `8f5ef9150dc5b5ceb609ef65901374cf775ed22666754bf0f92f4da6a6778cc5`。真实全量清单缺失导致发布入口退出码 `2`；实际 UI、真机、完整 H09/H11 和 Goal 仍未完成。
+
+## 2026-09-26 QA-01 macOS Double 性能基线阶段
+
+- 新增研发用 Swift `LUTPerformanceChecks`，对 D-Log2/D-Gamut2 → 线性 ACES AP0 的 17³、33³、65³ `CubeGenerator` 记录节点数、耗时、节点/秒和 Double 位模式校验和。macOS Release 单次基线分别为 `0.000252625` 秒、`0.001571083` 秒、`0.011861167` 秒；完整记录见[QA-01 macOS 性能基线验收](native-validation/2026-09-26-qa01-macos-performance-baseline.md)。
+- 该工具只用于研发测量，不进入 App；没有把单机耗时冒充跨设备预算。iPhone/iPad、整图预览、LUTAnalyst、内存峰值和取消延迟仍未测量，QA-01/02/03 与 Goal 保持未完成。
+
+## 2026-09-26 H09/H11 原生曲线与色域选择器阶段
+
+- `TransformSettings` 新增输入侧 `withInput(transfer:space:)`；项目文稿界面现直接从 `AlgorithmCatalog.builtIn()` 生成输入/输出曲线和色域 Picker，应用选择后仍保留项目 ID、尺寸、域、资源、范围、位深和白点适应。
+- 曲线 ID 改变时只清除不再匹配的参数化 Gamma；同一曲线仅换色域时保留参数。新增契约覆盖两侧槽位、非法参数校验、生成请求和既有项目包保存/重开路径。阶段详情见[H09/H11 原生曲线与色域选择器阶段验收](native-validation/2026-09-26-h09-h11-catalog-selector.md)。
+- 本阶段 Swift Release 为 277 项测试（2 项公开 NCP 实样按设计跳过），macOS、iOS generic、iOS Simulator Release 均串行构建通过。新增每个非参数化注册 transfer 的有限值 smoke 契约；BBC WHP283 黑位按其已知语义单独处理。首次并行 iOS 构建只因 Xcode build database 锁定退出 65，串行重跑退出 0。真实全量发布清单仍缺失，完整迁移、真机交互、目标软件往返与 Goal 继续未完成。
+
+## 2026-09-26 H08/H13 security-scoped 文件访问阶段
+
+- 将系统文件选择器 URL 的授权访问抽成共享 Swift `SecurityScopedResourceAccessing`，接入用户 LUT 与图像 detached loader；授权成功时在成功、解析失败和解码失败路径成对释放，未获得授权时不调用 stop。新增 4 项注入式契约，覆盖上述四条边界。SwiftUI 文件选择器/导出器现在将 `NSUserCancelledError` 作为用户取消，不显示为失败。
+- Swift Release 测试清单为 281 项，定向 4 项和全包均通过；macOS、iOS Simulator、iOS generic Release 构建与 3 个 App 包资源审计通过。详见[H08/H13 security-scoped 文件访问阶段验收](native-validation/2026-09-26-h08-h13-security-scoped-access.md)。
+- 这只是可注入授权边界和取消状态的代码契约，尚未替代 iPhone/iPad 真机 Files、File Provider、授权撤销、bookmark 失效、替换竞争、后台恢复或 iPad 多窗口/旋转验证；完整 H08/H13、发布清单和 Goal 继续未完成。
+
+## 2026-09-26 H09 生成 LUT 系统文件导出阶段
+
+- 生成任务成功后新增独立 Swift `GeneratedLUTExportDocument`，把结果临时文件捕获为字节快照并接入 `fileExporter`；系统保存面板的延迟写出或取消不会依赖已经变化的临时文件，原有 `ShareLink` 保留。文件名路径穿越和超过 256 MiB 明确拒绝。
+- 新增 2 项文稿字节/资源边界契约；Swift Release 清单为 284 项且通过，公式检查、CUBE 生成/读回、macOS、iOS Simulator、iOS generic Release 构建和 3 个 App 包资源审计通过。详情见[H09 生成 LUT 系统文件导出阶段验收](native-validation/2026-09-26-h09-generated-lut-file-export.md)。
+- 仍未取得 Finder、Files、File Provider 真机系统保存面板、目标软件导入、磁盘满/覆盖授权/后台恢复等证据；完整 H09/FLOW-03/FLOW-04/FLOW-06、发布清单和 Goal 继续未完成。
+
+## 2026-09-26 H09 生成临时文件生命周期阶段
+
+- `ProjectExportSession` 登记 owned 生成输出：最近一次成功结果在系统保存/分享期间和会话关闭后保留；开始下一次生成时清理旧结果，取消、失败、过期请求和关闭中的未完成请求不留下临时文件，用户指定目标不由会话删除。
+- 新增 2 项生命周期契约；Swift Release 清单 286 项通过，三平台 Release 构建与包审计通过。详情见[H09 生成临时文件生命周期阶段验收](native-validation/2026-09-26-h09-export-lifecycle.md)。系统保存面板真机往返、File Provider 竞争和完整 H08/H09 仍未完成。
+
+## 2026-09-26 H11 ACEScc 阶段补记
+
+- 按 ACES 公开 ACEScc 规范新增纯 Swift `Double` 的 `ACESCCTransfer`，覆盖负值码、`2^-15` 低段、主对数段和 65504 上限；旧网页 0.9 数据缩放保持为独立历史行为，不混入官方条目。
+- 接入 `TransferID.acesCC`、ACES AP1 目录预设、`TransformPlan`、`LUTReferenceCLI` 和独立 Decimal 读回 verifier。新增 4 项 ACEScc 契约与目录身份契约；48 个 33³/65³ 批量生成/读回对全部通过，ACEScc 最大尺度化误差为 `1.1102230246251565e-16`，门槛 `2e-12`。详情见[H11 ACEScc 阶段验收](native-validation/2026-09-26-h11-acescc-stage.md)。
+- 本阶段只补齐一条有公开公式的解析曲线，不代表完整 ACES 旧链、相机范围、HDR/EDR、完整 H11 或真机验收；Goal 保持 active。
+
+## 2026-09-26 H11 ACESproxy 10/12-bit 阶段补记
+
+- 按 ACES 公开 ACESproxy 规范新增纯 Swift `Double` 的 10-bit/12-bit 解析式编码与解码，显式保留 legal-range black pedestal 和低线性阈值；没有带入厂商 LUT、旧 `.labin`、采样表或压缩数据。
+- 接入 `TransferID`、`TransformPlan`、目录预设、CLI 和批量清单。独立 80 位 Decimal CUBE 读回验证 33³/65³ 两个位深均通过，最大尺度化误差为 `5.551115123125783e-17`；完整 Swift Release 测试、26 个预设的 52 个 CUBE 生成/读回对、三平台 Release 构建和 App 资源审计通过。阶段详情见[H11 ACESproxy 10/12-bit 阶段验收](native-validation/2026-09-26-h11-acesproxy-stage.md)。
+- 该阶段只是有公开公式的 ACESproxy 子集，不代表完整 H11、完整 ACES 输出变换、HDR/EDR、真机或发布完成。`verify-native-release.sh` 仍因真实全量发布清单缺失退出 2；Goal 保持 active。
+
+## 2026-09-26 H11 F-Log2 C / F-Gamut C 阶段补记
+
+- 按富士 F-Log2 C 数据表新增独立 `F-Gamut C` 原色与 `ColorSpaceID`，由现有 Double 色度推导 RGB→XYZ 矩阵；F-Log2 C 复用已验收的 F-Log2 解析式，但不与普通 F-Gamut 或 Rec.2020 合并。
+- 新增 `fujifilm.flog2c-exposure-one.v1`、CLI `flog2c-exposure` 和 27 预设批量清单。独立 Decimal 33³/65³ CUBE 读回最大尺度化误差均为 `2.0677889068274172e-16`；完整 Swift Release、54 个生成/读回对和目录注册表契约通过。阶段详情见[F-Log2 C / F-Gamut C 阶段验收](native-validation/2026-09-26-h11-flog2c-fgamutc-stage.md)。
+- 该阶段只覆盖公开色域/曲线配对子集，不代表完整富士相机预设、H11、真机或发布完成；完整发布入口仍受真实全量验收清单缺失阻塞，Goal 保持 active。
+
+## 2026-09-26 H13 ICC 用户 sampled `curv` 子段
+
+- `ICCMatrixTRCTransform` 现接受 RGB matrix/TRC profile 的 ICC `curv(count>1)`：严格解析 profile 提供的归一化 uInt16 样本，在均匀输入节点之间作线性插值；样本只来自用户主动导入的 ICC，不内置或复制研究 profile/表。既有 `count=0` identity、`count=1` u8Fixed8 gamma 和 `para(type=0...4)` 路径保持。
+- 逆向逐区间求候选；域外输出报 `outsideDomain`，平段或多段重叠报 `nonUnique`。契约覆盖采样插值、量化误差、33³/65³ 全网格往返、平段和非单调反求。
+- `ICCMatrixTRCContractsTests` 14 项通过；完整 Swift Release 共 302 项执行、0 失败，2 个既有可选夹具按设计跳过。完整验证入口的 Node 11 项、Python 8 项、7 个公式检查、54 对 33³/65³ CUBE 独立读回、H08/H09/H10/H12/H13 命令行契约、macOS/iOS Simulator/iOS generic Release 构建及 3 个 App 包资源审计通过。测试和 CUBE 门槛未改变，CUBE 门槛仍为 `2e-12`。
+- 发布入口以退出码 2 结束，报告缺少真实 `docs/native-validation/full-scope-acceptance.json`；没有创建或伪造该文件。没有运行真机 ICC 文件交互。本阶段只补 ICC 用户导入 CPU 子集，不代表完整 H13、完整 ICC 色彩管理、HDR/EDR、全量迁移或发布就绪。
+- 中文阶段详情：[H13 ICC sampled `curv` 验收](native-validation/2026-09-26-h13-icc-sampled-curv.md)。
+
+## 2026-09-26 iPhone 11 开发者模式与真机首轮验收
+
+- 用户提供的 iPhone 11（`iPhone12,1`，iOS 26.5）已打开开发者模式并保持配对；使用 Team ID `DD4V6SJ9XL` 自动登记设备后，`LUTCalcIOS` Debug 真机签名构建、安装、启动和结束进程后重启均通过。
+- 首次启动及重启截图、主程序哈希、实际命令和设备能力见[iPhone 11 真机首轮验收](native-validation/2026-09-26-iphone11-device.md)。这证明安装和基本启动，不替代创建项目、导出、取消、Files/File Provider、项目重开或旋转的真机交互验收。
+- 该首轮记录后来由 2026-09-27 Xcode UI Testing 真机证据补充；后续设备访问限定为 iPhone 11 的 `devicectl` 与 `xcodebuild -destination id=00008030-001015101ABA802E`，不使用 iPhone 镜像或 iPhone Air。
+
+## 2026-09-27 iPhone 11 CUBE 导出 UI 阶段
+
+- 真机 UI 测试 `testCreateDocumentAndGenerateCube` 已实际在 iPhone 11 上通过：创建 DocumentGroup 文稿、触发 CUBE 生成、看到成功状态并确认系统“保存到文件…”入口出现。设备、实际命令、日志哈希、源码哈希与限制见[iPhone 11 真机首轮验收](native-validation/2026-09-26-iphone11-device.md)。
+- 本阶段修复 iOS 文稿容器嵌套导航，并为长表单提供始终可见的导航栏生成入口；增加当前曝光值不变时不产生无意义项目修订的检查。Swift Release 全包测试、macOS Debug 构建及现有 Node 风险/夹具/测试均通过。
+- 这不证明系统保存面板实际写入 Files，也未覆盖 SPI3D、任务取消、前后台恢复、项目重开、iPad、多窗口或旋转；不等同完整 H01/H08/H09/H12/H13、完整迁移、数值发布验收或发行就绪。全量验收清单仍不得伪造，Goal 保持 active。
+
+## 2026-09-27 iPhone 11 导出类型契约修复
+
+- `GeneratedLUTExportDocument` 改用明确的 `com.lutcalc.cube`/`com.lutcalc.spi3d` 类型，并同步写入 macOS/iOS 类型声明；新增契约测试，Swift Release 全包测试通过。
+- 物理 iPhone 11 UI 测试重新通过，日志 `/tmp/lutcalc-iphone11-ui-save-panel4.log`，SHA-256 `db931dfcb9e215c9986bbbc8bd26db00ea18b6fd13d9012e77e9dcd28588de1b`。系统保存面板实际打开并取消，且类型声明警告消失。
+- 该修复只关闭导出类型契约缺口，不扩大真机验收范围；Files 实际写入、SPI3D 真机、取消生成、项目重开、后台恢复、iPad、多窗口、旋转以及完整 H01-H14/FULL-01 至 FULL-08 仍未完成。`full-scope-acceptance.json` 继续不能伪造，Goal 保持 active。
+
+## 2026-09-27 iPhone 11 SPI3D 真机阶段
+
+- 物理 iPhone 11 真机 UI 测试已覆盖 SPI3D 选择、Double 生成成功、系统保存面板打开和取消；日志 `/tmp/lutcalc-iphone11-spi3d4.log`，SHA-256 `f5184188001fca73361fb94b4e53bb7d9b3f95e5f92bd584d5c7601ba8867a9a`。
+- 导航栏在运行态显示“取消生成”，并为 3D 尺寸/导出格式 Picker 增加标识。取消生成的本地契约继续通过，但真机 UI 尚未捕获到可按取消的窗口：任务在自动化找到按钮前完成。该项保持未完成，不改变网格尺寸、插值或阈值。
+- Swift Release 全包测试日志 `/tmp/lutcalc-swift-release-after-iphone11.log`，SHA-256 `1bc962bbf447c2cab3f1fc54be93e4d4b56ad8130b970f84cb40b5b53295318e`；macOS Debug 构建日志 `/tmp/lutcalc-mac-after-iphone11.log`，SHA-256 `86ae82823522169603bb6f3998d2c23e0e66d74c4b52c3a8add731096e9532b2`，均退出码 0。
+
+## 2026-09-27 iPhone 11 取消生成真机阶段
+
+- Debug UI 测试通过显式启动参数 `-LUTCalcTestSlowExport` 让真实任务保持可观察，随后在物理 iPhone 11 上选择 65³、生成并点击导航栏“取消生成”；测试确认取消状态且没有成功状态。日志 `/tmp/lutcalc-iphone11-cancel9.log`，SHA-256 `4772d3a9e35f9cb7821b2b71961fa9bb04043022368348c9418e0c3aad0c0cf1`。
+- 等待分支受 `#if DEBUG` 和显式参数双重限制，Release 产品路径不受影响；Swift Release 回归日志 `/tmp/lutcalc-swift-release-after-cancel9.log`，SHA-256 `cd2fb656f9d262a9cc5ae756cbabcc3d7357e5764e7a2a7bff5d2a46d3bdd0e1`。
+- 取消生成真机项现已取得证据，但 Files 实际写入、项目保存重开、前后台恢复、旋转、iPad、多窗口、Finder/File Provider 和完整发布验收仍未完成，Goal 保持 active。
+
+## 2026-09-27 iPhone 11 生命周期阶段
+
+- 新增并通过物理 iPhone 11 的前后台恢复和旋转 UI 测试：文稿页创建后按 Home 再激活，及横屏/竖屏切换，导航栏生成入口均保持可用。日志 `/tmp/lutcalc-iphone11-lifecycle2.log`，SHA-256 `0d8c4c8803f803f685f1ccea94f7e9a23f0a2f1eaef7dd20880580e68ef389b8`。
+- 该阶段只证明视图生命周期，不替代项目包实际保存、进程终止后的重开、iPad 多窗口、Finder/File Provider 或发布验收；Goal 保持 active。
+
+## 2026-09-27 文稿关闭与 Files 存储边界
+
+- iPhone 11 真机验证点击系统文稿“返回”后回到 DocumentGroup 最近项目浏览器；未保存的新文稿不出现在最近项目中。日志 `/tmp/lutcalc-iphone11-document-close.log`，SHA-256 `c34791a8d0f7374ef26473707add04757a261a062b3bc5d7dba693e6c0080530`。
+- 真机文稿菜单仅有“重新命名”，没有可自动化的直接保存项目包动作；因此 Files 目录选择、实际 `.lutcalc` 写入和从最近项目重开仍需系统存储交互证据，不能用本地 `ProjectStore` 契约替代。Goal 保持 active。
+
+## 2026-09-27 应用容器传输与文稿登记边界
+
+- `devicectl device copy` 能将现有 Swift `.lutcalc` 包写入 iPhone 11 应用数据容器并取回，但 DocumentGroup 最近项目浏览器不显示该容器中的包；UI 尝试日志 `/tmp/lutcalc-iphone11-project-reopen.log`，SHA-256 `2eb1d64948f53f81eca7a5192d3ee28a39a7894ea15e8d20553fa6a2ceee8d00`，退出码 65。
+- 这确认了应用容器传输与 Files/File Provider 文稿登记是两条不同路径；项目包实际保存和重开仍未验收，Goal 保持 active。
+- 边界尝试后 Swift Release、Node 回归和 iOS generic Debug 构建均通过；它们只证明改动未破坏现有实现，不替代 Files 文稿登记证据。
+
+## 2026-09-27 iOS 文稿方向与发布资源审计
+
+- 补齐 iOS 文稿方向声明和系统启动屏配置，`verify-native-document-types.py` 现通过；iOS generic Debug 构建日志 `/tmp/lutcalc-ios-plist-fix.log`，SHA-256 `84c2c112d8a0e182e74bc535c5166f872304dcdd62687143fd3988b250023551`。
+- 当前 macOS/iOS Debug App 包资源审计通过：无所列 LUT/脚本文件或 WebKit/JavaScriptCore 直接链接。该审计不能替代等价采样表的人工公式审查，也不改变 Files/File Provider、iPad 多窗口、完整 H01-H14 和发布验收未完成状态。
+- plist 修复后的物理 iPhone 11 横竖屏复验通过，日志 `/tmp/lutcalc-iphone11-rotation-plist-fix.log`，SHA-256 `63158f2e1ecbf0f4024c98ffa3d8ad5c53e1ba7caf8026b4eb53cb6aba8a5230`。
+
+## 2026-09-27 iPad 架构编译阶段
+
+- `LUTCalcIOS` 的 generic iOS Simulator Debug 构建通过，目标设备族已包含 iPad；日志 `/tmp/lutcalc-ipad-simulator-generic.log`，SHA-256 `06ee1f69783584e03ed1d7eee1668eb503a8f8e08248fb0e3403d7bbb203eb88`。
+- 当前 CoreSimulator 没有可用设备，创建 iPad 设备持续返回 `NSPOSIXErrorDomain code=22` creation state 错误，因此 iPad UI、多窗口与旋转仍未取得运行证据。Goal 保持 active。
+- 重启 CoreSimulator 服务后重试仍失败；这是本机模拟器服务状态阻塞，不把 generic 编译结果扩大解释为 iPad UI 验收。
+
+## 2026-09-27 iPhone 11 直接开发者工具复验
+
+- 按用户要求，本轮设备访问固定为实体 iPhone 11（`00008030-001015101ABA802E`），只使用 `xcodebuild` 和 `xcrun devicectl`；明确跳过 iPhone Air、iPhone 镜像和模拟器。
+- 以 `DD4V6SJ9XL` 开发团队签名构建并安装 `org.lutcalc.native.dev.ios`，真机 arm64 Debug 构建、安装和直接启动均通过。
+- 在同一设备执行 6 项 UI 测试并全部通过：CUBE、SPI3D、取消生成、关闭文稿、前后台恢复、旋转；日志与 SHA-256 见[iPhone 11 真机验收记录](native-validation/2026-09-26-iphone11-device.md)。
+- 该复验只证明当前代码在实体 iPhone 11 上的直接运行链路；Files 实际写入与项目重开、iPad UI、多窗口、Finder/File Provider、完整 H01-H14/FULL-01 至 FULL-08 和发布验收仍保持未完成，Goal 继续 active。
+
+## 2026-09-27 iPhone 11 SPI1D 本地 Files 往返
+
+- 只使用实体 iPhone 11（`00008030-001015101ABA802E`），新增并运行 `testSaveGeneratedSPI1DAndReadBackOnDevice`；`xcodebuild` 退出码 `0`，XCTest 结果包报告 1 项通过、0 项失败。日志 `/tmp/lutcalc-spi1d-files-local-20260927.log`，SHA-256 `56b104f098e2b6373d521696f4877f28bfdcf5c6a8f8d1e4ebba7f72ceb86a9d`，详情见[ SPI1D 文件往返验收](native-validation/2026-09-27-iphone11-spi1d-files-roundtrip.md)。
+- 本轮完成 SPI1D 生成、系统保存面板写入“我的 iPhone”、App 回调逐字节回读以及独立 Files 本地列表发现。iCloud/File Provider、目标软件、iPad 多窗口、macOS Finder 和全量发布清单仍未完成；Goal 保持 active。
+
+## 2026-09-27 iPhone 11 VLT 界面验证阻塞
+
+- 尝试在实体 iPhone 11 上选择 `VLT Varicam 17³` 并保存；系统实际将该选项暴露为静态文本，查询兼容性已修正，但默认项目未出现生成成功状态，因而没有“保存到文件…”或 Files 正证据。结果包 `/tmp/LUTCalcDeviceUITestDD/Logs/Test/Test-LUTCalcIOS-2026.09.27_06-01-12-+0800.xcresult` 报 1 项失败，详情见[VLT 界面验证阻塞](native-validation/2026-09-27-iphone11-vlt-ui-blocker.md)。未将失败尝试计入通过项。
+- 后续诊断尝试确认输出曲线/曝光调整需要更稳定的项目设置入口；滚动后的曝光字段不可点击，结果包 `/tmp/LUTCalcDeviceUITestDD/Logs/Test/Test-LUTCalcIOS-2026.09.27_06-07-17-+0800.xcresult` 同样不计通过。VLT 约束没有被放宽，临时诊断测试已删除。
+
+## 2026-09-27 导出设置控件可验证性补充
+
+- 为输入/输出曲线与范围 Picker 增加稳定 accessibility identifier，便于后续真实 UI 设置和 VLT 合法项目验证；generic iOS `build-for-testing` 退出码 `0`。详情见[导出设置控件可验证性补充](native-validation/2026-09-27-accessibility-identifiers.md)。该修改不扩大 VLT 或完整迁移验收范围。
+
+## 2026-09-27 VLT 可表示预设与 Swift 导出契约
+
+- 新增 D-Log2/D-Gamut2 同空间、曝光 0 的 `dji.dlog2-to-dlog2-identity.v1` 预设，并以同点 Double 恒等契约和完整 17³ VLT 生成/读回契约验证；两项 Release Swift 测试均通过。详情见[VLT 可表示预设与 Swift 导出契约](native-validation/2026-09-27-vlt-representable-preset.md)。这为后续真机设置提供合法项目，但不替代 iPhone 11 Files 往返或第三方导入验收。
+- 原生子集在注册表计数更新（31 个预设）后重跑通过，日志 `/tmp/lutcalc-native-subset-after-vlt-20260927.log`。
+
+## 2026-09-27 iPhone 11 VLT 本地 Files 往返
+
+- 使用上述合法预设在实体 iPhone 11 上完成 VLT 生成、系统保存面板写入“我的 iPhone”、App 回调字节回读及独立 Files 本地列表发现。XCTest 结果包报告 1 项通过、0 项失败；日志和命令见[iPhone 11 VLT 本地 Files 往返验收](native-validation/2026-09-27-iphone11-vlt-files-roundtrip.md)。第三方导入、File Provider 竞争、iPad 多窗口和 macOS Finder 仍未完成。
+
+## 2026-09-27 macOS Finder 实际交互阻塞
+
+- `LUTCalcMac` Debug 构建退出码 `0`，但 CUA 检查时主机处于锁屏且无法自动解锁，Finder/应用点击与往返没有执行。详情见[macOS Finder 实际交互阻塞](native-validation/2026-09-27-macos-finder-lock-blocker.md)。新增 VLT 预设后的完整 Swift Release 退出码 `0`。
+
+## 2026-09-27 macOS 系统文稿保存与关闭
+
+- 主机恢复可操作后，使用最新 macOS 构建实际新建项目、编辑曝光 `0.5`、系统保存为 `/tmp/LUTCalc-mac-roundtrip-20260927.lutcalc` 并关闭；系统打开面板列出该项目包，磁盘清单为 schema v2、17³、曝光 `0.5`。详情见[macOS 系统文稿保存与关闭验收](native-validation/2026-09-27-macos-finder-save-close.md)。本轮没有把列出项目包扩大为重新打开字段读回，历史重开证据保持独立。
+
+## 2026-09-27 剩余范围审计
+
+- 重新执行完整 `bash tools/native-validation/verify-native-release.sh`：Node/Python/Swift、数值批次、macOS/iOS Simulator/generic Release 构建和三个 App 包审计通过；最终仍因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出 `2`。日志 `/tmp/lutcalc-native-release-final-20260927.log`，SHA-256 `058c71d7c4728e3f6316f379b24e7a940d5b8b3dd7ca7b588b236b72e835763d`。
+- 当前 `simctl list devices available` 没有可用 iPad 设备；iPad 多窗口、iCloud/File Provider 竞争、第三方目标软件、完整 ICC/HDR/任意 3D 反求、签名性能和最终视觉设计继续保持未完成。详细清单见[剩余范围审计](native-validation/2026-09-27-final-scope-audit.md)。
+
+## 2026-09-27 Files 保存写入边界复验
+
+- 继续只使用实体 iPhone 11 和 Xcode UI Testing：真实填写系统文件名并点击“保存”，随后系统出现网络许可提示；在拒绝网络访问后，iCloud Drive 搜索不到该文件。
+- 该轮日志 `/tmp/lutcalc-iphone11-files-save2.log` 为失败结果，不能当作 Files 写入通过证据。临时失败测试已删除；后续需要在系统网络/iCloud 状态可控时重新执行，或使用可验证的本地“在我的 iPhone 上”目录完成保存与回查。
+- Files 实际写入、项目包重开和 File Provider 登记仍未完成，Goal 保持 active。
+
+## 2026-09-27 实体 iPhone 11 直接开发者工具 UI 回归复验
+
+- 按用户要求只使用实体 iPhone 11（`00008030-001015101ABA802E`）及 `xcodebuild`/`xcrun devicectl`，跳过 iPhone Air、iPhone 镜像和模拟器。
+- 使用独立派生数据目录、`DD4V6SJ9XL` 自动签名和设备注册选项重新执行 `LUTCalcIOSUITests`：6 项、0 失败，覆盖 CUBE、SPI3D、取消生成、关闭文稿、前后台恢复和旋转。日志 `/tmp/lutcalc-iphone11-direct-uitest-final.log`，SHA-256 `acec02b13cb8de488df52b44c78ad98719b09a6ced50456638ae0e37d141bde7`；结果包在 `/tmp/LUTCalcDeviceUITestDD2/Logs/Test/Test-LUTCalcIOS-2026.09.27_02-08-40-+0800.xcresult`。
+- 这只是实体设备直接 UI 回归的扩大证据；Files 实际写入与项目重开、File Provider、iPad UI、多窗口、Finder 往返、完整 H01-H14/FULL-01 至 FULL-08 和全量发布清单仍未完成，Goal 保持 active。
+
+## 2026-09-27 Files 本地目录尝试
+
+- 继续只使用实体 iPhone 11，临时尝试从系统保存面板切换到“我的 iPhone”并提交生成的 CUBE。
+- Files 将位置呈现为不可点击的静态元素，UI 测试无法取得本地位置按钮，在保存提交前结束；临时测试代码已移除。日志 `/tmp/lutcalc-iphone11-files-local-temporary.log`，SHA-256 `03c9574cd9abad4a72ffa6b007d03ef9de0ae8481396bd44cc1bc5fd07773a5f`。
+- 该尝试没有扩大 Files 正证据；本地/云端实际写入、项目包重开和 File Provider 登记仍未完成。
+
+## 2026-09-27 临时 Files 尝试后的原生子集回归
+
+- 已移除临时“我的 iPhone”UI 测试后，重新运行 `bash tools/native-validation/verify-native-subset.sh`，退出码 `0`。
+- 结果覆盖静态原生边界、旧 Node/Python 契约、Swift Release 契约、7 组公式检查、54 对 33³/65³ CUBE 独立读回、项目/预览/任务/分析契约；日志 `/tmp/lutcalc-native-subset-after-files-local.log`，SHA-256 `77fc2a3c66aca685d719369de5e1165121340c4ebcc4dd1351ec67584b342b0f`。
+- 该回归证明临时真机尝试没有污染原生实现；不改变 Files、File Provider、完整格式、完整 LUTAnalyst、iPad UI 或全量发布清单的未完成状态。
+
+- 随后串行复跑三端 Release 构建：macOS、iOS Simulator、generic iOS 均退出码 `0`。日志及 SHA-256：`/tmp/lutcalc-mac-release-after-files-local-serial.log`（`b2a22ed15a7924d3030343008bc2ceb3cba56db9ee39de4825900e838dc7a1e8`）、`/tmp/lutcalc-iossim-release-after-files-local-serial.log`（`1e379ddeb326dfe69836493aa0f8ce7cc4e6812e2626b04af58fbb052ff80b7f`）、`/tmp/lutcalc-ios-release-after-files-local.log`（`3af97ad047d8bbf8af23497346f92eefff6a42b45c060bb671913807fa683324`）。
+
+## 2026-09-27 原生验证标准入口
+
+- 新增 `Scripts/verify-native-fast.sh`、`Scripts/verify-native-numerics.sh` 和 `Scripts/verify-native-release.sh`，统一从脚本位置定位工程根目录，分别覆盖快速回归、原生子集和完整发布门槛。
+- `bash -n` 语法检查通过；快速入口实际退出码 `0`，原生数值入口实际退出码 `0`。日志分别为 `/tmp/lutcalc-verify-native-fast.log`（SHA-256 `7f0f9a3ef82e0812e1d661683efbd70f6d689f7154fb171cd92f16d0ce7f3cfc`）和 `/tmp/lutcalc-verify-native-numerics.log`（SHA-256 `877a1584d3a3e7cb1dc587da7ab5e66424e24f38ce1af4e47377eda68824f940`）。阶段详情见[原生验证标准入口阶段验收](native-validation/2026-09-27-validation-entry-scripts.md)。
+- 发布脚本仍保留真实全量清单缺失即失败的门槛；本阶段没有创建 `full-scope-acceptance.json`，也没有把入口存在误记为发布完成。
+
+## 2026-09-27 iPadOS 模拟器启动与可访问性补记
+
+- 使用独立临时 CoreSimulator 设备集创建 iPad Air 11 英寸模拟器，Debug iOS App 构建、安装、启动和首屏截图通过；切换 `accessibility-large` 内容字号后“创建文稿”仍可见。命令、截图哈希和退出码见[ iPadOS 模拟器启动与可访问性验收](native-validation/2026-09-27-ipados-simulator-validation.md)。
+- 当前 Xcode 27 的 `xcodebuild` 未发现该独立设备 UDID，UI Test destination 以退出码 `70` 失败；默认设备目录还存在权限错误。因此没有把这轮结果计为 iPad 多窗口、旋转、文稿协调或完整无障碍通过，UI-02/UI-07、H01–H14、FULL-01 至 FULL-08 和 Goal 均保持未完成。
+
+## 2026-09-27 File Provider 读取协调契约补记
+
+- `NativeUserLUTLoader` 现通过 `NSFileCoordinator` 读取用户主动导入的 LUT，并在成功、解析失败和协调失败时成对释放 security scope；新增协议注入契约 2 项和真实本地协调读取契约通过，共 8 项定向测试通过。阶段详情见[File Provider 读取协调契约阶段](native-validation/2026-09-27-file-coordination-read.md)。
+- 全包 Swift Release 测试和 macOS、iOS Simulator、iOS generic Release 构建均退出码 `0`。真实 File Provider 授权撤销、外部替换竞争、后台恢复和第三方 Provider 仍未实测，H08/FLOW-02/04/QA-02 不勾选。
+
+## 2026-09-27 文件提交协调与替换竞态补记
+
+- 本地导出 sink 的 `publishNoOverwrite` 与显式覆盖路径统一经过 `NSFileCoordinator`；同字节换 inode、发布边界竞争和协调失败契约共 5 项通过，全包 Swift Package Release 测试退出码 `0`。详情见[文件提交协调与替换竞态阶段验收](native-validation/2026-09-27-file-coordination-commit.md)。真实 iCloud/File Provider、后台恢复和磁盘故障仍未实测，H08/FLOW-02/04/QA-02 不勾选。
+
+## 2026-09-27 macOS Finder 直接打开复验
+
+- Finder 双击项目包在排除并行 Release App 后仍未产生可归因的新文稿窗口；通过 LaunchServices 直接传入同一路径成功恢复并核对曝光 `0.5`、17³、输入输出字段。详情见[macOS 项目直接打开复验](native-validation/2026-09-27-macos-finder-open-retry.md)。Finder 双击、外部替换竞争、iCloud/File Provider 和多窗口仍不勾选。
+
+## 2026-09-27 原生交付文档阶段
+
+- 新增中文使用说明、精度说明、功能覆盖报告和剩余阻塞清单：`docs/native-swift-user-guide.md`、`docs/native-swift-precision-report.md`、`docs/native-swift-coverage-report.md`、`docs/native-swift-blockers.md`。
+- `git diff --check` 通过；四份文档的源码哈希和引用范围见[原生交付文档阶段验收](native-validation/2026-09-27-delivery-documents.md)。这些文档只记录已验证子集和真实阻塞，不勾选 REL-03/REL-04，也不改变 Goal 的 active 状态。
+
+## 2026-09-27 SwiftUI 无障碍与键盘语义阶段
+
+- `ProjectDocumentView` 增加 VoiceOver 标签/提示：撤销、重做、曝光输入、导出状态、图像坐标、用户 LUT RGB 输入和生成按钮；macOS/iPad 外接键盘增加 `⌘Z`、`⇧⌘Z` 和 `⌘G`。
+- Swift Release 测试、macOS Release、generic iOS Release 和 iOS Simulator Release 均通过，实际日志与哈希见[SwiftUI 无障碍与键盘语义阶段验收](native-validation/2026-09-27-accessibility-keyboard.md)。
+- 尚未取得 VoiceOver 真机逐项朗读、动态字体、iPad 多窗口和完整键盘导航证据，因此 UI-07 保持未完成。
+
+## 2026-09-27 导出格式动态文案修复
+
+- 修复导航栏固定显示“生成 CUBE”的语义缺口：现在按 `exportFormat` 动态显示 CUBE、SPI3D、SPI1D 或其他当前格式，VoiceOver 标签同步更新，稳定 accessibility identifier 保留。
+- Swift Release、generic iOS Debug 和实体 iPhone 11 6 项 UI 回归均通过；实际日志与哈希见[导出格式动态文案阶段验收](native-validation/2026-09-27-dynamic-export-label.md)。
+
+## 2026-09-27 导出格式动态文案回归契约
+
+- iOS UI 测试 `testCreateDocumentAndGenerateSPI3D` 现在在生成前断言按钮运行时标签包含 `SPI3D`，防止以后回退为固定 CUBE 文案。
+- 仅使用实体 iPhone 11（`00008030-001015101ABA802E`）复验：单项契约通过，随后 6 项 UI 回归全部通过；证据见[导出格式动态文案阶段验收](native-validation/2026-09-27-dynamic-export-label.md)。
+- 该契约只覆盖导出按钮语义，不扩大 Files 写入、项目重开、iPad、多窗口、Finder/File Provider 或完整发布验收范围；`full-scope-acceptance.json` 继续保持缺失，Goal 保持 active。
+
+## 2026-09-27 LUT 导出文件类型声明补齐
+
+- 为全部当前可生成格式补齐稳定导出类型：CUBE、SPI3D、SPI1D、3DL、ILUT、OLUT、Assimilate `.lut` 和 VLT；同步 `GeneratedLUTExportDocument`、macOS/iOS plist、`project.yml` 与类型校验器。
+- Swift 契约、双端 Debug 构建及实体 iPhone 11 同色域 SPI1D 生成/系统保存面板链路均通过；详情见[导出格式动态文案阶段验收](native-validation/2026-09-27-dynamic-export-label.md)。
+- 仍未完成各格式 Files 实际写入回查、目标软件往返、iPad UI、多窗口、Finder/File Provider 和完整发布验收；不得据此勾选 FULL-06 或将 Goal 标记完成。
+
+## 2026-09-27 用户一维 LUT 生成后阶段
+
+- 用户项目资产不再一律阻断生成：对单位输入域、无 shaper 的一维 LUT，`LUTGenerationRequest` 现在以明确的“生成后逐通道阶段”应用；三维 LUT、带 shaper 或非单位域仍明确拒绝，避免把任意 3D LUT 猜成可逆模型。
+- 新增 `GenerationContractsTests.testUnitOneDimensionalUserLUTIsAppliedAsPostStage`，验证单位一维 LUT 对 3D Double 生成输出的真实采样结果；用户项目资产契约同时验证保存/重开后仍能生成并携带 `postLUT`。
+- `ProjectDocumentView` 的说明已同步为真实语义。定向用户资产测试 9 项通过（日志 `/tmp/lutcalc-userlut-postplan2.log`，SHA-256 `e23509e0536716a4a2a5a031572ed7e14b8c56361994e78a172a0ef4981d096a`）；生成契约 13 项通过（日志 `/tmp/lutcalc-userlut-generation-contract.log`，SHA-256 `4cd186e13721241bbeac6322d30e1c2a132d789f6ebc92f73b8ef36ec0d22870`）；Swift Release 全包通过（日志 `/tmp/lutcalc-userlut-postplan-release.log`，SHA-256 `a5326b0a2f47afa2cf1793c98fc3c4a825cec0efdca594bcf40769f36668d299`）。
+- 该阶段只覆盖用户一维 LUT 的前向串联，不覆盖任意 3D 反求、跨色域语义自动推断、三维 LUT 参与生成、目标软件往返或 Files 真机回查；H07/FULL-05/FULL-06 和 Goal 继续保持未完成。
+
+## 2026-09-27 iPhone 11 直接开发者工具验收
+
+- 按用户要求停止使用 iPhone Air、iPhone 镜像和模拟器作为本轮设备证据，改用实体 iPhone 11（UDID `00008030-001015101ABA802E`）和 `xcrun devicectl`。
+- Developer Mode 已确认启用；iOS Release 未签名构建、使用本机开发证书与设备授权 wildcard profile 签名、安装、启动和截图均实际通过。首屏显示原生 SwiftUI LUTCalcOS 文稿入口。
+- 详细命令、证书/配置文件、截图尺寸和未覆盖范围见[2026-09-27 iPhone 11 直接开发者工具验证](native-validation/2026-09-27-iphone11-direct-devicectl.md)。
+- 本批只确认 iPhone 11 安装/启动/首屏渲染，不勾选完整 Files 往返、项目重开、取消、VoiceOver、iPad、多窗口或发布门槛；Goal 继续 active。
+
+## 2026-09-27 EditorSession 用户一维 LUT 生成后阶段
+
+- 旧 `EditorSession` 项目路径已与 `LUTProjectDocument` 对齐：已保存项目内的单位域、无 shaper 一维用户 LUT 在资源哈希复核后进入 `postLUT`；一维格式导出服务也透传该阶段。非单位域、带 shaper 和任意三维用户 LUT 仍不进入生成计划。
+- `SessionContractsTests`、`SPI1DServiceContractsTests`、`LUTSessionChecks`、54 对 33³/65³ CUBE 独立读回和原生数值批量入口通过；iPhone 11 直接开发者工具重新安装并启动当前 App，首屏截图已保存。详情见[EditorSession 用户一维 LUT 生成后阶段验收](native-validation/2026-09-27-editor-session-user-lut.md)。
+- H07/H09/H12 仍有真实 Files/File Provider、项目关闭重开和完整旧功能覆盖缺口；`full-scope-acceptance.json` 仍缺失，Goal 保持 active。
+
+## 2026-09-27 iPhone 11 本地 Files 导出回读
+
+- 在实体 iPhone 11 上通过 Xcode UI Testing 进入系统“我的iPhone”位置、生成并提交 CUBE；`.fileExporter` 成功回调返回的 URL 可在 security scope 内回读，字节与生成文稿完全一致。界面现在报告该回读核对结果，测试要求看到明确成功状态。
+- 同一设备 Files 面板再次搜索未列出该文件；系统列表独立发现、从 Files 打开及 `.lutcalc` 项目包登记仍未完成。先前测试曾误匹配搜索框而假阳性，已修复查询范围，保留失败与最终通过的分项证据。详情见[本地 Files 导出回读验收](native-validation/2026-09-27-iphone11-files-local-readback.md)。
+- Swift Release、macOS/iOS generic Release 构建通过；发布证据检查仍因真实 `full-scope-acceptance.json` 缺失退出 2。H09/FLOW-03 可增加“回调 URL 字节回读”证据，Files 独立发现、项目包重开和全量验收仍不勾选，Goal 保持 active。
+
+## 2026-09-27 iPhone 11 独立 Files 本地列表回查
+
+- 通过 Xcode UI Testing 在实体 iPhone 11 上保存 CUBE，切换到独立 `com.apple.DocumentsApp`，进入 `com.apple.FileProvider.LocalStorage` 的“我的iPhone”位置。测试要求 `File View` 文件单元格包含本次文件名和 `.cube`，不再以搜索框文字判断文件存在。
+- 最终真机结果包中的层级显示 `LUTCalc-device-FA368A03.cube` 为本地列表单元格，约 279 KB；之前导出面板搜索未找到同名文件属于该面板搜索的观测结果，不能据此否定实际落盘。详情见[独立 Files 本地列表回查验收](native-validation/2026-09-27-iphone11-files-independent-list.md)。
+- 这关闭了 CUBE 的本地 Files 列表发现缺口；从 Files 重新导入、`.lutcalc` 项目关闭重开、File Provider 失效/竞争、其他导出格式、iPad/macOS 往返和完整发布验收仍未完成。真实 `full-scope-acceptance.json` 继续缺失，Goal 保持 active。
+- 同一设备的 `.lutcalc` 关闭重开探索确认系统浏览器能列出项目包，并显示由 LUTCalcIOS 打开，但尚未走完重新打开后的曝光设置核对；详情与失败结果包已附在上述验收记录。发布证据脚本本轮再次退出 2，直接原因仍是缺少真实全量清单。
+
+## 2026-09-27 iPhone 11 App 本地项目关闭重开
+
+- 通过 `xcrun devicectl` 将独立 `.lutcalc` 验证夹具放入 LUTCalcIOS 数据容器，以 `--payload-url` 在实体 iPhone 11 上打开。XCTest 在原生界面将曝光从 `0.5` 改为 `2.75` 并关闭文稿；设备文件回读证明清单写为 schema v2、曝光 `2.75`、项目 UUID 不变。再次从同一文件 URL 打开后，真机界面显示同一项目名和曝光 `2.75`。
+- 这补足 App 本地容器的项目设置关闭重开证据。手动 Files 浏览器选择、iCloud/File Provider 授权与替换竞争、带资源项目包、iPad 多窗口、macOS Finder 往返仍未验收；不能据此勾选完整 H09/H12 或全量发布。命令、夹具哈希和结果包见[本地项目关闭重开验收](native-validation/2026-09-27-iphone11-local-project-roundtrip.md)。
+
+## 2026-09-27 iPhone 11 用户 CUBE 导入及资源重开
+
+- 在实体 iPhone 11 上，通过原生“导入 LUT”与系统 Files 本地位置选择此前导出的 17³ CUBE。真机界面显示该用户文件为项目资源、格式 `cube`、3D、尺寸 17；关闭后 `devicectl` 回读项目包，资源原字节 SHA-256 与 `assetHashes` 相等，`assetRoles` 为 `userLUT`，再由文件 URL 重开仍显示该资源。
+- 这补足 H07/H09 的单份本地用户 CUBE 导入、项目资产持久化和重开证据；任意三维反求及生成计划、其他格式、iCloud/File Provider 授权失效、目标软件导入和完整 H07/H09/H12 仍未验收。详情见[用户 CUBE 真机导入验收](native-validation/2026-09-27-iphone11-user-lut-files-import.md)。
+
+## 2026-09-27 iPhone 11 SPI3D 本地文件往返
+
+- 在实体 iPhone 11 上选择 SPI3D、生成、经系统保存面板提交到“我的iPhone”；App 对回调 URL 与生成文稿逐字节回读一致，独立 Files 本地列表列出本次约 315 KB 的 `.spi3d`。新增常规 UI 契约确保两项均成立。
+- 用独立项目夹具从系统 Files 主动选入同一 SPI3D，真机解析显示 `spi3d，3D，17`；关闭后设备项目包保存 314,850 字节原文件且 `assetHashes` 一致，再次由文件 URL 打开仍显示 `.spi3d` 资源。证据见[SPI3D 真机文件往返验收](native-validation/2026-09-27-iphone11-spi3d-files-roundtrip.md)。
+- 从 iPhone 11 项目包取回该 SPI3D 原字节后，独立参照比较器检查全部 4,913 节点，最大尺度化误差 `3.064215547965432e-14`，低于原有 `2e-12` 阈值；比较器及夹具哈希见同一验收记录。目标软件导入、其他格式、iCloud/File Provider 故障与竞争、iPad 多窗口和完整发布门槛继续未完成；本阶段不能勾选完整 H04/H07/H09/FULL-06。
+
+## 2026-09-27 后台恢复契约阶段
+
+- `ProjectExportSession` 和 `ProjectDocumentView` 已接入 SwiftUI `scenePhase`：后台取消未完成导出，前台恢复后可重新导出；契约测试 4 项通过，三端 Release 构建通过。详情见[后台恢复阶段验收](native-validation/2026-09-27-background-recovery.md)。
+- 实体 iPhone 11 新增 UI 测试两次均在 runner 启用自动化阶段超时（退出码 65），没有进入测试方法；因此不勾选真实后台恢复，也不勾选 H08/FLOW-02/FLOW-04/QA-02。iCloud/File Provider、进程终止后重开、磁盘故障和 iPad 验收仍待真实证据。
+
+## 2026-09-27 iPhone 11 3DL 本地 Files 往返
+
+- 新增 3DL 原生 UI 契约：使用合法 identity 预设生成 3DL，系统保存回调在 App 内逐字节回读，并由独立 Files 的“我的iPhone”列表发现同一 `.3dl` 文件；实体 iPhone 11 单项测试通过。详情见[3DL 本地 Files 往返验收](native-validation/2026-09-27-iphone11-3dl-files-roundtrip.md)。
+- 该证据只扩展 3DL 的本地保存链路；Files 再导入、第三方目标软件往返、ILUT/OLUT/Assimilate LUT 真机保存、iCloud/File Provider、iPad 多窗口和完整发布验收仍未完成，不勾选 FULL-06。
+
+## 2026-09-27 iPhone 11 ILUT 本地 Files 往返
+
+- 新增 ILUT 原生 UI 契约：使用合法 identity 预设生成固定 14-bit 1D ILUT，系统保存回调在 App 内逐字节回读，并由独立 Files 的“我的iPhone”列表发现同一 `.ilut` 文件；实体 iPhone 11 单项测试通过。详情见[ILUT 本地 Files 往返验收](native-validation/2026-09-27-iphone11-ilut-files-roundtrip.md)。
+- 该证据只扩展 ILUT 的本地保存链路；Files 再导入、Resolve 导入、OLUT/Assimilate LUT 真机保存、第三方往返、iCloud/File Provider、iPad 多窗口和完整发布验收仍未完成，不勾选 FULL-06。
+
+## 2026-09-27 iPhone 11 OLUT 本地 Files 往返
+
+- 新增 OLUT 原生 UI 契约：使用合法 identity 预设生成固定 12-bit 1D OLUT，系统保存回调在 App 内逐字节回读，并由独立 Files 的“我的iPhone”列表发现同一 `.olut` 文件；实体 iPhone 11 单项测试通过。详情见[OLUT 本地 Files 往返验收](native-validation/2026-09-27-iphone11-olut-files-roundtrip.md)。
+- 该证据只扩展 OLUT 的本地保存链路；Files 再导入、Resolve 导入、Assimilate LUT 真机保存、第三方往返、iCloud/File Provider、iPad 多窗口和完整发布验收仍未完成，不勾选 FULL-06。
+
+## 2026-09-27 iPhone 11 Assimilate LUT 本地 Files 往返
+
+- 新增 Assimilate `.lut` 原生 UI 契约：使用合法 identity 预设生成固定 4096 点三通道 1D 文件，系统保存回调在 App 内逐字节回读，并由独立 Files 的“我的iPhone”列表发现同一 `.lut` 文件；实体 iPhone 11 单项测试通过。详情见[Assimilate LUT 本地 Files 往返验收](native-validation/2026-09-27-iphone11-assimilate-lut-files-roundtrip.md)。
+- 该证据只扩展 Assimilate `.lut` 的本地保存链路；Files 再导入、Assimilate/Resolve 导入、第三方往返、iCloud/File Provider、iPad 多窗口和完整发布验收仍未完成，不勾选 FULL-06。
+
+## 2026-09-27 格式 Files 证据阶段汇总
+
+- CUBE、SPI1D、SPI3D、3DL、ILUT、OLUT、Assimilate `.lut`、VLT 均已在实体 iPhone 11 上取得本地“我的iPhone”保存、App 回调字节回读和独立 Files 列表发现的独立结果包；对应格式限制、合法预设和未覆盖范围分别记录在各格式验收文档中。
+- 本阶段全包 Swift Release 测试和 macOS、generic iOS、iOS Simulator Release 构建通过；未触及 Double 数值路径或放宽误差阈值。第三方软件导入、Files 再导入、File Provider/iCloud 故障、iPad 多窗口、Finder 直接重开和发布全量清单仍不勾选。
+
+## 2026-09-27 iPadOS 模拟器验收重试
+
+- iPad generic Simulator Debug 构建和双端文稿类型/方向静态契约通过；默认设备集当时没有可用设备，直接创建曾受外置目录权限阻塞，后续独立设备集复验见下节。
+- 尝试创建 iPad Air 11-inch M4 设备时，CoreSimulator 在外置设备集复制样板阶段返回 `NSCocoaErrorDomain Code=513` / `NSPOSIXErrorDomain Code=1`，设备卡在 creation state 后被删除；独立临时设备集重试也复现。详情见[iPadOS 模拟器验收重试](native-validation/2026-09-27-ipados-simulator-validation-retry.md)。因此未勾选 iPad 多窗口、旋转、文稿协调或无障碍 UI 证据。
+
+## 2026-09-27 iPadOS 独立设备集复验
+
+- `SIMULATOR_DEVICE_SET_PATH` 方式仍不能改变当前 CoreSimulator 服务使用的默认外置设备集；改用 `xcrun simctl --set /tmp/LUTCalcCoreSimulatorDevices-20260927b` 后，成功创建并启动 iPad Air 11-inch M3（iOS 27.0，UDID `CD363B59-923B-471D-B47F-64792492CE9C`）。
+- 当前 iOS Simulator Debug App 安装和启动成功；稳定首屏截图 `/tmp/lutcalc-ipad-followup-settled.png` 的 SHA-256 为 `230f2ce920fda4ebd039d11d186221181d1be89fb861d7156a9b052eb636cb81`。设置 `accessibility-large` 后截图 `/tmp/lutcalc-ipad-followup-a11y-large.png` 的 SHA-256 为 `ea6465ca6ff74c01dfdf0df79d5deb84a649295f9156846513f772a02b5c442a`；两张图均显示原生文稿浏览器、“创建文稿”和最近项目区域。
+- `xcodebuild -showdestinations` 仍未列出该独立 UDID；以该设备执行旋转 UI Test 退出码 `70`，日志 `/tmp/lutcalc-ipad-followup-destination.log` 的 SHA-256 为 `0c9d17e7cd50446113367a55a16033ceb601194576e2ac6d52df45609548df4f`，测试方法没有执行。因此没有把旋转、多窗口、文稿协调或完整无障碍 UI 计为通过。详情见[iPadOS 模拟器验收重试](native-validation/2026-09-27-ipados-simulator-validation-retry.md)。
+
+## 2026-09-27 iPadOS 文稿 URL 打开验收
+
+- 在独立 CoreSimulator 设备集的 iPad Air 11-inch M3（UDID `CD363B59-923B-471D-B47F-64792492CE9C`）中，将已保存的 `.lutcalc` 项目复制到 App `Documents`，停止 App 后用 `simctl openurl` 冷启动打开。截图 `/tmp/lutcalc-ipad-document-open-cold.png` SHA-256 为 `a9f21add1d9f12771aeba476297c9622603f961342e71cffa57279d3b549d946`。
+- 原生界面实际显示项目名、D-Log2、D-Gamut2、曝光 `0.5`、Data、10 位及“生成 CUBE”；复制前后 `manifest.json` SHA-256 均为 `d3d98f2f814179872fcf1efc35b185c1e2f64c637ed5b258959f3d4d8a29d8d4`。该结果补充 iPad 文稿 URL 打开和字段恢复证据。
+- 另以不同项目 UUID `BBA16960-F5B4-4057-AF22-CB3CB95B0FC7` 的第二份夹具冷启动，截图 `/tmp/lutcalc-ipad-second-unique-cold.png` SHA-256 为 `bbf30d808369a923b473da979f215c81e332e2f77f5a3e5d1b11705717caed21`，标题显示第二份项目名，说明不同文稿身份可分别恢复。
+- 该方法没有 Xcode UI Test 结果包，旋转、多窗口、VoiceOver、键盘导航、Files/File Provider 和后台终止恢复仍未通过；详情见[iPadOS 模拟器文稿 URL 打开验收](native-validation/2026-09-27-ipados-document-open.md)。
+
+## 2026-09-27 macOS 性能基线复跑
+
+- 在同一 arm64 macOS 主机以 Release 重新运行 `LUTPerformanceChecks`，退出码 `0`；17³、33³、65³ 的 Double 位模式校验和分别与 2026-09-26 基线完全一致，证明本轮文档与验收变更未改变生成数值。
+- 新 JSON `/tmp/lutcalc-performance-macos-20260927-rerun.json` 的 SHA-256 为 `c67502ee1d4066bf69d22a4a5615311487beed8e2e968abbdc08b08ef74f490b`。本次耗时为 `0.000269666`、`0.001603709`、`0.012269583` 秒；未将单机复跑差异解释为性能提升。详情见[QA-01 macOS Double 性能基线阶段验收](native-validation/2026-09-26-qa01-macos-performance-baseline.md)。
+
+## 2026-09-27 ICC `mAB/mBA` 与 `mft1/mft2` 规范修正
+
+- 用户导入 ICC 的三通道 CPU 子集现按 ICC.1:2022-05 修正：`mAB/mBA` 的处理顺序、3×4 交错矩阵、首通道最慢的 CLUT 轴序、type 3/4 参数数量和 section 边界均有独立契约；`mft1/mft2` 同步修正为矩阵→输入表→CLUT→输出表及相同 ICC 轴序。详情见[ICC `mAB/mBA` 与 `mft1/mft2` 数值契约验收](native-validation/2026-09-27-icc-mab-mft-transform.md)。
+- `ICCMABContractsTests` Debug/Release 各 12 项通过，`ICCMFTContractsTests` Debug/Release 各 6 项通过；当前 LUTKit Release 全包 342 项执行、0 失败、2 项既有可选夹具跳过，三平台 Release 构建通过。该结果只证明用户导入 CPU 子集、包内回归和编译，不勾选完整 H13、完整 ICC、HDR/EDR、真机或发布验收。
+- 完整发布入口复跑构建、Swift 回归和 3 个 App 包资源审计通过，但按设计以退出码 `2` 结束，原因仍是缺少真实 `docs/native-validation/full-scope-acceptance.json`；没有创建或伪造该清单。日志 `/tmp/lutcalc-icc-final-release-gate-20260927.log`，SHA-256 `757f3e72d943ad4dcc1f63e1087f181165060dc48d344618981504bd9372a682`。
+
+## 2026-09-27 Finder 直接双击复核
+
+- Finder 中对已保存 `.lutcalc` 项目包实际双击两次，仍未出现新的文稿窗口或重开后字段读回；保留先前 LaunchServices 直接传路径的正证据，但不将其计入 Finder 双击。详情见[Finder 直接双击最终复核](native-validation/2026-09-27-macos-finder-open-final-attempt.md)。H12/FLOW-04 的 Finder 直接重开仍未通过。
+
+## 2026-10-01 macOS Finder 文稿关联复核
+
+- Xcode 27.0 Debug 构建通过。Finder 对有效 schema 2 `.lutcalc` 夹具直接双击时明确提示未设定打开应用；`lsregister -f` 后仍复现。系统面板显式选择该构建包后，项目窗口成功打开并读回 D-Log2、D-Gamut2、曝光 `0.5`、ACES AP0 与 17³；关闭后再从 Finder 直接双击仍提示无默认应用。命令、夹具与日志哈希见[macOS Finder 文稿关联复核](native-validation/2026-10-01-macos-finder-association.md)。Finder 直接双击、发布安装与签名仍未验收，H12/FLOW-04 不勾选。
+
+## 2026-10-01 iPadOS 模拟器环境复验
+
+- 独立设备集的 iPad Air 11-inch M3 创建、启动及当前 Debug App 安装运行通过；稳定文稿浏览器截图与日志已保存。Xcode 仍无法发现该 UDID，已有旋转契约以退出码 `70` 结束且未执行；当前 Xcode 目录缺少 Simulator 图形 App，未取得窗口交互替代证据。详情见[iPadOS 模拟器环境复验](native-validation/2026-10-01-ipados-environment.md)。旋转、多窗口、文稿协调及完整无障碍继续未完成。
+
+## 2026-10-01 图像导入文件协调阶段
+
+- `NativePreviewImageLoader` 现通过 `NSFileCoordinator` 在同一读取回调内完成 ImageIO 解码和源 ICC 检查，使用协调返回的 URL；失败和取消路径释放已取得的 security-scoped 授权。先失败后通过的定向 Debug 契约 11 项，全包 Release 345 项执行、0 失败、2 项既有可选夹具跳过；三平台 Release 构建及源码／实际 App 包审计通过。PNG 所检查整数码值的归一化误差为 `0`。命令、日志和源码哈希见[图像导入文件协调阶段验收](native-validation/2026-10-01-image-file-coordination.md)。真实提供商授权撤销、替换竞争、后台恢复与完整 H08/H13 仍未完成，Goal 保持 active。
+
+## 2026-10-01 H07/H14 旧 tricubic 网格取样阶段
+
+- 新增原生 Double 旧 tricubic 域内内核与幽灵节点延拓，接入用户独立 3D LUT 取样和灰轴分析，prepared sampler 复用网格；6 项新契约、546 个冻结旧引擎取样和独立仿射／过冲参照通过，旧参照最大尺度化误差 `0`。全包 Release 351 项执行、0 失败、2 项既有可选夹具跳过；数值子集入口、三平台 Release 构建与实际 App 包审计通过。详情见[旧 tricubic 网格取样阶段验收](native-validation/2026-10-01-legacy-tricubic.md)。
+- 保留旧源码的红轴外插存在蓝通道导数索引错误，仿射最小复现与解析结果冲突，已冻结并标记 `legacyExtensionV1` 研究阻塞。1D／shaper cubic、完整 LUTAnalyst、任意 3D 逆、设备 UI／性能和发布仍未完成；H07/H10/H14、FULL-05 不勾选，Goal 保持 active。
+
+## 2026-10-02 H07/H14 旧 1D cubic 与组合 shaper 阶段
+
+- 新增原生 Double `LegacyCubicCurve1D`，接入独立 1D 与组合 shaper→3D 的 prepared sampler；保留原始样本、过冲和旧端点斜率修改，并在实际取样报告中显示修改。1D 前向 `legacyExtensionV1` 已单独审计，所有 3D 与现有线性内核继续显式拒绝该策略；旧 3D 索引冲突保持研究阻塞。详情见[旧 1D cubic 与组合 shaper 阶段验收](native-validation/2026-10-02-legacy-cubic1d-shaper.md)。
+- 最终定向 Debug 15 项通过；220 个冻结标量点最大尺度化误差 `0`，45 个组合点 `4.440892098500626e-16`，独立公式与不等通道双域契约通过。全包 Release 360 项执行、0 失败、2 项既有可选夹具跳过；数值子集、三平台未签名 Release 编译和实际 App 包审计通过，阈值保持 `2e-12`。
+- cubic 反求、生成计划／持久化／导出接入、完整 LUTAnalyst、旧 3D 域外、设备 UI、性能及发布仍未完成；已有反求界面明确标为线性。没有新增全量清单，H07/H10/H14、FULL-05 不勾选，Goal 保持 active。
+
+## 2026-10-02 用户 LUT 后置生成、存储与预览阶段
+
+- 用户 LUT 现可显式配置为输出曲线／范围换算之后的前向阶段，分别保存插值与域外策略。1D、3D、组合 shaper 接入不可变生成请求与 prepared sampler，CPU 图像取样和预览同步配置；1D 导出仍拒绝三维耦合。项目升级 schema 3，schema 1/2 保留原单位域 1D 线性语义，配置／原始字节／哈希与撤销重做均有契约。详情见[用户 LUT 后置生成、存储与预览阶段验收](native-validation/2026-10-02-user-lut-post-stage.md)。
+- 定向 Debug 8 项通过；33³/65³ 全节点独立 cubic 参照最大绝对误差 `5.551115123125783e-17`，1/4 worker 结果相等；17³ 组合 shaper→耦合 3D 的输出范围顺序参照误差 `2.6645352591003757e-15`。实际本地 CUBE/SPI1D 导出、组合包重开、配置快照及失败清理通过。全包 Release 368 项执行、0 失败、2 项既有可选夹具跳过；三平台未签名构建、数值子集和 App 包审计通过。
+- 以上本地程序化文件证据不等于 Finder/Files 或调色软件往返。cubic 反求、完整 LUTAnalyst、3D 域外研究冲突、完整诊断／来源元数据、设备交互、性能及发布仍未完成。没有全量清单，H07/H10/H14、FULL-05 不勾选，Goal 保持 active。
+
+## 2026-10-02 macOS Finder 直接重开 schema 3 项目
+
+- 将当前原生 Release 包独立复制到 `~/Applications/LUTCalcNativeValidation-Oct2.app`，从系统文稿界面实际新建、编辑并保存 schema 3 项目，曝光 `0.75`、33³。关闭并退出进程后，Finder 实际双击该保存项目直接启动原生 App，正确文稿 URL 与 D-Log2／D-Gamut2、Linear scene／ACES AP0、曝光和网格字段读回通过；manifest 哈希保持相等。没有显式选择打开 App 或手动更改默认关联。详情见[Finder schema 3 冷启动重开验收](native-validation/2026-10-02-macos-finder-schema3.md)。
+- 该证据补足本主机一次 Finder 直接双击冷启动操作。第二次冷启动、干净系统安装／重启后关联、签名／公证、用户资源配置桌面重开、多文稿、File Provider/iCloud 与 iPad 验收仍未覆盖。H12/FLOW-04 完整范围与 FULL-06 不勾选，没有全量清单，Goal 保持 active。
+
+## 2026-10-02 FULL-03 ASC-CDL 非 UI 阶段
+
+- 新增 Double `lutcalc.asccdl-working-linear.v1`：3D 在 Sony S-Gamut3.cine 工作空间执行 SOP 与实际 Y 系数饱和度，负 SOP 值跳过 power；1D 明确只执行独立 SOP。启用配置接入阶段 8、并发生成和程序化 CUBE／SPI1D 导出；奇点／溢出明确失败。项目升级 schema 4，原生 schema 1–3 按明确规则迁移，配置／算法版本／快照／撤销保留。没有新增 UI 控件。详情见[ASC-CDL 阶段验收](native-validation/2026-10-02-asc-cdl.md)。
+- 先行失败后定向 Debug 10 项通过；最终全包 Release 378 项执行、0 失败、2 项既有可选夹具跳过。285 个旧内核点、33³／65³ 独立全网格和 64 个跨色域 70 位 Decimal 点的最大尺度化误差分别为 `1.7763568394002505e-15`、`1.3322676295501878e-15`、`1.2754909529580394e-15`，保持 `2e-12` 门槛。1／4 worker 数组相等；三平台未签名 Release 编译、数值子集和实际 App 包审计通过。
+- 完整旧链 CDL 冻结参照、其余调节阶段、设备运行、性能与发布仍未完成；本版本不声称标准 Rec.709 ASC-CDL 认证。全量证据检查实际退出 2，未创建真实全量清单；FULL-03、H06/H12/H14 不勾选，Goal 保持 active。用户要求的 UI 暂缓决议继续有效。
+
+## 2026-10-02 FULL-04 SDR Saturation 非 UI 阶段
+
+- 新增原生 Double 输出线性 SDR correction，阶段 11 位于输出色域之后、输出编码之前，保留旧 `/12`、gamma、非正亮度旁路及 Pb／Pr 重建；不裁剪负值／HDR，耦合阶段拒绝 1D 写出。schema 5 保存参数／算法身份／不可变快照，并明确迁移原生 schema 1–4，保留 CDL 与用户资源。没有新增 UI 控件。详情见[阶段验收](native-validation/2026-10-02-sdr-saturation.md)。
+- 最终定向 Debug 9 项通过，全包 Release 387 项执行、0 失败、2 项既有可选夹具跳过；33³／65³ 独立全网格最大尺度化误差 `7.216449660063518e-15`，实际旧 D-Log2 解码／色域／曝光／非中性 CDL／SDR 17³ 链 `2.777793995638905e-13`，保持 `2e-12` 门槛并记录 RMS／P99。1／4 worker 相等、实际程序化 CUBE 写读和 1D 写前拒绝通过。数值子集、三平台未签名 Release 编译及实际 App 包审计通过。
+- 旧白平衡 Kelvin／Duv／Dpl 发现来源未闭合的 501 点 Planck 轨迹依赖，七个温度和五组参数实际最小复现已存档，见[研究记录](native-validation/2026-10-02-white-balance-locus-research.md)；未将表搬入产品，继续其他算法工作。
+- 完整调节链、SDR 全部旧输出版本、HDR/OOTF、跨设备数值／性能和发布仍未完成；真实全量清单仍缺失，证据检查退出 2。FULL-03／FULL-04、H06/H12/H14 不勾选，Goal 保持 active；UI 暂缓决议继续有效。
+
+## 2026-10-02 FULL-03 Multitone 非 UI 阶段
+
+- 新增原生 Double `lutcalc.multitone-working.v1`，阶段 9 保留旧工作空间亮度、17 个用户饱和度控制点、HSL 色调算法与旧输出色域准备语义；不打包旧颜色方格。schema 6 保存参数／算法身份，明确迁移原生 schema 1–5，并接入不可变生成请求、文稿磁盘重开、撤销／重做与程序化 CUBE 写读。耦合阶段在 1D 写出前拒绝，没有新增 UI 控件。详情见[Multitone 阶段验收](native-validation/2026-10-02-multitone.md)。
+- 先行失败后定向 Debug 7 项通过；全包 Release 394 项执行、0 失败、2 项既有可选夹具跳过。独立 70 位 Decimal 33³／65³ 全网格最大尺度化误差 `1.201189098608258e-12`，实际旧解码／色域／曝光／CDL／Multitone／SDR 17³ 子链 `5.667610467233136e-13`；原 `2e-12` 门槛保持。近零 Y 节点原 Double 参照失败及高精度复算均存档，未改产品计算或删节点。1／4 worker 数组相等；数值子集、三平台未签名 Release 编译、源码及实际三个 App 包审计通过，结果与哈希归档完成。
+- PSST 四组固定映射生成来源未闭合，默认彩色输入非恒等的实际最小复现已存档，见[研究记录](native-validation/2026-10-02-psst-fixed-rings-research.md)。未搬表、未用标准 HSV 冒充兼容实现；白平衡研究阻塞继续保留。
+- 完整调节链、其他色域／CAT／输出版本、跨设备数值／性能、ICC/HDR、相机／批量、LUTAnalyst／格式、提供商故障与签名发布仍未完成。完整证据检查退出 2，真实全量清单仍不存在；FULL-03／FULL-04、H06/H12/H14 不勾选。UI 按用户要求暂缓，Goal 保持 active。
+
+## 2026-10-02 FULL-04 Black Gamma 非 UI 阶段
+
+- 新增编码后阶段 15、解析公式和原生参数，1D/3D 生成、范围映射顺序、CDL 独立 SOP 阈值准备与项目 schema 7 接入。原生 schema 1–6 明确迁移，新旧算法身份、配置／快照／撤销和参数化 gamma 更新均保留；程序化 FileWrapper 真磁盘写重开、CUBE/SPI1D 写读及 1／4 worker 相等通过。没有新增 UI 控件。详情见[阶段验收](native-validation/2026-10-02-black-gamma.md)。
+- 先行失败后定向 Debug 7 项通过；全包 Release 401 项执行、0 失败、2 项既有可选夹具跳过；数值子集、三平台未签名 Release 构建、源码及实际三个 App 包审计通过。旧 1032 标量点、独立 Decimal 1640 点、独立 33³/65³ 网格和旧现有组合子链均按原 `2e-12` 门槛验证，最大误差分别为 `5.551115123125783e-17`、`1.1102230246251565e-16`、`1.3877787807814457e-17`、`5.667589683178308e-13`，RMS/P99 与实际命令、工具链和哈希已归档。
+- 增加相邻 IEEE754 边界暴露旧公式在最小次正规输入／power=0.01 下的 `8.24e-8` 连续公式误差；原失败日志保留。新默认 `lutcalc.black-gamma-output-encoded-stable.v1` 用等价对数形式修正到约 `1.5e-19`，保留独立旧兼容身份，不声称旧版本在该边界通过数学门槛，也未删除节点或放宽门槛。
+- 完整 Knee／黑白电平的阈值准备依赖、全部调节／输出版本组合、设备数值／性能、ICC/HDR、相机／批量、LUTAnalyst／格式、真实提供商故障和签名发布仍未完成；UI 按用户要求暂缓。真实全量清单仍缺失，证据检查实际退出 2，未运行完整发布入口。FULL-04、H06/H12/H14 不勾选，Goal 保持 active。
+
+## 2026-10-02 FULL-04 黑白电平非 UI 阶段
+
+- 新增 Double `lutcalc.black-highlight-legal-affine.v1` 阶段 14，默认锚点、Legal IRE 参数单位、锁定与自动重置以纯函数实现；输出曲线／CDL／文稿输出 gamma 修改接线，生成请求不依赖全局状态。黑白电平仿射结果继续映射 Black Gamma 的黑／下限／上限锚点，保留 13→14→15→19 顺序。schema 8 保存配置／版本／快照，原生 schema 1–7 明确迁移；没有新增 UI 控件。详情见[阶段验收](native-validation/2026-10-02-black-highlight.md)。
+- 先行失败后定向 Debug 7 项通过；Release 408 项执行、0 失败、2 项既有可选夹具跳过。旧 1776 标量点误差 0，独立 70 位 Decimal／370 点、33³/65³ 全网格及旧现有 17³ 组合子链最大尺度化误差分别为 `2.2135287718383183e-16`、`3.397919565271468e-16`、`5.666367386078412e-13`；数值门槛保持 `2e-12`，32 组旧默认值／锁定结果逐项核对。1/4 worker 相等、阶段 14 溢出定位和 abort、程序化文稿磁盘重开、CUBE/SPI1D 写读及撤销／输出 gamma 编辑通过。
+- 数值子集、三平台未签名 Release 构建、源码及实际三个 App 包审计通过；实际命令、工具链、最大／RMS／P99、结果和哈希归档。完整 Knee／HDR 参数准备依赖、全部调节／输出变体、设备数值／性能、ICC、相机／批量、LUTAnalyst／格式、真实提供商故障和签名发布仍未完成。旧 Null 尚无原生模型。
+- UI 继续暂缓。真实全量清单仍缺失，证据检查实际退出 2；未运行完整发布入口，FULL-04、H06/H12/H14 不勾选，Goal 保持 active。
+
+
+## 2026-10-02 FULL-04 Knee 非 UI 阶段
+
+- 新增 Double `lutcalc.knee-output-hermite.v1`，阶段 13 替代普通输出编码，保留旧起点上限迭代、CDL clip stop 调整、两段 Hermite／smoothness／tail／split 回退及负导数禁用。共用不可变编码器接入黑白电平／Black Gamma 锚点，保持 13→14→15→19；schema 9 保存配置／版本／快照，原生 schema 1–8 明确迁移。程序化磁盘重开、CUBE/SPI1D 写读、gamma 编辑和撤销通过，没有新增 UI 控件。详情见[Knee 阶段验收](native-validation/2026-10-02-knee.md)。
+- 最终 Release 416 项执行、0 失败、2 项既有可选夹具跳过；旧 60 组／8220 标量点、独立 70 位 Decimal／540 点、独立 33³/65³ 全网格及旧现有 17³ 组合子链最大尺度化误差分别为 `7.682743330406083e-14`、`8.800267248600031e-15`、`4.440892098500626e-16`、`5.634716686405631e-13`，保持 `2e-12`。1/4 worker 相等、阶段 13 失败 abort、数值子集、三平台未签名 Release 构建、源码／实际 App 包审计通过；实际命令、失败、结果、工具链和哈希归档。
+- 旧 Knee 省略第二段根检查，300 组调查中 20 组出现下降；独立导数证明 Rec709/start=1/clip=6/slope=0 的第二段最小导数约 `−.001043441669496352`。保留旧兼容身份和最小复现，不声称整体单调或唯一反求；新增禁用分支参照首轮遗漏上层开关造成失败，修正后通过，原日志保留。
+- 完整 HDR/OOTF／全部输出变体与调节组合、其他缺失算子、设备数值／性能、ICC、相机／批量、LUTAnalyst／格式、提供商故障与签名发行仍欠；旧 Null 尚无原生模型。真实全量清单缺失，证据检查实际退出 2，FULL-04/H06/H12/H14 不勾选。UI 继续暂缓，Goal 保持 active。
+
+
+## 2026-10-02 FULL-04 Highlight Gamut 非 UI 阶段
+
+- 新增 Double `lutcalc.highlight-gamut-output-blend.v1`，阶段 10 替代普通输出色域，强制从 Sony S-Gamut3.cine 工作空间独立准备普通／高光矩阵，保留旧 Y 点乘普通输出 RGB 的单位与两种过渡。负值／超白不 clamp；3D 耦合阶段在 1D 写前拒绝。schema 10 保存参数／身份／快照，原生 schema 1–9 明确迁移，Knee 和资源配置保留；磁盘重开、gamma 编辑／撤销、CUBE 非中性节点对独立 Decimal 读回通过。没有新增 UI 控件。详情见[阶段验收](native-validation/2026-10-02-highlight-gamut.md)。
+- 定向 Debug 7 项通过；最终全包 Release 423 项执行、0 失败、2 项既有可选夹具跳过。旧 18 组／4158 通道、独立原色/CAT/70位Decimal／3696 通道、线性／对数四个 33³/65³ 全网格及旧现有 17³ 子链最大尺度化误差分别为 `1.9984014443252818e-15`、`8.480463141558622e-16`、`1.2323878497565341e-15`、`5.634716686405631e-13`，保持 `2e-12`。1/4 worker 相等、阶段 10/node0 错误 abort、三平台未签名 Release 构建、数值子集、源码及实际 App 包审计通过；实际命令、工具链、失败、最大/RMS/P99、结果与哈希归档。
+- 本版本不声称标准亮度保留或标准色域压缩；当前可选范围为原生 14 个矩阵色域／CIECAT02/Bradford，其余旧特殊／自定义空间与其他 CAT、全参数组合和设备运行仍待补。完整 Gamut Limiter／显示转换／False Colour／HDR、ICC、相机／批量、LUTAnalyst／格式、提供商故障、性能和签名发行仍欠。真实全量清单缺失，检查实际退出 2，FULL-04/H06/H12/H14 不勾选，UI 继续暂缓，Goal active。
+
+
+## 2026-10-02 FULL-04 Gamut Limiter 非 UI 阶段
+
+- 新增纯 Swift Double `lutcalc.gamut-limiter-chroma-span.v1`：Linear 阶段 12 钳零后压缩；Post Gamma 阶段 12 保存未钳零次级，阶段 17 经过同一 Knee／编码、黑白电平和 Black Gamma 后限制。保留主／次级／同时保护、Legal IRE、旧两步矩阵与辅助数据请求隔离，拒绝启用时的 1D 生成。当前原生 schema 11，原生 1–10 明确迁移，算法身份／disabled／文稿后端编辑／快照／撤销保留。
+- 定向 7 项通过，完整 Release 430 项执行、0 失败、2 项既有可选夹具跳过；数值子集、三平台未签名 Release 构建、源码和实际 3 个 App 包审计退出 0。独立有理数原色／70 位 Decimal 四个 33³/65³ 网格合计 1863372 通道，最大尺度化误差 `7.869036450598934e-16`；实际旧 Linear／Post Gamma 两条现有 17³ 子链分别为 `3.114632751164745e-14`、`1.566524687746096e-13`，门槛仍为 `2e-12`。真实失败、命令、工具链、结果与哈希见[Gamut Limiter 阶段验收](native-validation/2026-10-02-gamut-limiter.md)。
+- 阶段 16 显示转换尚未实现，主／次级完整依赖、False Colour、HDR/OOTF、全部旧空间／CAT／输出变体与限幅政策、设备数值／性能、ICC、相机／批量、LUTAnalyst／格式、提供商故障和签名发行仍缺。UI 暂缓；真实全量清单缺失，证据检查退出 2，未运行完整发布入口。FULL-04、H06/H12/H14 不勾选，Goal active。
+
+
+## 2026-10-02 FULL-04 输出码值单位修复
+
+- 准备显示转换时发现，19 条已有 CIE L*／ProPhoto／BBC／γ1.5–γ2.6 曲线实际已返回 Data 包装，但单位元数据遗漏，令 Knee／黑白电平／Post Gamma Limiter 主次级错误使用 Legal 参数。新增默认 `native.output-code-units.complete.v2`，共用实际包装边界；普通曲线编码不改，历史 partial v1 独立保留，不能作为新正确性通过证据。
+- 当前原生 schema 12；受影响的 schema 1–11 项目明确迁移到 partial v1，保留原数值和身份，读取不改写源文件。新策略、disabled 算子、settings helper、文稿 gamma 后端、计划版本、请求快照与 undo/redo 保留；未知／缺失／错配拒绝。
+- 定向 6 项通过，最终全包 Release 436 项执行、0 失败、2 项既有可选夹具跳过；三平台未签名 Release 构建、源码与实际 3 App 包审计通过。114 组实际旧链、独立 Decimal 耦合集合和全部 19 曲线的 33³/65³ 网格均维持 `2e-12`，全网格最大 `4.440892098500626e-16`；磁盘项目重开、CUBE／1024 点 SPI1D 及 1／4 worker 通过。真实先行失败、版本断言修正、工具链、命令、结果和哈希见[输出单位修复](native-validation/2026-10-02-output-code-units.md)。数值子集终态在阶段结果中记录。
+- 这不是阶段 16 显示转换已实现。完整 HDR/OOTF、False Colour、旧空间／CAT／输出变体／限幅政策、设备数值／性能、ICC、相机／批量、LUTAnalyst／格式、提供商故障和签名发行仍欠。UI 暂缓；真实全量清单缺失，检查退出 2，未运行完整发布入口。FULL-04、H06/H12/H14 不勾选，Goal active。
+
+
+## 2026-10-02 暂缓 UI 后的当前工作区复核
+
+- 按用户要求核对非 UI 剩余范围。SDR 显示转换核心的 3 项 Debug 契约实际通过，旧参照、独立 Decimal 和两个配置的完整 33³/65³ 均低于 `2e-12`；但 schema 12 尚不接受显示转换项目字段，存储迁移、文稿后端、组合链、HDR 变体及该批次 Release／三平台／包审计仍缺，因此保持进行中，不勾选 FULL-04。
+- 最新完整归档仍为输出单位修复的 436 项 Release 回归。重新检查全量发布证据实际退出 `2`，真实清单仍不存在。其他非 UI 缺口及命令／日志见[最新范围复核](native-validation/2026-10-02-non-ui-scope-audit.md)。本轮无 UI、真机或签名发行操作，Goal active。
+
+
+## 2026-10-02 FULL-04 SDR 显示转换非 UI 阶段
+
+- 阶段 16 现实现 23 个 SDR 曲线／7 个显示色域、固定 CAT02 推导矩阵、旧 1D 跳矩阵和显式 Legal／carrier 边界；主／次级 Post Gamma 限制数据均经过显示转换，默认锚点不重复加入。schema 13 保存字段、disabled 身份、快照和撤销；原生 schema 1–12 明确迁移，schema 12 的 complete v2 单位保留。详见[SDR 显示转换验收](native-validation/2026-10-02-display-conversion.md)。
+- 定向 Debug 7 项、全包 Release 443 项执行／0 失败／2 项既有可选夹具跳过；三平台未签名构建、数值子集与源码／实际三个 App 包审计退出 0。独立四个完整 33³/65³ 最大尺度化误差 `3.1086244689504383e-15`，两条实际旧 17³ 组合链最大 `1.7497114868092467e-13`；维持 `2e-12`。程序化磁盘文稿重开、完整 CUBE／1024 点 SPI1D、worker 1／4 相等及 stage16/node0 abort 已记录。
+- 4 个 HDR 显示变体／参数依赖、False Colour／旧 Null／限幅政策、完整旧空间／CAT／调节组合、相机／批量、ICC、LUTAnalyst／格式、真实提供商故障、跨设备数值／性能和签名发布仍欠。UI 暂缓，真实全量清单不存在，证据检查实际退出 2，未运行完整发布入口。FULL-04、H06/H12/H14 不勾选，Goal active。
+
+
+## 2026-10-02 FULL-04 False Colour 非 UI 阶段
+
+- 显式 LUT 导出的阶段 05 分类快照与阶段 18 标记覆盖已接入，算法 `lutcalc.false-colour-native-thresholds.v1`，schema 14 保存开关／nil参数／版本／快照。1D 活跃分类在写出前拒绝；UI 和预览叠层继续暂缓。详见[False Colour 验收](native-validation/2026-10-02-false-colour.md)。
+- 全部 128 种开关×3 组参数的旧边界共 11,328 探针，发现并保留 192 个 V8／Apple pow 舍入导致的离散分类差异。80／120 位 Decimal 最小复现支持原生阈值；不称逐位旧兼容，不删除边界或放宽门槛。独立四个 33³/65³ 完整网格逐 band 比较通过，最大尺度化误差 `8.881784197001252e-16`；含主／次级显示限制的两条实际旧 17³ 组合链最大 `1.7263968032921184e-14`。保持 `2e-12`。
+- Debug 7 项通过，Release 450 项执行／0 失败／2 项既有可选夹具跳过；三平台未签名构建、数值子集、源码及实际 App 包审计退出 0。磁盘项目重开、CUBE 全节点读回、1／4 worker 相等、stage5/node0 abort 和未知项目身份拒绝已存证。
+- V8 边界逐位兼容、全部任意参数／设备运行、旧 Null／限幅政策、HDR/OOTF／4 个显示变体、其余旧曲线／空间／CAT／调节组合、ICC、相机／批量、LUTAnalyst／格式、提供商故障、性能和签名发布仍欠。全量证据检查退出 2、真实清单仍不存在，未运行完整发布入口。FULL-04、H06/H12/H14 不勾选，Goal active。
+
+## 2026-10-02 此前非 UI 剩余范围复核：Final Output 当时进行中
+
+- 已收取此前 `swift test --package-path Native/Packages/LUTKit --filter FinalOutput` 终态，退出 1；核心 3 项通过，项目 1 项有 9 个失败断言，文稿后端 2 项有 1 个失败。正式 schema 14 尚不接受 `settings.finalOutput`，当前新增代码不能计为已验收。
+- 核心实际旧 8,960 点最大误差 0，独立 Decimal 最大 `1.1102230246251565e-16`，四个完整 33³/65³ 共 1,863,372 通道最大误差 0。仍缺 schema 15／算法身份／后端设置保留、实际旧组合参照、当前全包 Release／三平台构建和审计；完整 HDR 自动峰值准备也未闭合。
+- UI 按用户要求继续暂缓。本次发布证据检查退出 2，真实清单缺失；其余非 UI 缺口及推进顺序见[最新范围核对](native-validation/2026-10-02-non-ui-scope-audit.md)。H01–H14／FULL-01 至 FULL-08 不缩减，Goal active。
+
+
+## 2026-10-02 FULL-04 Final Output 非 UI 阶段
+
+- 阶段 19 显式格式边界／用户限幅已接入，身份 `lutcalc.final-output-code-limits.v1`，schema 15；schema 1–14 nil 和 disabled 保留既有输出，不静默改结果。none 仍执行格式界限，Data Legal 白上限固定 `959/1023`，反转上下限保留旧顺序；有限检查不允许 clamp 隐藏溢出。详见[Final Output 验收](native-validation/2026-10-02-final-output.md)。
+- 最终 7 项 Debug／457 项 Release（0 失败、2 既有可选夹具跳过）、三平台未签名构建、数值子集、源码与三个 App 包审计退出 0。实际旧 640 组最大误差 0，独立 Decimal 最大 `1.1102230246251565e-16`，四个完整 33³/65³ 最大 0，含实际最终限幅的两条旧 17³ 子链最大 `1.6764367671839864e-14`；保持 `2e-12`。
+- schema 15 严格字段／身份／历史拒绝、gamma 后端编辑、磁盘 FileWrapper／EditorSession、CUBE 全 33³、SPI1D 全 1024 点、worker 1／4 和 stage19/sample0 abort 已存证。原先 schema 14 的失败、缺参照失败和追加边界测试的语法失败日志全部保留。
+- HDR 自动 mxO 与 OOTF、旧 Null、独立限制模型／裁剪计数／全部格式预设联动、完整旧功能和设备／性能／签名发布仍欠。证据检查退出 2，真实全量清单不存在，未运行完整发布入口。UI 暂缓，H06/H12/H14、FULL-04 不勾选，Goal active；可继续相机 ISO/EI 与曝光批量。
+
+
+## 2026-10-02 FULL-08 精确曝光批量非 UI 阶段
+
+- 新增 `ExposureBatchSettings/Request/Coordinator/Report`，身份 `native.exposure-batch-rational.v1`；整数 tick 逐点求值，曝光替换源修正，不累加；64 组选项／864 点及旧名称全量对照，最大旧／新 stop 差 `8.881784197001252e-16`，独立 80 位 Decimal 验证。
+- 7 项 Debug、464 项 Release（0 失败、2 项既有可选夹具跳过）、三平台未签名构建、数值子集、源码／三个 App 包审计退出 0。七个完整 17³ 和 0/1⁄3/2⁄3/1 stop 各完整 33³/65³ CUBE 实际写出读回，共 3,829,917 通道，最大尺度化误差 `2.220446049250313e-16`；保持 `2e-12`。详见[阶段验收](native-validation/2026-10-02-exposure-batch.md)。
+- 逐文件提交、默认拒绝覆盖／显式授权替换、注入与真实 Task 取消、成功提交后取消、并发启动拒绝、文稿快照／用户资源指纹、报告磁盘重读及显式恢复、等字节 inode 替换拒绝均有证据。
+- 旧 66 相机注册／ISO 三类和 Generic／camClip 已实际复核，见[相机曝光研究](native-validation/2026-10-02-camera-exposure-research.md)；这不代表相机模型已经迁移。自动检查点、崩溃／真实提供商恢复、批次项目预设、完整相机模型／全部格式、单通道 worker／块提示传递、设备数值／性能和签名发布仍欠。项目仍 schema 15；全量证据检查退出 2，真实清单缺失。UI 暂缓，FULL-02／FULL-08、H08/H12/H14 不勾选，Goal active。
+
+
+## 2026-10-02 H08/FULL-08 单通道调度提示接通非 UI 阶段
+
+- SPI1D／ILUT／OLUT／Assimilate 四条服务分支现统一显式传递请求的 workerCount／blockNodes，固定格式长度 1024／16384／4096／4096 保留；计划、域、用户 LUT／后置政策和批次覆盖入口原样保留。见[1D 服务验收](native-validation/2026-10-02-oned-scheduling.md)。
+- 先行接口／测试语法编译失败、随后实际默认调度路径的 1 项／65 个失败断言均保留；修复后 4 项 Debug／468 项 Release（0 失败、2 既有可选夹具跳过）通过。32 个实际文件／614,400 通道按独立恒等定义逐点相等，max／RMS／P99 为 0；同格式 worker 1／4、块 1／17／4096／Int.max 的完整字节一致。四条强制乱序窗口实际峰值 8，真实 Task 取消清理、用户 LUT 与四种批次接线通过。
+- 三平台未签名 Release 构建、数值子集、源码边界与实际三个 App 包审计均退出 0。全量证据检查退出 2，真实清单仍缺失；未创建清单或执行签名发行。命令、终态、哈希和源码归档已随本包保存。
+- 此项关闭当前“1D 请求提示丢失”缺陷，不补作此前工作包的历史证据。设备 CPU／内存／取消预算、提供商故障、自动检查点／崩溃恢复、项目批次预设、完整相机／旧算法／ICC-HDR／分析／格式和签名发布仍欠。UI 暂缓，H08／FULL-08 与整体 Goal 保持未完成。
+
+
+## 2026-10-02 H08/H12/FULL-08 自动检查点与本地进程恢复非 UI 阶段
+
+- 新增可选择的自动检查点入口：owner／请求指纹／revision／严格 schema 1、4 MiB 预算、flock 租约，generating→staging→prepared 落盘→协调提交→completed 收据；保留原显式 resumeFrom 入口、Double 算法与原生项目 schema 15。阶段契约、来源和边界见[检查点验收](native-validation/2026-10-02-batch-checkpoint.md)。
+- 最终 8 项 Debug／476 项 Release（0 失败、2 既有可选夹具跳过）、三平台未签名构建、数值子集、源码和三个实际 App 包审计退出 0；接口／Swift 6 隔离／prepared 取消的先行失败日志保留。六个边界在 Debug／Release 各以真实子进程 SIGKILL 后独立重启，信号 9／恢复退出 0；prepared／published／completed 首项不重复计算，首块半成品不发布，跨进程租约和外部变化拒绝有证据。
+- 独立 Python 另外重读 24 个完整恢复 CUBE／353,736 通道，device／inode／SHA-256、提交窗口与实际生成 stop 核对，max／RMS／P99 为 0；没有以本包 17³ 替代既有 33³/65³ 验收或放宽 2e-12。命令、进程原始文件、CLI 二进制、结果、哈希与源码归档已保存。
+- 自动检查点／本地进程恢复不再列为完全未实现。真实 iPhone 11 后台与提供商授权／竞争、磁盘故障矩阵、来源／资产重发现与安全书签、项目批次预设／孤立 staging 回收、全部格式、完整相机／ICC-HDR／旧算法／分析／性能与签名发布仍欠。全量证据检查退出 2，真实清单缺失；UI 暂缓，H08/H12/FULL-08 与 Goal 保持未完成／active。
+
+## 2026-10-03 FULL-06 3DL 非线性 shaper 非 UI 阶段
+
+- `ThreeDLParser` 现保存满足完整输入端点、单调不下降和位深范围的非线性 shaper；identity shaper 继续归一化为无 shaper。`ThreeDLWriter.serialize` 支持 unit-domain、三通道相同且可精确量化的 `CubeShaper`，保留原有输出量化、轴顺序及 Flame/Lustre/Kodak 规则。没有新增内置采样表或 UI 代码。详情见[3DL 非线性 shaper 验收](native-validation/2026-10-03-3dl-nonlinear-shaper.md)。
+- 定向 Debug／Release 各 10 项通过；完整 Swift Release 回归 551 项执行、0 失败，2 个既有外部夹具按设计跳过。非线性 `[0,1,3]` 输入代码和 27 个 3D 节点直接序列化后严格读回；非单调、缺端点和不可量化输入明确拒绝。
+- 该阶段只关闭 3DL 解析／直接序列化子集；流式生成接口、厂商／目标软件往返、其他设备布局、NCP 写出、全部格式批量、性能、签名发布和真实全量清单仍欠。UI 按用户要求暂缓，FULL-06 与 Goal 保持 active。
+
+## 2026-10-03 FULL-05 组合 shaper 一维反求非 UI 阶段
+
+- `ImportedLUTAnalyzer.inverseShaper` 现仅反求组合 LUT 中独立的一维 shaper：`tricubicLegacyV1` 使用既有 `LegacyCubicCurve1D.inverse`，线性路径使用 `MonotonicCurve1D`；缺失 shaper、平段、非单值曲线和域外结果显式失败。三维 colour LUT 仍拒绝任意逆，不从采样推断可逆性。详情见[组合 shaper 一维反求验收](native-validation/2026-10-03-combined-shaper-inverse.md)。
+- 定向 Debug／Release 各 7 项通过；完整 Swift Release 8 个测试包共 551 项、0 失败、2 个既有外部夹具按设计跳过；macOS、iOS generic、iOS Simulator 未签名 Release 构建均退出 0。独立 unit-domain cubic 参照恢复 `1.37 / 3`，三通道误差在 `2e-12` 内。
+- 这里只关闭组合 shaper 的独立一维反求子集，不勾选 FULL-05、H07、H10、H14。完整 LUTAnalyst（TF／颜色分离、重建、方向／量化元数据、生成计划／项目／导出接入）、任意三维逆、三维域外研究和完整格式往返仍未完成；UI 继续暂缓，真实全量清单缺失，Goal active。
+
+## 2026-10-03 HLG OOTF RGB 黑位端点非 UI 阶段
+
+- 修复 `HLGOOTF` 在非零黑位与 `gamma < 1` 时的 RGB 端点数值问题：场景 RGB 全黑显式映射到显示黑位；显示 RGB 三通道精确位于黑位时逆变换返回场景黑，低于黑位拒绝。输入／输出两侧、nits／normalizedBy1000、多个峰值和 BBC 系数均有契约覆盖。详情见[HLG OOTF RGB 黑位端点验收](native-validation/2026-10-03-hlg-ootf-black-endpoints.md)。
+- 定向 Debug／Release 各 10 项通过；最终完整 Swift Release 4 个 XCTest 包共 357 项、0 失败；macOS、iOS generic、iOS Simulator 未签名 Release 构建均退出 0。契约先行的非有限失败和扩展边界失败日志均保留。
+- 该阶段只闭合 HLG OOTF 黑位端点数值子集，不勾选 FULL-03/FULL-04。自动峰值／参考白、HDR/EDR 屏幕、完整 HDR 变体、限幅统计、ICC、格式互操作、性能与签名发布仍未完成；真实全量清单缺失，Goal active。
+
+## 2026-10-03 FULL-06 3DL 流式非线性 shaper 接口非 UI 阶段
+
+- `LUTGenerationRequest`、`FileCubeSink` 与 `NativeExportService` 现可携带可验证的 3DL 非线性 shaper；每个 3D 文件网格节点先经过 shaper 再执行 `TransformPlan`，3DL 头保存同一曲线。非 3DL 输出明确拒绝 shaper，请求对象与显式参数冲突也拒绝。实现、契约、实际命令、结果包和哈希见[3DL 流式 shaper 验收](native-validation/2026-10-03-3dl-stream-shaper.md)。
+- Debug／Release 定向各 11 项通过；完整 Swift Release 559 项（其中 LUTFormats 2 项既有外部夹具跳过）0 失败；macOS、iOS generic、iOS Simulator 未签名 Release 构建和源码／三个 App 包边界审计退出 0。没有执行 UI、真机、Finder/Files、目标软件或签名发布。
+- 该阶段只关闭 3DL 流式 shaper 参数传递和本地读回子集。厂商／目标软件互操作、其他设备布局、NCP 写出、全部格式批量、File Provider 故障、性能、签名发行和真实全量清单仍未完成；FULL-06、H08/H12/H14 与 Goal 保持 active。
+
+## 2026-10-03 ICC profile class 与通道元数据非 UI 阶段
+
+- `ICCProfileValidator` 现读取 ICC header profile/device class，并对已填充字段执行四字符签名校验；零填充历史夹具返回 `nil`，不猜测缺失 class。
+- 根据 color space signature 提供标准通道数摘要，未知空间保持 `nil`；不保存标签 payload、不采样内置 LUT、不改变现有 matrix/TRC 或有限 LUT linking 数值路径。新增 3 项头部契约，Debug/Release 定向各 29 项通过；完整 Swift Release 回归、macOS/iOS generic/iOS Simulator Release 构建、源码和实际 App 包审计均通过，详见[ICC profile class 与通道元数据验收](native-validation/2026-10-03-icc-header-class.md)。
+- 该阶段只闭合 ICC 头部元数据边界，不勾选完整 ICC、H13 或 UI-03/UI-06。profile class 语义、PCS 与多通道转换、其他 rendering intent、黑点补偿、gamut mapping、HDR/EDR、第三方往返、真机性能和签名发行仍欠；真实 `full-scope-acceptance.json` 仍不存在，Goal 保持 active。
+
+## 2026-10-03 ICC 头部语义枚举补记
+
+- `ICCProfileValidation` 现为已知 profile class 与 `XYZ `/`Lab ` PCS 提供可追溯语义枚举；未知未来 class 保留原始签名，零填充历史夹具不猜测语义。该改动不改变既有 ICC 数值路径，也不保存或采样 ICC LUT payload。
+- Debug/Release 定向契约、Release 全量 Swift 回归、macOS/iOS generic/iOS Simulator Release 构建、148 个 Swift 源文件审计和三个实际 App 包资源审计均通过，详见[ICC 头部语义枚举验收](native-validation/2026-10-03-icc-header-semantics.md)。
+- 该子集仍不完成完整 ICC profile 类型／通道／PCS／rendering intent、黑点补偿、gamut mapping、系统色彩管理、跨平台参照、项目接入、第三方往返、设备性能或签名发布；UI 继续暂缓，真实 `full-scope-acceptance.json` 仍不存在，Goal 保持 active。
+
+## 2026-10-03 PQ OOTF 研究阻塞补记
+
+- 复核旧 `LUTGammaOOTFPQ` 与 BT.2100 语义后，发现旧分段在阈值 `input≈0.03024` 两侧约有 `1.78e-3` nits 跳变，且 `Lw`、`scale` 和输入单位无法从现有资料唯一解释。已保存旧源码哈希、标准来源和最小复现，见[PQ OOTF 公式冲突研究阻塞](native-validation/2026-10-03-pq-ootf-research.md)。
+- 本轮不把旧公式猜写成 Swift 标准算法；`PQTransfer` 的 ST 2084 编解码和 HLG OOTF 已验收子集保持不变。PQ OOTF、四种 HDR 显示变体、自动峰值／参考白／黑位和真实 HDR/EDR 仍未完成，Goal 保持 active。
+
+## 2026-10-03 Canon C-Log3 非 UI 阶段
+
+- 新增可追溯的 `canon.c-log3-published.v1` TransferID、目录描述和 `canon.c-log3-to-linear-ap0-published.v1` 预设；Swift `Double` 按 ACES 固定提交 CTL 三段公式实现，复用已验证的 Canon Cinema Gamut CAT02 到 AP0 矩阵。Cinema Gamut 单独出现时继续沿用 C-Log2/schema 兼容身份，不误套 C-Log3 计划。
+- `CanonCLog3ContractsTests` Debug/Release 定向 6 项通过，项目 schema 21 接受／schema 20 拒绝契约通过；完整 Swift Release 回归、macOS、iOS generic、iOS Simulator 未签名 Release 构建，以及 149 个 Swift 源文件和三个实际 App 包审计通过。完整命令、工具链、日志哈希和未覆盖范围见[Canon C-Log3 验收](native-validation/2026-10-03-canon-clog3.md)。
+- 只关闭 C-Log3 标量／目录／计划／schema 子集，不勾选 FULL-02 或 Goal 完成。Canon C-Log、全部机型、CP IDT、连续 EI、raw 校准、高 EI shoulder、设备数值、性能、发布签名、完整 ICC/HDR/LUTAnalyst/格式和 UI 仍欠；真实 `full-scope-acceptance.json` 仍不存在。
+
+## 2026-10-04 实体 iPhone 11 当前源码签名安装与进程启动
+
+- 当前源码以 `DEVELOPMENT_TEAM=DD4V6SJ9XL` 完成 iphoneos Release 签名构建，`codesign` 显示 Apple Development 身份和正确 bundle identifier；随后用 `xcrun devicectl device install app` 安装到实体 iPhone 11（`00008030-001015101ABA802E`），退出码均为 `0`。
+- 安装后的 `org.lutcalc.native.dev.ios` 通过 `devicectl device process launch --terminate-existing --no-activate` 启动，进程查询发现新容器路径中的 PID `920`。命令、JSON、签名信息和 SHA-256 见[实体 iPhone 11 签名安装与原生进程启动验收](native-validation/2026-10-04-iphone11-signed-install-launch.md)及其结果包。
+- 该证据只关闭“当前源码可签名安装并启动”的设备边界，不勾选 UI、后台恢复、计算性能、真实提供商故障、发布签名或完整 H/FULL。`full-scope-acceptance.json` 仍缺失，Goal 保持 active；下一步继续处理非 UI 的提供商/后台恢复、完整 HDR/ICC、LUTAnalyst、格式互操作、性能预算和发布验收。
+
+## 2026-10-04 实体 iPhone 11 后端性能探针
+
+- 在实体 iPhone 11 上完成原生 Swift `Double` 后端 17³／33³／65³ 生成测量；节点数分别为 4,913／35,937／274,625，耗时 0.003047333／0.013244083／0.130624291 秒，结果 schema `native.device-performance.v1` 和 Double 位模式校验和已回读。详见[性能探针验收](native-validation/2026-10-04-iphone11-device-performance.md)。
+- 本轮只提供单机单次基线，不关闭完整性能预算、内存／取消／后台恢复或跨设备数值验收。UI 继续暂缓；File Provider 故障、完整 HDR/ICC、LUTAnalyst、格式互操作、真实发布签名和 `full-scope-acceptance.json` 仍未完成，Goal 保持 active。
+
+## 2026-10-04 安全书签平台策略复核
+
+- 新增安全书签平台契约并确认 macOS 使用 `.withSecurityScope`；iOS SDK 27 将该选项标记为 unavailable，因此保留 iOS 的系统 bookmark 选项分支，不能把 macOS 选项强行移植到 iOS。非法书签、目录和符号链接仍 fail closed。详见[安全书签平台策略验收](native-validation/2026-10-04-bookmark-platform-policy.md)。
+- iOS generic Release 构建和书签契约通过；这只是 API 分支闭合，不是 iCloud/File Provider 授权失效、重新授权或后台恢复的真实证据。提供商故障、完整 ICC/HDR、LUTAnalyst、格式目标软件往返、性能预算、发布验收和真实全量清单仍未完成，Goal 保持 active。
+
+## 2026-10-04 项目外部资产恢复协调
+
+- 新增 `ProjectAssetRecovery`：解析成功且内容 SHA-256 一致时优先使用书签；已解析文件内容被替换时明确拒绝，不回退到其他候选；书签失效时仅在调用方已授权目录内按身份重发现；无授权源显式失败。详见[项目外部资产恢复协调验收](native-validation/2026-10-04-project-asset-recovery.md)。
+- Debug/Release 定向 4 项通过，Swift Release 全量回归、macOS generic Release 和 iOS generic Release 构建均通过。该项只闭合本地恢复策略与错误边界，不代表真实 iCloud/File Provider 授权撤销、跨进程替换、后台终止恢复或设备证据；UI、性能、发布和 `full-scope-acceptance.json` 仍未完成，Goal 保持 active。
+- 当前源码随后在实体 iPhone 11（`00008030-001015101ABA802E`）完成开发签名 Release 安装和进程启动；这只证明代码进入设备包，不扩大为真实 provider 授权、替换或后台恢复证据。
+
+## 2026-10-04 DaVinci Intermediate legacy 算法补充
+
+- 旧 `LUTGammaDaVinci` 已按 `js/gamma.js` 的参数、分支和合法数据包装建立纯 Swift `Double` 身份，接入 `TransformPlan`、`NativeOutputEncoder`、目录和 CLI 预设；没有新增内置 LUT 或等价采样表。
+- `DaVinciIntermediateContractsTests` 定向 3 项通过；独立 Decimal 逐节点复核 17³／33³／65³，最大通道误差分别为 `1.4311544532104805e-16`、`1.9100206717192337e-16`、`2.9397408698361883e-16`，阈值保持 `3e-15`。初版校验器的 `+b` 位置错误已更正，生产实现未放宽阈值或改变公式。详情见[DaVinci Intermediate legacy 算法验收](native-validation/2026-10-04-davinci-intermediate-algorithms.md)。
+- 该阶段只闭合一维 legacy 解析式，不代表 Resolve 完整色彩管理、HDR/OOTF、设备校准、第三方往返或完整旧功能已完成；其他算法台账、查表注册项、`.labin` 资源、全量发布清单和 Goal 继续保持未完成／active。
+
+## 2026-10-04 DaVinci Intermediate 回归补记
+
+- DaVinci 阶段完成后的 Swift Release 回归为 8 个 XCTest 包共 723 项执行、0 失败、2 项既有可选外部夹具跳过；LUTCatalogChecks 通过 73 曲线、20 色域、69 预设。静态源审计 164 个 Swift 文件通过，临时 DerivedData 中 macOS、iOS Simulator、generic iOS Release 构建和 3 个 App 包资源审计均通过。
+- 统一发布入口曾因默认 Xcode DerivedData／CoreSimulator 环境的内存与路径错误退出 74，已使用独立 DerivedData 串行重跑三端并取得 `BUILD SUCCEEDED`；这不替代真实全量清单，`full-scope-acceptance.json` 仍不存在。DaVinci 只关闭一维 legacy 公式子集，完整 Resolve 语义、其余算法台账、格式往返、发布签名及 Goal 继续未完成／active。
+
+## 2026-10-04 GoPro Protune legacy 算法补充
+
+- 旧 `LUTGammaLog Protune` 已接入纯 Swift `Double` 变体，保留参数式、对数底 113、零斜率近零分支，新增稳定 TransferID、目录预设和 CLI；没有新增采样表，也没有把 `Protune Native` 元数据猜写成色域。
+- 定向 3 项契约通过；17³／33³／65³ 独立 Decimal CUBE 最大误差分别为 `1.7094813128803784e-16`、`1.7094813128803784e-16`、`1.8812006117085657e-16`，阈值保持 `3e-15`。详情见[GoPro Protune legacy 算法验收](native-validation/2026-10-04-gopro-protune-algorithms.md)。
+- 该阶段只闭合 Protune 标量，不代表 Protune Native 色域、GoPro 完整相机、全部查表注册、`.labin`、第三方往返或发布验收已完成；Goal 继续保持 active。
+
+## 2026-10-04 GoPro Protune 回归补记
+
+- Protune 改动后的 Swift Release 全量为 723 项执行、0 失败、2 项既有可选外部夹具跳过；目录契约为 74 曲线、20 色域、70 预设。164 个 Swift 源文件审计、macOS/iOS Simulator/generic iOS Release 构建及三个实际 App 包资源审计通过。
+- Protune 只关闭旧标量参数式和固定近零边界；`Protune Native` 色域、GoPro 完整相机模型、其余查表／`.labin`、第三方往返、发布签名和真实全量清单继续未完成，Goal 保持 active。
+## 2026-10-04 DJI X3 D-Log legacy 算法补充
+
+- 旧 `DJI X3 DLog` 已按 `js/gamma.js` 的 `LUTGammaLogClip` 分段公式接入 Swift `Double`，17³／33³／65³ 独立 90 位 Decimal CUBE 最大误差分别为 `1.4191241664030469702e-16`、`1.9095204480342102581e-16`、`1.9095204480342102581e-16`，阈值保持 `3e-15`。定向契约 3 项通过；Swift Release 全量 723 项执行、0 失败、2 项既有可选外部夹具跳过；目录契约为 75 曲线、20 色域、71 预设。该阶段只闭合一维 legacy 标量，详见[DJI X3 D-Log legacy 算法验收](native-validation/2026-10-04-dji-x3-dlog-algorithms.md)，Goal 保持 active。
+
+## 2026-10-04 Null legacy 算法补充
+
+- 旧 `LUTGammaNull` 已按其明确的线性恒等与 Legal/Data 仿射包装接入 Swift `Double`，新增身份 `null.lutcalc-legacy.v1`、计划、目录和一档曝光预设；没有新增采样表或设备色域语义。
+- 定向契约 3 项通过；独立 80 位 Decimal 逐节点复核 17³／33³／65³，最大误差分别为 `2e-16`、`3e-16`、`3e-16`，阈值保持 `3e-15`。Swift Release 全量 2,041 项执行、0 失败、2 项既有外部夹具跳过；目录契约为 76 曲线、20 色域、72 预设。本轮 Release 日志 SHA-256 为 `5267e5ca94228d551bd24474c0b004b42cc38c4bfc606bdcd89e4ba0c2059445`，目录日志 SHA-256 为 `5b08300224b6770c0675272073c0e698c1b2477fe1035eb97b56ff7fed4b2e03`。详见[Null legacy 算法验收](native-validation/2026-10-04-null-algorithm.md)。
+- 该阶段只关闭旧 Null 标量和同空间计划子集；完整旧调节链、HDR/OOTF、ICC、LUTAnalyst、格式互操作、相机／提供商／性能／签名发布及真实全量清单仍未完成，Goal 保持 active。
+# 2026-10-04 LUTAnalyst 1D shaper 逐通道反求诊断
+
+- 在已完成的 transfer 诊断基础上，新增 `ImportedLUTAnalyzer.diagnoseShaperInverse`，对组合 shaper 的三个独立通道保留 `SolveStatus`、候选值、残差、括区间、迭代次数和函数求值次数。只分析 shaper，不穿越后续三维 colour LUT。
+- 先行契约在旧实现上真实编译失败；实现后定向 Release 1 项通过。完整 Swift Release 共执行 `736` 项、失败 `0`，LUTFormats 的既有外部夹具 `2` 项按原规则跳过。日志、哈希和未覆盖范围见[逐通道诊断验收](native-validation/2026-10-04-lutanalyst-transfer-diagnostics.md)。
+- 本包只关闭组合 shaper 的 1D 诊断可观察性；完整 TF／颜色分离重建、方向／量化元数据、生成计划／项目／导出接入和任意 3D 逆仍未完成，FULL-05、H07、H10、H14 与 Goal 继续保持 active。
+
+# 2026-10-04 LUTAnalyst 显式仿射颜色模型逆接入
+
+- `ImportedLUTAnalysisReport` 新增显式 `KnownAffine3DTransform` 逆入口；只有调用方提供的矩阵、偏置、条件数和前向残差检查全部通过时才执行逆变换。不会从任意 3D LUT 采样节点推断仿射模型，原有无模型入口继续返回 `arbitrary3DInverseUnsupported`。
+- 契约先行在旧实现上真实编译失败；实现后定向 Release 1 项通过。完整 Swift Release 共执行 `737` 项、失败 `0`，LUTFormats 的既有外部夹具 `2` 项按原规则跳过。证据见[显式仿射颜色模型逆验收](native-validation/2026-10-04-lutanalyst-affine-colour-inverse.md)。
+- 本包只关闭调用方显式仿射模型的报告接入子集；完整 LUTAnalyst 颜色分离／重建、任意 3D 逆、病态／多解的全局证明、方向／量化元数据和目标软件往返仍未完成，FULL-05、H07、H10、H14 与 Goal 继续保持 active。
+
+# 2026-10-04 LUTAnalyst 1D 逐通道反求诊断
+
+- 在既有严格单值 1D transfer 分析范围内新增 `TransferInverseDiagnostic` 和 `TransferInverseChannelDiagnostic`。诊断保留每个通道的 `SolveStatus`、候选值、残差、实际括区间、迭代次数和函数求值次数；平段／多解、域外和非有限结果不再在诊断入口中折叠成单一错误。
+- 诊断入口只接受分析文件或 1D LUT 的 transfer，不推断三维 colour LUT 的逆，也不改变原有 `inverseTransfer` 的抛错行为；`tricubicLegacyV1` 仍使用既有全段导数极值检查，线性路径仍拒绝非单调曲线。
+- 先行契约在旧实现上真实编译失败，随后实现。定向 Release 2 项通过，日志 `/tmp/lutcalc-lutanalyst-diagnostics-contract-20261004-r2.log`，SHA-256 `5fea76bf5759a326110c19b5387e34ba7173d2dc992c4426e242a03b1fe2e58f`。完整 Swift Release 退出码 `0`，日志 `/tmp/lutcalc-lutanalyst-diagnostics-full-release-20261004-r3.log`，SHA-256 `5bbc97350ace250c7ed161cf5838fb23e5a53c95d2e633ed1390580495d8f0c2`；源码与契约哈希见[逐通道诊断验收](native-validation/2026-10-04-lutanalyst-transfer-diagnostics.md)。
+- 本包只关闭 1D transfer 诊断可观察性子集；完整 TF／颜色分离重建、方向／量化元数据、生成计划／项目／导出接入和任意 3D 逆仍未完成，FULL-05、H07、H10、H14 与 Goal 继续保持 active。
+
+# 2026-10-04 LUTAnalyst 元数据结构化语义
+
+- `LUTAnalysisSectionMetadata.semantics()` 现把输入范围、边界、插值方法和 base ISO 转为可检查的 Swift 语义；`109`／`100`、缺省 `0...1`、不完整／非有限／倒置边界和未知生产方取值均有契约覆盖，未知值原样保留，不猜测。
+- 定向 Release 2 项通过；完整 Swift Release 当前四个 XCTest 包共 490 项、失败 0，LUTFormats 的既有外部夹具 2 项按原规则跳过。证据见[ LUTAnalyst 元数据结构化语义验收](native-validation/2026-10-04-lutanalyst-metadata-semantics.md)。
+- 本包只关闭 LUTAnalyst 元数据语义子集，不勾选 FULL-05、H07、H10、H14。完整 TF／颜色分离重建、方向／量化接入、生成计划／项目／导出、任意三维逆、病态／多解全局报告和目标软件往返仍未完成，Goal 保持 active。
+
+# 2026-10-04 LUTAnalyst 量化与字节语义
+
+- 新增 `LUTAnalysisQuantizationSemantics`，明确 `.lacube` 的 textual Double 和 `.labin` 的 Int32 比例、矩阵比例、little-endian、`floor(+0.5)` 舍入与有损哨兵；未知来源保持 `.unknown`，不猜测。
+- 定向 Release 2 项通过；完整 Swift Release 8 个测试包共 739 项、失败 0，LUTFormats 的既有外部夹具 2 项按原规则跳过。证据见[ LUTAnalyst 量化与字节语义验收](native-validation/2026-10-04-lutanalyst-quantization-semantics.md)。
+- 本包只关闭格式量化语义子集，不勾选 FULL-05、H07、H10、H14。完整 LUTAnalyst 重建、方向接入、病态／多解报告、任意三维逆、目标软件往返、9 个 `.labin` 资源和 45 个直接查表替代仍未完成，Goal 保持 active。
+
+# 2026-10-04 LUTAnalyst 分析报告元数据接入
+
+- `ImportedLUTAnalysisReport` 现分别携带 transfer／colour metadata 语义和来源量化语义；分析文件边界非法时在报告生成前返回明确的 `.invalidMetadata`，普通直接 `CubeLUT` 不虚构文件来源。
+- 定向 Release 2 项通过；完整 Swift Release 8 个 XCTest 包共 742 项、失败 0，LUTFormats 的 2 项既有外部夹具按原规则跳过。证据见[ LUTAnalyst 分析报告元数据接入验收](native-validation/2026-10-04-lutanalyst-report-metadata.md)。
+- 本包只关闭报告层 metadata 传播子集，不勾选 FULL-05、H07、H10、H14。完整 TF／颜色分离重建、方向／量化接入生成链、病态／多解报告、任意 3D 逆、目标软件往返、9 个 `.labin` 和 45 个直接查表替代仍未完成，Goal 保持 active。
+
+# 2026-10-04 `.labin` 独立区段元数据往返
+
+- `.labin` 现分别保存和读回 transfer／colour 的函数、色域、范围、边界、插值和 base ISO；旧共享键继续兼容，新 3D 专属键只在值不同的时候写出。二进制样本和量化规则没有变化。
+- 先行红灯契约复现旧实现丢失 colour metadata；修复后定向 Release 1 项通过。完整 Swift Release 8 个 XCTest 包共 743 项、失败 0，LUTFormats 的既有外部夹具 2 项按原规则跳过。证据见[`.labin` 独立区段元数据往返验收](native-validation/2026-10-04-labin-distinct-section-metadata.md)。
+- 本包只关闭 `.labin` 区段 metadata 往返子集，不勾选 FULL-05、H07、H10、H14。完整 LUTAnalyst 重建、方向／量化生成接入、病态／多解报告、任意 3D 逆、9 个旧 `.labin` 替代、目标软件往返和直接查表算法台账仍未完成，Goal 保持 active。
+
+# 2026-10-04 LUTAnalyst 元数据到输入反求计划传播
+
+- `ImportedLUTInversePlan` 现保留分析文件的 transfer／colour 语义和量化来源；真实 `.lacube`／`.labin` 的 range、边界、插值和来源变化进入 `contentFingerprint`，批次报告与 durable checkpoint 不会混用不同分析身份。
+- 非法 metadata 在 cubic stencil 构造前返回 `.invalidMetadata`；空的合成分析包装不携带来源身份，继续保持历史直接 LUT 指纹。项目 `makeGenerationRequest` 从保存资产传入 `imported.analysis`，不再丢失方向／量化来源。
+- 定向与完整 Swift Release 均通过；完整 8 包共执行 746 项、失败 0。命令、工具链、日志 SHA-256 和未覆盖范围见[元数据传播验收](native-validation/2026-10-04-lutanalyst-metadata-propagation.md)。
+- 补充项目契约以真实 `.lacube` 字节完成保存、FileWrapper 重开和生成请求读取，定向 1 项通过；完整 Release 复跑退出码 `0`。
+- 本包只关闭 metadata 到严格 1D 输入反求计划／批次身份的传播子集，不勾选 FULL-05、H07、H10、H14。完整 LUTAnalyst TF／颜色分离重建、导出端 metadata 接入、病态／多解全局报告、任意 3D 逆、9 个 `.labin` 和 45 个查表替代仍未完成，Goal 保持 active。
+
+# 2026-10-04 LUTAnalyst 显式分离重建残差
+
+- 新增显式参考输入/输出的 `reconstructionReport`：按 transfer → colour 顺序取样，分别使用调用方指定的插值，报告逐样本最大通道残差、最大值、RMS 和 P99。缺段、数量不等和空参考集明确失败。
+- 该接口不拟合厂商模型、不推断任意 3D 逆、不宣称全局唯一性。定向 2 项通过；完整 Swift Release 8 包共 748 项、失败 0，证据见[显式分离重建残差验收](native-validation/2026-10-04-lutanalyst-explicit-reconstruction-residual.md)。
+- 本包只关闭显式参考对的残差报告子集，不勾选 FULL-05、H07、H10、H14。完整 TF/颜色自动分离重建、任意 3D 逆、病态／多解全局报告、全格式导出接入、9 个 `.labin` 和 45 个查表替代仍未完成，Goal 保持 active。
+
+# 2026-10-04 LUTAnalyst 重建入口元数据边界
+
+- `reconstructionReport(...)` 现在在创建 transfer／colour 采样器前验证两个分节的 metadata；不完整、非有限或倒置边界返回 `.invalidMetadata(...)`，域外样本继续返回 `.reconstructionOutsideDomain`。没有改变显式插值、Double 采样或残差统计。
+- 定向 Release 1 项通过；完整 Swift Release 8 个测试包共执行 749 项、失败 0，LUTFormats 的 2 项既有外部夹具按原规则跳过。证据见[ LUTAnalyst 重建入口元数据边界验收](native-validation/2026-10-04-lutanalyst-reconstruction-metadata.md)。
+- 本包只关闭重建入口 metadata 校验子集，不勾选 FULL-05、H07、H10、H14。完整 TF／颜色自动分离重建、任意 3D 逆、病态／多解全局报告、方向／量化导出接入、9 个 `.labin` 和 45 个直接查表替代仍未完成，Goal 保持 active。
+
+# 2026-10-04 LUTAnalyst 显式仿射模型可逆性诊断
+
+- 新增 `Affine3DModelAnalysis`，对调用方显式提供的矩阵报告 `.uniquelyInvertible`、`.illConditioned`、`.nonUnique` 或 `.invalidTolerance`；可计算时同时给出无穷范数条件数和单位矩阵残差。未从任意 3D LUT 样本拟合模型，既有逆变换门槛保持不变。
+- 先行契约对良态、超过 `1e8` 条件阈值、秩亏及非法阈值四类输入新增覆盖；旧实现编译失败，Debug／Release 定向各 5 项通过。Swift Release 全量 8 个 XCTest 包共 750 项执行、0 失败，LUTFormats 两项既有外部夹具按原规则跳过。命令、工具链和哈希见[仿射模型诊断验收](native-validation/2026-10-04-lutanalyst-affine-model-diagnostics.md)。
+- 只关闭显式仿射模型诊断子集；它不证明模型与用户 LUT 相符，也不完成自动 TF／颜色分离、任意 3D 逆或多解全局证明。三平台／真机验证、完整格式互操作与发布仍欠；FULL-05、H07、H10、H14 及 Goal 保持 active。
+
+# 2026-10-04 算法计划身份与批次指纹接线
+
+- 修复 `TransformPlan.basePlanVersion` 的通用回退碰撞：Null legacy 使用 `analytic-null-legacy-v1`，同空间 scene-linear 使用 `minimal-linear-scene-v1`，D-Log2 的 `minimal-dlog2-v1` 历史身份保持不变；混合链路不误套同空间身份。
+- 契约先行发现 Null、scene-linear 与 D-Log2 的身份混淆；修复后定向 Debug／Release 通过，完整 Swift Release 共 750 项执行、0 失败，LUTFormats 两项外部夹具按原规则跳过。批次指纹因绑定 planVersion 正确更新，旧检查点按 mismatch 拒绝，未静默复用。
+- macOS、generic iOS、generic iOS Simulator Release 产品均生成。该包只关闭算法身份与检查点追踪接线，不关闭查表、HDR/ICC、完整 LUTAnalyst、格式互操作或 H/FULL；Goal 保持 active。详见[算法计划身份与批次指纹验收](native-validation/2026-10-04-plan-identity-algorithm-routing.md)。
+
+# 2026-10-04 LUTAnalyst 一维 cubic 全局多根诊断
+
+- 新增 `LegacyCubicCurve1D.allInverseRoots` 和 `ImportedLUTAnalyzer.diagnoseTransferInverseRoots`。每个 cubic segment 按导数临界点切分后使用既有 Brent 求根，保留逐通道全部根、括区间、残差和求值次数；多根返回 `.nonUnique`，域外返回 `.notBracketed`。原有严格单值 `inverse` 和生成计划拒绝规则不变。
+- 定向 Debug／Release 各 18 项通过；全量 Swift Release 的 `LUTAnalysisTests.xctest` 为 45 项、0 失败，8 个测试包全部通过，LUTFormats 的 2 项既有外部夹具按原规则跳过。命令、日志、结果哈希与三份源码／契约哈希见[一维 cubic 全局多根诊断验收](native-validation/2026-10-04-lutanalyst-global-roots.md)。
+- hump cubic 目标 `0.5` 的三通道各报告 2 个根，根值 `0.12732200375003508`、`0.8182043533932605`，绝对残差不超过 `2e-12`。本包只关闭独立一维 transfer 的多解可观察性，不勾选 H07、H10、H14 或 FULL-05；任意三维逆、自动分离、完整重建、查表替代和 Goal 仍未完成，保持 `active`。
+
+## 2026-10-04 ICC relative colorimetric 标签 fallback 补充
+
+- `ICCLUTProfileLink` 现按 ICC.1:2022 §8.10.2 对 relative colorimetric 的 `A2B1`／`B2A1` 优先标签执行；当处理元素类型或已明确不支持的编码为 `.unsupportedTagType`／`.unsupportedEncoding` 时继续尝试 `A2B0`／`B2A0`。malformed profile、长度错误、域错误和非有限值仍直接拒绝。
+- 新增的 8-bit PCS XYZ `mAB/mBA` fallback 契约、`mft1` 类型 fallback、intent-1 优先及损坏 intent-1 拒绝覆盖在旧实现上的红灯、实现后的 69 项 ICC 定向 Debug 回归均已通过。
+- LUTKit Release 全量执行 774 项、0 失败、2 项既有外部夹具按原规则跳过；macOS arm64、generic iOS、generic iOS Simulator Release 构建均退出码 0。完整命令、日志哈希与未覆盖范围见 [ICC relative colorimetric fallback 验收](native-validation/2026-10-04-icc-relative-intent-fallback.md)。
+- 本包只关闭现有 RGB/D50 PCS XYZ LUT linking 的标签选择子集；真实非合成 profile 参照、其他 profile 类型／通道／intent、黑点补偿、gamut mapping、系统色彩管理、HDR/EDR、LUTAnalyst 完整范围、目标软件往返、iPhone 11 性能、签名发布及真实 `full-scope-acceptance.json` 仍未完成，Goal 保持 `active`。
+
+# 2026-10-04 ITU Proposal legacy 解析式
+
+- 按旧 `js/gamma.js:LUTGammaITUProp registrations` 新增 400% 与 800% 两个 Swift `Double` 解析式注册，保留 `0.0181` 正向 toe、旧实现固定 `0.08145` 逆向分支和 Rec.2020 data 包装常数；接入计划、输出编码、目录、代码单位和参考 CLI。
+- 先行契约真实红灯后实现；定向 Debug／Release 4 项通过。独立 Python `Decimal` 逐节点重读 400%／800% 的 `17³`、`33³`、`65³` 六份 CUBE，最大尺度化误差 `2.5368073366341900e-16`，阈值 `2e-12`；完整 Swift Release 与 macOS、generic iOS、generic iOS Simulator Release 构建均退出 0。证据见[ITU Proposal legacy 传递曲线验收](native-validation/2026-10-04-itu-proposal-transfer.md)。
+- 本包只关闭这两个旧注册及其算法核验，不勾选完整查表替代、HDR/ICC/LUTAnalyst 全量、格式往返、发布验收或 Goal；Goal 继续保持 `active`。
+
+# 2026-10-04 Rec.2020 12-bit legacy 解析式
+
+- 按旧 `js/gamma.js:LUTGammaGam` 的 `Rec2020 12-bit` 参数新增 Swift `Double` 分段解析式，保留独立正向／逆向切点、Rec.2020 data 包装和 legacy 灰度标度；接入计划、输出编码、目录、代码单位和参考 CLI。
+- 先行契约真实发现旧边界分支不连续及目录计数变化；实现后定向契约 3 项通过。独立 Python `Decimal` 精度 80 重读 `17³`、`33³`、`65³` 完整 CUBE，最大绝对误差分别为 `1.9257070165983715e-16`、`3.0724980301755193e-16`、`3.0724980301755193e-16`。
+- 完整 Swift Release、macOS Release、generic iOS Release 和 generic iOS Simulator Release 均退出码 `0`。证据见[Rec.2020 12-bit legacy 解析式验收](native-validation/2026-10-04-rec2020-12bit.md)。
+- 本包只关闭该旧注册及其算法核验，不勾选完整查表替代、HDR/ICC/LUTAnalyst 全量、格式往返、真机性能、签名发布或 Goal；Goal 继续保持 `active`。

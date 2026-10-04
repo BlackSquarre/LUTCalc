@@ -1,0 +1,34 @@
+[
+  {
+    "count" : 5138,
+    "id" : "nikon.nlog.v1",
+    "maxScaled" : 6.4982321685722084e-16,
+    "p99Scaled" : 4.4349915428264511e-16,
+    "rmsScaled" : 1.5678605041325179e-16,
+    "threshold" : 2e-12
+  },
+  {
+    "count" : 5138,
+    "id" : "nikon.nlog.lutcalc-legacy.v1",
+    "maxScaled" : 7.1781783192839523e-16,
+    "p99Scaled" : 4.7766274677767325e-16,
+    "rmsScaled" : 1.6475290202233462e-16,
+    "threshold" : 2e-12
+  },
+  {
+    "count" : 5137,
+    "id" : "cineon.v1",
+    "maxScaled" : 8.3837140949197269e-16,
+    "p99Scaled" : 5.4414835292162592e-16,
+    "rmsScaled" : 1.714303582578205e-16,
+    "threshold" : 2e-12
+  },
+  {
+    "count" : 5138,
+    "id" : "cineon.lutcalc-legacy.v1",
+    "maxScaled" : 6.7604111367874707e-13,
+    "p99Scaled" : 6.1784571240150821e-16,
+    "rmsScaled" : 9.4334446762440254e-15,
+    "threshold" : 2e-12
+  }
+]

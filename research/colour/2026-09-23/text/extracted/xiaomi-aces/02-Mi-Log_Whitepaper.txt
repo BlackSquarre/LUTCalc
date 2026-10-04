@@ -1,0 +1,324 @@
+Xiaomi Log Profile
+     White Paper
+
+
+     December 2024
+Xiaomi Log Profile
+
+
+
+
+                             Document Version History
+ Version       Author(s)                     Change Note
+
+ 2024-11-08    Junkai Zhang & Guidong Zhao   Initial document draft
+                                             Clarify Mi-Log Curve domain, mirrored
+ 2024-12-05    Taoyuan Liu & Ye Luan         Mi-Log Curve and sensor-linear defini-
+                                             tion, add hardware encoding section
+                                             Expand the effective encoding range of
+                                             Mi-Log functions, add explanations of
+ 2024-12-17    Taoyuan Liu & Ye Luan
+                                             related physical meanings, and update
+                                             the parameters of codec functions
+
+
+
+
+                                        1
+Xiaomi Log Profile                                                                          Contents
+
+
+Contents
+
+1   Introduction                                                                                    1
+
+2 Hardware Encoding                                                                                 2
+
+3 Transfer Function                                                                                 3
+    3.1   Encoding function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+    3.2 Decoding function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     6
+
+4 Color Space                                                                                       7
+
+
+
+
+                                                  2
+Xiaomi Log Profile
+
+
+
+1 Introduction
+
+
+
+
+    The Mi-Log profile employs a logarithmic curve and an extensive color gamut, mak-
+ing it a scene-referred encoding. The application of logarithmic encoding allows for a
+more efficient distribution of limited bits depth resources across varying exposure stops,
+thereby enhancing the video’s dynamic range. Log captures are not designed for immedi-
+ate viewing; they are intended to function as source clips for post-production processes.
+
+
+
+
+                                       Page 1 of 7
+Xiaomi Log Profile
+
+
+
+2 Hardware Encoding
+
+    The Hardware Encoding Curves shown in Figure 1 in this section illustrate the Log
+video signal encoding used by Xiaomi SmartPhone - Flagship Series camera modules, but
+please note that for clarity, here we only display one full range hardware encoding curve
+of serval curves used in Xiaomi phone camera modules, and it is not for the specification
+intended for third-party implementation. For more information on third-party specifica-
+tions, please refer to Section 3.
+
+
+
+
+                        1.0                                                                    1023
+                        0.9                                                                    921
+                        0.8                                                                    818
+                        0.7                                                                    716
+
+
+
+                                                                                                     10 bit full range
+                        0.6                                                                    614
+
+           Log Signal
+                        0.5                                                                    511
+                        0.4                                                                    409
+                        0.3                                                                    307
+                        0.2                                                                    205
+                        0.1                                                                    102
+                        0.0                                                                    0
+                              0.0   0.1   0.2   0.3   0.4 0.5 0.6      0.7   0.8   0.9   1.0
+                                                       Linear Signal
+
+                              Figure 1: Hardware Encoding Curve for linear signal.
+
+
+
+
+                                                      Page 2 of 7
+Xiaomi Log Profile
+
+
+
+3 Transfer Function
+
+    The Mi-Log Curve serves as the transfer function in Mi-Log video encoding. It is a
+scene-referred logarithmic function defined by dedicated encoding and decoding func-
+tions. Notably, the Mi-Log Curve is tailored for 10-bit encoding, marking it as the minimum
+quantization level suitable for this logarithmic encoding scheme.
+    Figures 2 and 3 below illustrate the actual performance of the Mi-Log curve, where
+Figure 2 shows the relationship between stops relative to 18% gray and their correspond-
+ing brightness levels, and Figure 3 corresponds to the Log Curve output values, with the
+horizontal axis representing 18% gray scene reflection and the vertical axis representing
+the Log Curve output values.
+
+
+
+                                   1.0                                                                    1023
+                                   0.9                                                                    921
+                                   0.8                                                                    818
+                                   0.7                                                                    716
+
+
+
+           Floating Point Output                                                                                10 bit full range
+                                   0.6                                                                    614
+                                   0.5        18% Ref                                                     511
+                                   0.4                                                                    409
+                                   0.3                                                                    307
+                                   0.2                                                                    205
+                                   0.1                                                                    102
+                                   0.0                                                                    0
+                                         12      10      8       6      4       2      0      2   4   6
+                                                        Relative Exposure (Stops) from 18% gray
+
+                     Figure 2: Xiaomi Log Curve for stops as normalized Float signal.
+
+
+
+                                                                   Page 3 of 7
+Xiaomi Log Profile
+
+
+
+
+                                      1.0                                                                    1023
+                                      0.9                                                                    921
+                                      0.8                                                                    818
+                                      0.7                                                                    716
+
+
+
+              Floating Point Output                                                                                10 bit full range
+                                      0.6                                                                    614
+                                      0.5    18% Ref                                                         511
+                                      0.4                                                                    409
+                                      0.3                                                                    307
+                                      0.2                                                                    205
+                                      0.1                                                                    102
+                                      0.0                                                                    0
+                                             0      10    20     30 40 50 60              70       80   90
+                                                                 Scene reflection, %
+
+          Figure 3: Xiaomi Log Curve for scene reflection as normalized Float signal
+
+
+                                  Scene reflection                          Encoded signal
+                                            (%)           Normalized float      10-bit integer, full range
+                                             0                 0.14742742                  150
+                                            18                 0.45345968                 463
+                                            90                 0.66086763                    676
+                                            1152                  1.0                     1023
+
+                     Table 1: Xiaomi Log Curve’s encoded signal with scene reflection
+
+        The max scene reflection 1152% found in the table 1 is derived by the following equa-
+tion:                                              1152% = 18% × 26 = SceneRef × 2StopMax
+
+
+
+
+                                                                  Page 4 of 7
+Xiaomi Log Profile                                                     3.1 Encoding function
+
+
+
+3.1 Encoding function
+
+       The encoding function, integrated within the camera system and presented herein for
+informational clarity, is designed for encoding relative scene linear values. It is formally
+defined as follows:
+                                    
+                                    
+                                    
+                                    
+                                     γlog2 (R + β) + δ,   if R ≥ Rt
+                                    
+                                    
+                                    
+                      P = f (R) =     c(R − R0 ) ,
+                                                2
+                                                           if R0 ≤ R < Rt
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    0,                    if R < R0
+
+
+with
+
+
+                                      R0 = −0.09023729
+
+                                      Rt = 0.01974185
+
+                                       c = 18.10531998
+
+                                       γ = 0.09271529
+
+                                       β = 0.01384578
+
+                                       δ = 0.67291850
+
+
+       The overall encoding function is divided into two segments, delineated by the thresh-
+old Rt . Values exceeding this threshold are represented by a natural logarithmic relation-
+ship, while values below this threshold exhibit a quadratic relationship due to their higher
+growth rate.
+
+
+
+
+                                          Page 5 of 7
+Xiaomi Log Profile                                                3.2 Decoding function
+
+
+
+3.2 Decoding function
+
+    The decoding function can be utilized on captured footage to restore the linear scene
+reflection signal. This p-decoding function is defined by the following equation:
+
+                                   
+                                   
+                                     P−δ
+                                   
+                                    2 γ − β,        if P ≥ Pt
+                                   
+                                   
+                                   √
+                            −1
+                       R = f (P) =     P
+                                          + R0 ,     if 0 ≤ P < Pt
+                                   
+                                       c
+                                   
+                                   
+                                   
+                                   
+                                    R0 ,            if P < 0
+
+here
+                                    Pt = c(Rt − R0 )2
+
+    The captured pixel value P is using a floating point encoding normalized to the [0,1]
+range.
+
+
+
+
+                                       Page 6 of 7
+Xiaomi Log Profile
+
+
+
+4 Color Space
+
+
+
+
+    The color space defines the representation of colors. Mi Log employs RGB primaries
+and color space conversion matrices outlined in the ITU-R BT. 2020-2 specification. The
+white point is aligned with the D65 illuminant, and all chromaticity values are specified
+using the CIE 1931 2 Degree Standard Observer Colorimetry.
+
+
+
+
+                                               CIE chromaticity coordinates
+                                                 x              y
+               Red primary (R)                 0.708          0.292
+               Green primary (G)               0.170          0.797
+               Blue primary (B)                 0.131         0.046
+               White point (D65)               0.3127        0.3290
+
+
+
+
+                          Y = 0.2627R + 0.6780G + 0.0593B
+
+                                  B−Y
+                         CB =
+                                 1.8814
+
+                                  R−Y
+                         CR =
+                                 1.4746
+
+
+
+
+                                          Page 7 of 7
+

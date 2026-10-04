@@ -1,0 +1,186 @@
+name: LUTCalc
+options:
+  minimumXcodeGenVersion: 2.40.0
+  developmentLanguage: zh-Hans
+  createIntermediateGroups: true
+packages:
+  LUTKit:
+    path: Packages/LUTKit
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    SWIFT_STRICT_CONCURRENCY: complete
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  LUTCalcMac:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - Apps/macOS
+    info:
+      path: Apps/macOS/Info.plist
+      properties:
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: LUTCalc Project
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            LSItemContentTypes: [org.lutcalc.project]
+            LSTypeIsPackage: true
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: org.lutcalc.project
+            UTTypeConformsTo: [com.apple.package, public.content]
+            UTTypeDescription: LUTCalc 项目
+            UTTypeTagSpecification:
+              public.filename-extension: [lutcalc]
+          - UTTypeIdentifier: com.lutcalc.cube
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: CUBE LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [cube]
+          - UTTypeIdentifier: com.lutcalc.spi3d
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: SPI3D LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [spi3d]
+          - UTTypeIdentifier: com.lutcalc.spi1d
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: SPI1D LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [spi1d]
+          - UTTypeIdentifier: com.lutcalc.3dl
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: 3DL LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [3dl]
+          - UTTypeIdentifier: com.lutcalc.ilut
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: ILUT
+            UTTypeTagSpecification:
+              public.filename-extension: [ilut]
+          - UTTypeIdentifier: com.lutcalc.olut
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: OLUT
+            UTTypeTagSpecification:
+              public.filename-extension: [olut]
+          - UTTypeIdentifier: com.lutcalc.lut
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: Assimilate LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [lut]
+          - UTTypeIdentifier: com.lutcalc.vlt
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: VLT LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [vlt]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.lutcalc.native.dev.mac
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - package: LUTKit
+        product: LUTSharedUI
+  LUTCalcIOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - Apps/iOS
+    info:
+      path: Apps/iOS/Info.plist
+      properties:
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: LUTCalc Project
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            LSItemContentTypes: [org.lutcalc.project]
+            LSTypeIsPackage: true
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: org.lutcalc.project
+            UTTypeConformsTo: [com.apple.package, public.content]
+            UTTypeDescription: LUTCalc 项目
+            UTTypeTagSpecification:
+              public.filename-extension: [lutcalc]
+          - UTTypeIdentifier: com.lutcalc.cube
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: CUBE LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [cube]
+          - UTTypeIdentifier: com.lutcalc.spi3d
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: SPI3D LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [spi3d]
+          - UTTypeIdentifier: com.lutcalc.spi1d
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: SPI1D LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [spi1d]
+          - UTTypeIdentifier: com.lutcalc.3dl
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: 3DL LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [3dl]
+          - UTTypeIdentifier: com.lutcalc.ilut
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: ILUT
+            UTTypeTagSpecification:
+              public.filename-extension: [ilut]
+          - UTTypeIdentifier: com.lutcalc.olut
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: OLUT
+            UTTypeTagSpecification:
+              public.filename-extension: [olut]
+          - UTTypeIdentifier: com.lutcalc.lut
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: Assimilate LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [lut]
+          - UTTypeIdentifier: com.lutcalc.vlt
+            UTTypeConformsTo: [public.data]
+            UTTypeDescription: VLT LUT
+            UTTypeTagSpecification:
+              public.filename-extension: [vlt]
+        LSSupportsOpeningDocumentsInPlace: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.lutcalc.native.dev.ios
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - package: LUTKit
+        product: LUTSharedUI
+  LUTCalcIOSUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - Tests/iOSUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.lutcalc.native.dev.ios.uitests
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: LUTCalcIOS
+schemes:
+  LUTCalcMac:
+    build:
+      targets:
+        LUTCalcMac: all
+  LUTCalcIOS:
+    build:
+      targets:
+        LUTCalcIOS: all
+    test:
+      targets:
+        - LUTCalcIOSUITests

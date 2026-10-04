@@ -1,0 +1,175 @@
+Insta360 I-Log
+White Paper
+June 2026
+Contents
+Document Version History                                            1
+
+Introduction                                                        2
+
+Transfer Function                                                   2
+
+Mapping Between Scene Reflectance and Digital Code Values           3
+
+Conversion Specification                                            3
+
+Gamut                                                               4
+
+
+
+
+                                                                ￼
+                                                            ￼
+                                                            ￼
+                                                            ￼
+                                                            ￼
+                                                            ￼
+        Document Version History
+        Version      Author(s)         Change Note
+
+
+        2024.09.20   Xie Jundi         Init.
+
+
+        2025.07.07   Zhang Qiushuang   Update new transfer function for 10 bit container
+
+
+        2026.05.20   Zhang Qiushuang   Bug Fix before final release
+
+
+
+
+                                                                                           Page 1 of 4
+
+
+
+
+    ￼
+￼
+            Introduction
+            The Insta360 I-Log is a logarithmic gamma curve designed to achieve an exceptionally
+            wide dynamic range while maintaining compatibility with professional cinema
+            production workflows. It allocates digital quantization levels to preserve tonal detail
+            across both highlight and shadow regions of a scene.
+
+
+            Transfer Function
+            The I-Log transfer function is a scene-referred logarithmic encoding function. The
+            relationship between linear scene reflectance, measured in exposure stops, and the
+            corresponding 10-bit digital code values of the I-Log curve is shown below.
+
+
+
+
+                                                                                              Page 2 of 4
+
+
+
+
+        ￼
+    ￼
+￼
+                Mapping Between Scene Reflectance and Digital
+
+                Code Values
+                                                                                   I-Log
+                         Scene reflection
+                                                                Float                      10-bit Code Value
+
+
+                               0%                            0.0905593                            93
+
+
+                               18%                            0.422003                           432
+
+
+                              2200%                              1.0                             1023
+
+
+
+
+                Conversion Specification
+                The following calculation defines the conversion from scene-linear reflectance to I-Log.
+
+
+                Scene-Linear Reflection to I-Log
+                        τ = 0.01104854
+
+
+                                                     {δ + η * log10(i n + θ ) if i n > τ
+                                                      α * in + β              if i n ⩽ τ
+                                            ou t =
+
+
+
+                I-Log to Scene-Linear Reflection
+                        τ = 0.154402
+                                                            in − β
+                                                               α
+                                                                          if i n < τ
+                                                ou t =
+                                                                in − δ
+                                                            10 η − θ      if i n ⩾ τ
+
+
+                where
+                        α = 5.77837328
+                        β = 0.09055934
+                        δ = 0.623992
+                        η = 0.280055
+                        θ = 0.01
+
+
+
+
+                                                                                                          Page 3 of 4
+
+
+
+
+            ￼
+        ￼
+        ￼
+        ￼
+        ￼
+        ￼
+        ￼
+    ￼
+￼
+￼       ￼
+        Gamut
+        The RGB primaries, white point, and colorimetric conversions used by I-Log comply with
+        ITU-R BT.2020 standards.
+
+
+        Primary Colors and White Point
+
+                               CIE x                           CIE y
+
+
+         Red                                          0.708                               0.292
+
+
+         Green                                        0.170                               0.797
+
+
+         Blue                                          0.131                             0.046
+
+
+         White                                       0.3127                              0.329
+
+
+
+        Additional colorimetric conversions (i.e. between BT.2020 and CIE XYZ) can be found in
+        relevant literature.
+
+
+
+
+                                                                                      Page 4 of 4
+
+
+
+
+    ￼
+￼
+

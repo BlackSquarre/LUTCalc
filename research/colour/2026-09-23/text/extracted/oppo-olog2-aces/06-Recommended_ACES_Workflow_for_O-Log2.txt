@@ -1,0 +1,69 @@
+Recommended ACES Workflow for O-Log2
+Contents
+1. Introduction
+2. Workflow
+   a. OPPO-Log2 DCTL File Loading Steps
+   b. Importing the OPPO-Log2 Video to the Timeline.
+   c. Adding Serial Node
+   d. Applying DCTL Effects
+   e. Applying ACES Transform
+   f. Transforming to Rec.709 (Display-Referred Color space)
+
+
+
+
+1.Introduction
+ACES (Academy Color Encoding System) is a color image encoding system in the film
+industry through which the color compatibility between different cameras can be better
+compatible. This guide takes an OPPO-Log2 video as an example to provide instructions
+on how to use the ACES workflow using video editing software, such as DaVinci Resolve.
+
+
+
+
+2.Workflow
+2.1 OPPO-Log2 DCTL File Loading Steps
+Open DaVinci Resolve, click the Project Settings (Shortcut: SHIFT + 9 ) icon in the lower
+right corner, select Color Management in Project Settings, and click Open LUT Folder.
+Place the file O_Log2_to_ACES_AP0.dctl into the DCTL folder.
+Restart Davinci Reslove and it will take effect.
+
+
+
+2.2 Color Management in Nodes.
+  2.2.1 Importing the OPPO-Log2 Video to the Timeline.
+  Create a new timeline, Import the video from the Media Bin. Go to the Color Panel.
+2.2.2 Adding Serial Node
+Right Click the node, press Add Node and Add Serial, at least 3 Nodes are needed.
+2.2.3 Applying DCTL Effects
+Click Effects Tab, Select the DCTL and Drag it into the first Node. Select ' O-
+Log2_to_ACES_AP0_V2' in the DCTL list, which means the video transforms from
+OPPO-Log2 to Linear AP0 Color Space.
+
+
+
+
+Note: It is required to load the O-Log2 DCTL file first. For more information, refer to
+the O-Log2 DCTL File Loading Steps section.
+
+
+
+2.2.4 Applying ACES Transform
+Select ACES Transform in Effects, drag it into the second Node. Select ACES 1.3 in
+ACES version. Select No Input Transform in Input Transform. Select ACEScct-CSC*
+in Output Transform. This step transforms the video from linear AP0 color space to
+AP1 log color space. The user can adjust the brightness and color of the video in
+AP1 color space.
+Note: Users can select other options (ACEScc-CSC or ACEScg-CSC) in Output
+transform based on their needs.
+2.2.5 Transforming to Rec.709 (Display-refer Color space)
+It is recommended to complete the color grading process at the nodes between color
+space Transform before and after. After the Color grading is completed, the user can
+continue to use ACES on subsequent nodes to transform the video to RRT or other
+color spaces. Here we take the transformation to Rec.709 as an example. Click
+Effects in the upper right corner. Select ACES, then click and hold to drag and drop
+it on the subsequent node. Select ACES 1.3 in ACES version. Select ACEScct-CSC
+in Input Transform. Select Rec.709 in Output Transform. This step transforms the
+video from AP1 color space to Rec.709 color space, so as to facilitate subsequent
+video export.
+

@@ -1,0 +1,58 @@
+{
+  "source": "DJI CTL D-Log2 formula plus frozen independent Python/NumPy D-Gamut2 to AP0 matrix",
+  "sourceFixture": "tests/fixtures/dlog2-reference.json",
+  "cases": [
+    {
+      "input": [
+        0.1,
+        0.2,
+        0.3
+      ],
+      "exposureStops": 1,
+      "outputLinearAP0": [
+        0.06664835281530862,
+        0.08911463491640885,
+        0.34003804189511755
+      ]
+    },
+    {
+      "input": [
+        0,
+        1,
+        0.5
+      ],
+      "exposureStops": 1,
+      "outputLinearAP0": [
+        168.0854932327226,
+        1016.641712313197,
+        2.4770483303760966
+      ]
+    },
+    {
+      "input": [
+        -0.1,
+        0.5,
+        1.1
+      ],
+      "exposureStops": 1,
+      "outputLinearAP0": [
+        254.0194712744348,
+        -205.58522943582452,
+        2941.6494618393076
+      ]
+    },
+    {
+      "input": [
+        0.304985337243402,
+        0.148314799066323,
+        0.06256109481915934
+      ],
+      "exposureStops": 1,
+      "outputLinearAP0": [
+        0.27556664706196454,
+        0.06229158884870903,
+        -0.00023011171361578896
+      ]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+F-Log2 Data Sheet Ver.1.1
+1. Introduction
+ This document describes the gamma curve and the gamut of F-Log2 in the
+FUJIFILM digital cameras.
+ F-Log tone is a digital equivalent of the density characteristics of negative film,
+and is generally highly compatible with the various post-production methods
+that have been developed in movie taking fields. In addition, the color gamut is
+designed with ease of color grading.
+
+
+
+2-1. F-Log2 curve characteristics
+ The input/output characteristics of the F-log2 gamma curve is shown in the
+figure below. The gamma curve of F-Log2 is identical to that of F-Log2C, so that
+the code value by 10 bits are 95 for 0% of reflection, 400 for 18% and 570 for
+90%.
+
+                                                             1024
+                                                              960
+                                                              896
+                                                              832
+                                                              768
+                                                              704
+
+
+
+
+       10bit Code Value
+                                                              640
+                                                              576
+                                                              512
+                                                              448
+                                                              384
+                                                              320
+                                                              256
+                                                              192
+                                                              128
+                                                               64                     Relative Stops from 18% Gray
+                                                                  0
+  -9                      -8   -7   -6   -5   -4   -3   -2   -1       0   1   2   3      4    5    6    7    8       9
+2-2. F-Log2 Code Value
+
+                                               F-Log2
+           Input reflection
+                                      IRE            10bit Code Value
+                  0                    3.5                     95
+                  18                   38                     400
+                  90                   58                     570
+
+
+
+
+2-3. F-Log2 conversion formula
+a = 5.555556, b = 0.064829, c = 0.245281, d = 0.384316
+e = 8.799461, f = 0.092864
+cut1 = 0.000889
+cut2 = 0.100686685370811
+
+
+Scene Linear Reflection to F-Log2
+       out = c * Log10(a * in + b) + d         ( in >= cut1 )
+       out = e * in + f                        ( in < cut1 )
+       in = reflection
+       0.0 <= out <= 1.0
+
+
+F-Log2 to Scene Linear Reflection
+       out = (10^((in - d) / c)) / a - b / a   ( in >= cut2)
+       out = (in - f) / e                      ( in < cut2)
+       0.0 <= in <= 1.0
+       out = reflection
+3. F-Log2 Color Primaries
+The color gamut of F-Log2 is F-Gamut.
+
+            y
+
+           1.0
+                                                        ACES
+           0.9                                          ITU-R BT.709
+                                                        DCI-P3
+           0.8
+                                                        F-Gamut
+           0.7
+
+           0.6
+
+           0.5
+
+           0.4
+
+           0.3
+
+           0.2
+
+           0.1
+
+           0.0
+
+          -0.1
+                 -0.1   0   0.1   0.2       0.3   0.4     0.5     0.6   0.7   0.8   x
+
+
+
+                                                          ｘ                ｙ
+                                    R                   0.70800          0.29200
+                                    G                   0.17000          0.79700
+                  F-Gamut
+                                    B                   0.13100          0.04600
+                                   White                0.31270          0.32900
+                                        R               0.68000          0.32000
+                                        G               0.26500          0.69000
+                   DCI-P3
+                                        B               0.15000          0.06000
+                                   White                0.31400          0.35100
+                                    R                   0.64000          0.33000
+                                    G                   0.30000          0.60000
+             ITU-R BT.709
+                                    B                   0.15000          0.06000
+                                   White                0.31270          0.32900
+                                    R                   0.73470          0.26530
+                                    G                   0.00000          1.00000
+                    ACES
+                                    B                   0.00000         -0.07700
+                                   White                0.32168          0.33767
+

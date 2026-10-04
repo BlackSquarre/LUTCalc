@@ -1,0 +1,30 @@
+{
+  "sourceSHA256": {
+    "lut.js": "359aabf3502eb38508bd0799d631475ecb9ad19a1af6297e95a01f1fd6f501c4",
+    "ring.js": "197b111472e04361bb77189c6a0981fd3531aa7747e01d4763f38e25327471b5",
+    "bounding.js": "9876fe83cb099e2fde343c707dfa7095abbd47016156a9d05d31e0c0b5e4cdf1",
+    "brent.js": "9c2c9ece9a889ac4c5d94ade127ce3db9b06e7276336814ae6800574895ccf09",
+    "gamma.js": "250017d8efe758f3555148ba9fcb923698add0ac7d9380fa290716eb98e0821e",
+    "colourspace.js": "89f5d45d2783056fe663ab045346a25482f6873c74213377ef227865324a622c"
+  },
+  "source": "LUTGamma.inCalcRGB -> LUTColourSpace.calc(g=true), output legacy*.9 scene scale",
+  "size": 17,
+  "order": "R-fast/G-middle/B-slow",
+  "input": "DLog2/DGamut2/Data",
+  "output": "Rec2020 scene-linear/Data",
+  "exposureGain": 2,
+  "ascCDL": [
+    1.25,
+    0.75,
+    1.5,
+    -0.125,
+    0.0625,
+    -0.25,
+    0.5,
+    1.25,
+    2.5,
+    0.625
+  ],
+  "sdrGamma": 1.2,
+  "binarySHA256": "17871e73e167b882c361edbe16c759b0e3a8063889d0d0181f13ce6dc4b492ac"
+}

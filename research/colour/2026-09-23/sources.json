@@ -1,0 +1,296 @@
+[
+  {
+    "id": "fuji-flog2c-pdf",
+    "title": "F-Log2 C 数据表 1.0",
+    "url": "https://dl.fujifilm-x.com/support/lut/F-Log2C_DataSheet_E_Ver.1.0.pdf",
+    "path": "whitepapers/fuji-flog2c-v1.pdf"
+  },
+  {
+    "id": "fuji-flog2-pdf",
+    "title": "F-Log2 数据表 1.1",
+    "url": "https://dl.fujifilm-x.com/technical-data/F-Log2_DataSheet_E_Ver.1.1.pdf",
+    "path": "whitepapers/fuji-flog2-v1.1.pdf"
+  },
+  {
+    "id": "fuji-flog2c-ctl",
+    "title": "F-Log2 C 官方 CTL IDT 1.10",
+    "url": "https://dl.fujifilm-x.com/support/lut/FUJIFILM_IDT_F-Log2C_Ver.1.10.ctl.zip",
+    "path": "reference-code/fuji-flog2c-ctl-v1.10.zip"
+  },
+  {
+    "id": "fuji-flog2c-clf",
+    "title": "F-Log2 C 官方 CLF IDT 1.10",
+    "url": "https://dl.fujifilm-x.com/support/lut/FUJIFILM_IDT_F-Log2C_Ver.1.10.clf.zip",
+    "path": "reference-code/fuji-flog2c-clf-v1.10.zip"
+  },
+  {
+    "id": "leica-llog-v1.6",
+    "title": "Leica L-Log 参考手册 1.6",
+    "url": "https://leica-camera.com/sites/default/files/pm-118912-L-Log_Reference_Manual_V1.6.pdf",
+    "path": "whitepapers/leica-llog-v1.6.pdf"
+  },
+  {
+    "id": "insta-ilog10",
+    "title": "Insta360 10-bit I-Log 白皮书",
+    "url": "https://wassets.insta360.com/common/31f0330509384b7b8ba0a07f4ff4eb13/Insta360_10-bit_I-Log_White_Paper.pdf",
+    "path": "whitepapers/insta360-ilog10.pdf"
+  },
+  {
+    "id": "xiaomi-aces",
+    "title": "小米官方 ACES 资料包",
+    "url": "https://cdn.alsgp0.fds.api.mi-img.com/e-commerce/global/Mi-Log_ACES%20Profiles.zip",
+    "path": "packages/xiaomi-aces.zip"
+  },
+  {
+    "id": "oppo-olog-pdf",
+    "title": "OPPO O-Log 白皮书 V1",
+    "url": "https://www.oppo.com/content/dam/oppo_com/en/mkt/footer/OPPO_O-Log_Profile_WhitePaper_V1.pdf",
+    "path": "whitepapers/oppo-olog-v1.pdf"
+  },
+  {
+    "id": "om-log400-2020",
+    "title": "OM-1 II OM-Log400 BT.2020 官方 LUT",
+    "url": "https://support.jp.omsystem.com/en/support/imsg/digicamera/download/software/3dlut/files/om1m2_LUT_OM-Log400_BT.2020_to_WDR_BT.709_v1.0.zip",
+    "path": "official-luts/om-log400-2020.zip"
+  },
+  {
+    "id": "om-log400-p3",
+    "title": "OM-1 II OM-Log400 P3-D65 官方 LUT",
+    "url": "https://support.jp.omsystem.com/en/support/imsg/digicamera/download/software/3dlut/files/om1m2_LUT_OM-Log400_P3-D65_to_WDR_BT.709_v1.0.zip",
+    "path": "official-luts/om-log400-p3.zip"
+  },
+  {
+    "id": "samsung-page",
+    "title": "Samsung Log 官方说明与下载入口",
+    "url": "https://developer.samsung.com/mobile/samsung-log-video.html",
+    "path": "pages/samsung-log.html"
+  },
+  {
+    "id": "oppo-page",
+    "title": "OPPO O-Log/O-Log2 下载入口",
+    "url": "https://www.oppo.com/cn/log-to-rec709-download/",
+    "path": "pages/oppo-log.html"
+  },
+  {
+    "id": "leica-page",
+    "title": "Leica SL3-S 官方下载页",
+    "url": "https://leica-camera.com/de-CH/fotografie/kameras/sl/sl3-s-schwarz/downloads",
+    "path": "pages/leica-downloads.html"
+  },
+  {
+    "id": "kine-spec",
+    "title": "KineLOG3 与 Kinefinity Wide Gamut 技术说明",
+    "url": "https://kinefinity.com/support/guides/kinelog3-technical-specifications",
+    "path": "pages/kine-spec.html"
+  },
+  {
+    "id": "gopro-log",
+    "title": "GoPro GP-Log2 说明",
+    "url": "https://gopro.github.io/labs/log/",
+    "path": "pages/gopro-log.html"
+  },
+  {
+    "id": "gopro-generator",
+    "title": "GoPro GP-Log2 官方生成器源码页面",
+    "url": "https://gopro.github.io/labs/gplog2/",
+    "path": "reference-code/gopro-gplog2.html"
+  },
+  {
+    "id": "acescct",
+    "title": "ACEScct 官方规范",
+    "url": "https://docs.acescentral.com/encodings/acescct/",
+    "path": "pages/acescct.html"
+  },
+  {
+    "id": "aces-rgc",
+    "title": "ACES 参考色域压缩规范",
+    "url": "https://docs.acescentral.com/rgc/specification/",
+    "path": "pages/aces-rgc.html"
+  },
+  {
+    "id": "zcam-page",
+    "title": "Z CAM 官方资源页",
+    "url": "https://www.z-cam.com/resources/",
+    "path": "pages/zcam.html"
+  },
+  {
+    "id": "honor-page",
+    "title": "荣耀 Magic-Log 官方 LUT 下载页",
+    "url": "https://www.honor.com/cn/phones/rec-lut-download/",
+    "path": "pages/honor.html"
+  },
+  {
+    "id": "vivo-page",
+    "title": "vivo 官方支持入口",
+    "url": "https://www.vivo.com/my/support/questionList?categoryId=10906",
+    "path": "pages/vivo.html"
+  },
+  {
+    "id": "fuji-page",
+    "title": "富士技术资料官方入口",
+    "url": "https://www.fujifilm-x.com/global/support/download/technical-data/",
+    "path": "pages/fuji.html"
+  },
+  {
+    "id": "om-page",
+    "title": "OM System 官方 LUT 表",
+    "url": "https://support.jp.omsystem.com/jp/support/cs/soft/3dlut/3dlutdl.html",
+    "path": "pages/om.html"
+  },
+  {
+    "id": "xiaomi-page",
+    "title": "小米 ACES 官方入口",
+    "url": "https://www.mi.com/global/product/aces/",
+    "path": "pages/xiaomi.html"
+  },
+  {
+    "id": "samsung-pdf",
+    "title": "Samsung Log 官方白皮书",
+    "url": "https://developer.samsung.com/Mobile/file/24767859-feda-461f-8f2b-f3b547822874",
+    "path": "whitepapers/samsung-log.pdf"
+  },
+  {
+    "id": "samsung-linear",
+    "title": "Samsung Log 官方线性参考 LUT",
+    "url": "https://developer.samsung.com/Mobile/file/03cb55a3-a7b8-485d-8de7-1a6b5f2a19fd",
+    "path": "official-luts/samsung-log-linear.cube"
+  },
+  {
+    "id": "samsung-rec709",
+    "title": "Samsung Log 官方 Rec.709 参考 LUT",
+    "url": "https://developer.samsung.com/Mobile/file/12a52a67-175d-4f8e-acb5-d7f32e636e07",
+    "path": "official-luts/samsung-log-rec709.cube"
+  },
+  {
+    "id": "oppo-olog2-pdf",
+    "title": "OPPO O-Log2 白皮书 V1",
+    "url": "https://www.oppo.com/content/dam/oppo_com/cn/mkt/footer/oppo-o-log2-whitepaper_cn_v1.pdf",
+    "path": "whitepapers/oppo-olog2-v1.pdf"
+  },
+  {
+    "id": "oppo-olog2-aces",
+    "title": "OPPO O-Log2 ACES 工作流资料 V2",
+    "url": "https://www.oppo.com/content/dam/oppo_com/cn/mkt/footer/O-Log2_ACES_Workflow_Guide_CHN_V2.zip",
+    "path": "packages/oppo-olog2-aces.zip"
+  },
+  {
+    "id": "oppo-olog2-tools",
+    "title": "OPPO O-Log2 官方转换工具 V1",
+    "url": "https://www.oppo.com/content/dam/oppo_com/cn/mkt/footer/o-log2-technical-transform-tools_v1.zip",
+    "path": "packages/oppo-olog2-tools.zip"
+  },
+  {
+    "id": "oppo-olog-tools",
+    "title": "OPPO O-Log 官方转换工具 V0",
+    "url": "https://www.oppo.com/content/dam/oppo_com/cn/mkt/footer/o-log-technical-transform-tools_v0.zip",
+    "path": "packages/oppo-olog-tools.zip"
+  },
+  {
+    "id": "leica-llog-v1.9",
+    "title": "Leica L-Log 参考手册 1.9",
+    "url": "https://leica-camera.com/sites/default/files/pm-37826-L-Log_Reference_Manual_V1.9.pdf",
+    "path": "whitepapers/leica-llog-v1.9.pdf"
+  },
+  {
+    "id": "honor-log-v1",
+    "title": "荣耀 Magic-Log 第一组官方 LUT",
+    "url": "https://www.honor.com/content/dam/honor/cn/rec-lut-download/img/honor_logv1_rec709_v3_33.cube",
+    "path": "official-luts/honor-log-v1.cube"
+  },
+  {
+    "id": "honor-log-v2",
+    "title": "荣耀 Magic-Log 第二组官方 LUT",
+    "url": "https://www.honor.com/content/dam/honor/cn/rec-lut-download/img/honor_new_logv2_rec709_v9.cube",
+    "path": "official-luts/honor-log-v2.cube"
+  },
+  {
+    "id": "vivo-aces",
+    "title": "vivo Log 官方 ACES 资料包",
+    "url": "https://asia-exstatic-vivofs.vivo.com/PSee2l50xoirPK7y/1786436739858/resource/vivo-Log_ACES_Profiles.zip",
+    "path": "packages/vivo-aces.zip"
+  },
+  {
+    "id": "bt1886",
+    "title": "ITU-R BT.1886 标准",
+    "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1886-0-201103-I%21%21PDF-E.pdf",
+    "path": "whitepapers/itu-bt1886.pdf"
+  },
+  {
+    "id": "bt2020",
+    "title": "ITU-R BT.2020-2 标准",
+    "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.2020-2-201510-I%21%21PDF-E.pdf",
+    "path": "whitepapers/itu-bt2020-2.pdf"
+  },
+  {
+    "id": "bt2380",
+    "title": "ITU-R BT.2380 电视色度参数报告",
+    "url": "https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-BT.2380-2015-PDF-E.pdf",
+    "path": "whitepapers/itu-bt2380.pdf"
+  },
+  {
+    "id": "aces-output",
+    "title": "ACES 2 输出变换架构",
+    "url": "https://docs.acescentral.com/system-components/output-transforms/",
+    "path": "pages/aces-output.html"
+  },
+  {
+    "id": "apple-log2",
+    "title": "Apple Log2 官方 API 定义",
+    "url": "https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog2",
+    "path": "pages/apple-log2.html"
+  },
+  {
+    "id": "dji-luts",
+    "title": "DJI 官方 LUT 与设备列表",
+    "url": "https://www.dji.com/lut",
+    "path": "pages/dji-luts.html"
+  },
+  {
+    "id": "sony-workflow",
+    "title": "Sony CineAlta 工作流指南",
+    "url": "https://pro.sony/s3/2024/11/29133636/Sony_CineAlta_WF_Guide_v1.0.pdf",
+    "path": "whitepapers/sony-cinealta-workflow-v1.pdf"
+  },
+  {
+    "id": "sigma-bf",
+    "title": "Sigma BF 官方规格",
+    "url": "https://www.sigma-global.com/en/cameras/bf",
+    "path": "pages/sigma-bf.html"
+  },
+  {
+    "id": "nikon-zr",
+    "title": "Nikon ZR 官方规格",
+    "url": "https://www.nikonusa.com/p/zr/2006/overview",
+    "path": "pages/nikon-zr.html"
+  },
+  {
+    "id": "apple-log2-text",
+    "title": "Apple Log2 官方 API 文本",
+    "url": "https://developer.apple.com/documentation/avfoundation/avcapturecolorspace/applelog2.md",
+    "path": "pages/apple-log2.txt"
+  },
+  {
+    "id": "apple-p3-text",
+    "title": "Display P3 官方定义",
+    "url": "https://developer.apple.com/documentation/coregraphics/cgcolorspace/displayp3.md",
+    "path": "pages/apple-p3.txt"
+  },
+  {
+    "id": "sony-profile",
+    "title": "Sony 相机曲线与 HLG1/2/3 说明",
+    "url": "https://helpguide.sony.net/ilc/2410/v1/en/contents/0412D_picture_profile.html",
+    "path": "pages/sony-profile.html"
+  },
+  {
+    "id": "panasonic-logc3",
+    "title": "Panasonic LogC3 扩展说明",
+    "url": "https://av.jpn.support.panasonic.com/support/global/cs/dsc/download/fts/enhance/gh6_gh7/index.html",
+    "path": "pages/panasonic-logc3.html"
+  },
+  {
+    "id": "nikon-nlog-specification",
+    "title": "Nikon N-Log 规格文档 1.0.0",
+    "url": "https://download.nikonimglib.com/archive3/hDCmK00m9JDI03RPruD74xpoU905/N-Log_Specification_(En)01.pdf",
+    "path": "whitepapers/nikon-nlog-v1.pdf"
+  }
+]

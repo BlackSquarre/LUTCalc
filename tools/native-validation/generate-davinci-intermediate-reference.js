@@ -1,0 +1,5 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'../..'),source=fs.readFileSync(path.join(root,'js/gamma.js'),'utf8'); const context=vm.createContext({Float64Array,Float32Array,Uint8Array,ArrayBuffer,Math}); vm.runInContext(source,context,{filename:'gamma.js'});
+const c=new context.LUTGammaDaVinci('DaVinci Intermediate'); const values=[-0.2,-0.05,0,0.00262409/0.9,0.18,0.2,0.5,1,4]; const apply=(x,m)=>{const a=new Float64Array([x]);c[m](a.buffer);return {input:x,output:String(a[0])}};
+const out={precision:64,source:'js/gamma.js:LUTGammaDaVinci DaVinci Intermediate',sourceSHA256:crypto.createHash('sha256').update(source).digest('hex'),encode:values.map(x=>apply(x,'linToD')),decode:[0,0.02740668-1e-15,0.02740668,0.02740668+1e-15,0.2,0.5,1].map(x=>apply(x,'linFromD'))}; fs.writeFileSync(path.join(root,'tests/fixtures/native-contracts/davinci-intermediate-legacy-reference.json'),JSON.stringify(out,null,2)+'\n'); console.log(JSON.stringify({path:'tests/fixtures/native-contracts/davinci-intermediate-legacy-reference.json',sourceSHA256:out.sourceSHA256}));

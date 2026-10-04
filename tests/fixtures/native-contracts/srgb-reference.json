@@ -1,0 +1,102 @@
+{
+  "source": "https://www.w3.org/TR/2026/CRD-css-color-4-20260913/#predefined-sRGB",
+  "algorithmVersion": "srgb.w3c-extended.v1",
+  "scaledThreshold": 2e-12,
+  "roundingBudget": 5e-15,
+  "encode": [
+    {
+      "input": -1,
+      "expected": -1.0
+    },
+    {
+      "input": -0.1,
+      "expected": -0.34919021262829386
+    },
+    {
+      "input": -0.01,
+      "expected": -0.09985282273412834
+    },
+    {
+      "input": 0,
+      "expected": 0.0
+    },
+    {
+      "input": 0.001,
+      "expected": 0.012920000000000001
+    },
+    {
+      "input": 0.0031307999999999996,
+      "expected": 0.04044993599999999
+    },
+    {
+      "input": 0.0031308,
+      "expected": 0.040449936
+    },
+    {
+      "input": 0.0031308000000000004,
+      "expected": 0.04044990748269016
+    },
+    {
+      "input": 0.18,
+      "expected": 0.46135612950044164
+    },
+    {
+      "input": 1,
+      "expected": 1.0
+    },
+    {
+      "input": 4,
+      "expected": 1.8247962952761159
+    }
+  ],
+  "decode": [
+    {
+      "input": -1,
+      "expected": -1.0
+    },
+    {
+      "input": -0.1,
+      "expected": -0.010022825574869035
+    },
+    {
+      "input": -0.04045,
+      "expected": -0.0031308049535603713
+    },
+    {
+      "input": 0,
+      "expected": 0.0
+    },
+    {
+      "input": 0.02,
+      "expected": 0.0015479876160990713
+    },
+    {
+      "input": 0.04015966,
+      "expected": 0.0031083328173374613
+    },
+    {
+      "input": 0.0403,
+      "expected": 0.0031191950464396286
+    },
+    {
+      "input": 0.04044999999999999,
+      "expected": 0.003130804953560371
+    },
+    {
+      "input": 0.04045,
+      "expected": 0.0031308049535603713
+    },
+    {
+      "input": 0.04045000000000001,
+      "expected": 0.0031308072830676828
+    },
+    {
+      "input": 1,
+      "expected": 1.0
+    },
+    {
+      "input": 4,
+      "expected": 25.31466341684702
+    }
+  ]
+}

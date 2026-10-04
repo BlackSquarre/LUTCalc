@@ -1,0 +1,339 @@
+            Recommendation ITU-R BT.2020-2
+                                     (10/2015)
+
+
+
+Parameter values for ultra-high definition
+        television systems for production
+  and international programme exchange
+
+
+                                   BT Series
+                        Broadcasting service
+                                (television)
+ii                                               Rec. ITU-R BT.2020-2
+
+
+                                                          Foreword
+The role of the Radiocommunication Sector is to ensure the rational, equitable, efficient and economical use of the
+radio-frequency spectrum by all radiocommunication services, including satellite services, and carry out studies without
+limit of frequency range on the basis of which Recommendations are adopted.
+The regulatory and policy functions of the Radiocommunication Sector are performed by World and Regional
+Radiocommunication Conferences and Radiocommunication Assemblies supported by Study Groups.
+
+
+
+                                   Policy on Intellectual Property Right (IPR)
+ITU-R policy on IPR is described in the Common Patent Policy for ITU-T/ITU-R/ISO/IEC referenced in Annex 1 of
+Resolution ITU-R 1. Forms to be used for the submission of patent statements and licensing declarations by patent
+holders are available from http://www.itu.int/ITU-R/go/patents/en where the Guidelines for Implementation of the
+Common Patent Policy for ITU-T/ITU-R/ISO/IEC and the ITU-R patent information database can also be found.
+
+
+
+
+                                           Series of ITU-R Recommendations
+                                    (Also available online at http://www.itu.int/publ/R-REC/en)
+
+     Series                                                            Title
+
+     BO            Satellite delivery
+     BR            Recording for production, archival and play-out; film for television
+     BS            Broadcasting service (sound)
+     BT            Broadcasting service (television)
+     F             Fixed service
+     M             Mobile, radiodetermination, amateur and related satellite services
+     P             Radiowave propagation
+     RA            Radio astronomy
+     RS            Remote sensing systems
+     S             Fixed-satellite service
+     SA            Space applications and meteorology
+     SF            Frequency sharing and coordination between fixed-satellite and fixed service systems
+     SM            Spectrum management
+     SNG           Satellite news gathering
+     TF            Time signals and frequency standards emissions
+     V             Vocabulary and related subjects
+
+
+
+
+     Note: This ITU-R Recommendation was approved in English under the procedure detailed in Resolution ITU-R 1.
+
+
+
+                                                                                                          Electronic Publication
+                                                                                                                  Geneva, 2015
+
+
+                                                           ITU 2015
+All rights reserved. No part of this publication may be reproduced, by any means whatsoever, without written permission of ITU.
+                                       Rec. ITU-R BT.2020-2                                              1
+
+
+
+
+                         RECOMMENDATION ITU-R BT.2020-2
+
+   Parameter values for ultra-high definition television systems for production
+                    and international programme exchange
+                                                                                      (2012-2014-2015)
+
+Scope
+Ultra-high definition television (UHDTV) will provide viewers with an enhanced visual experience primarily
+by having a wide field of view both horizontally and vertically with appropriate screen sizes relevant to
+usage at home and in public places. UHDTV applications require system parameters that go beyond the
+levels of HDTV. This Recommendation specifies UHDTV image system parameters for production and
+international programme exchange.
+
+
+Keywords
+UHDTV, image system parameters, wide field of view, television system, international programme
+exchange
+
+The ITU Radiocommunication Assembly,
+        considering
+a)      that digital terrestrial television broadcasting (DTTB) service has been introduced by some
+administrations since 1997 and can provide high quality television programmes through HDTV
+systems;
+b)      that viewers expect future TV systems beyond HDTV to provide improved characteristics
+compared with the current HDTV systems in terms of a more realistic sensation, greater
+transparency to the real world, and more accurate visual information;
+c)      that ultra-high definition television (UHDTV) is expected to become available in the near
+future with, inter alia, larger screens, higher spatial/temporal resolution, wider colour gamut, wider
+dynamic range, etc. taking into account developments of display technology;
+d)      that ITU-R has been studying extremely high-resolution imagery (EHRI) and an expanded
+hierarchy of large screen digital imagery (LSDI) image formats and has established ITU-R
+Recommendations: Recommendation ITU-R BT.1201-1 providing the guidelines of image
+characteristics for extremely high-resolution imagery, and Recommendation ITU-R BT.1769
+offering the parameter values for an expanded hierarchy of LSDI image formats;
+e)     that LSDI is a system providing a display on a very large screen, typically for public
+viewing. This can be used in a wide variety of applications including programme presentations such
+as dramas, plays, sporting events, concerts, etc.;
+f)       that EHRI is a system offering higher resolution than HDTV and can be used for both
+broadcasting and non-broadcasting applications (e.g. computer graphics, printing and medical
+applications);
+g)       that UHDTV provides viewers with an enhanced visual experience primarily by a wider
+field of view that covers a considerable part of the human natural visual field with appropriate
+screen sizes relevant to usage at home and in public places;
+h)   that signal formats contributing to increasing the compression efficiency are desirable for
+UHDTV systems since they have a larger number of pixels than HDTV systems,
+2                                           Rec. ITU-R BT.2020-2
+
+            noting
+that Report ITU-R BT.2246 describes the current state of ultra-high definition television,
+            recommends
+that for UHDTV programme production and international exchange, the specifications described in
+this Recommendation should be used1,
+            and further recommends
+that if it is shown that an alternative electro-optical transfer function (EOTF) will provide
+significant benefits without also imposing significant disadvantages, then this Recommendation
+should be extended to enable use with an improved EOTF.
+NOTE – Future consideration should be given to extend this Recommendation in a complementary
+manner to include extended image parameters.
+
+                                                    TABLE 1
+                                        Picture spatial characteristics
+              Parameter                                                Values
+    Picture aspect ratio                                                 16:9
+    Pixel count
+                                                7 680 × 4 320                           3 840 × 2 160
+    Horizontal × vertical
+    Sampling lattice                                                 Orthogonal
+    Pixel aspect ratio                                           1:1 (square pixels)
+                                     Pixel ordering in each row is from left to right, and rows are ordered from
+    Pixel addressing
+                                                                    top to bottom.
+
+
+
+
+1    Both 3 840 × 2 160 and 7 680 × 4 320 systems of UHDTV will find their main applications for the
+     delivery of television programming to the home where they will provide viewers with an increased sense
+     of “being there” and increased sense of realness by using displays with a screen diagonal of the order of
+     1.5 metres or more and for large screen (LSDI) presentations in theatres, halls and other venues such as
+     sports venues or theme parks.
+     Presentation on tablet displays with extremely high resolution will also be attractive for viewers.
+     The 7 680 × 4 320 system will provide a more enhanced visual experience than the 3 840 × 2 160 system
+     for a wider range of viewing environments.
+     An increase in the efficiency of video source coding and/or in the capacity of transmission channels,
+     compared to those currently in use, will likely be needed to deliver such programs by terrestrial or satellite
+     broadcasting to the home. Research is under way to achieve this goal. The delivery of such programming
+     will initially be possible by cable or fibre.
+     The choice of frame frequency may be influenced by the frequency of the mains power and the type of
+     scene lighting in use, as well as by considerations related to the conversion of programme material
+     between higher frame rates and lower frame rates (see Report ITU-R BT.2246).
+                                         Rec. ITU-R BT.2020-2                                               3
+
+                                                TABLE 2
+                                    Picture temporal characteristics
+            Parameter                                             Values
+Frame frequency (Hz)                120, 120/1.001, 100, 60, 60/1.001, 50, 30, 30/1.001, 25, 24, 24/1.001
+Scan mode                                                       Progressive
+
+
+
+                                                TABLE 3
+                                           System colorimetry
+            Parameter                                             Values
+      Opto-electronic transfer
+        characteristics before                                Assumed linear(1)
+      non-linear pre-correction
+                                     Chromaticity coordinates
+                                                                            x                    y
+                                          (CIE, 1931)
+Primary colours and reference            Red primary (R)                 0.708                 0.292
+           white(2)                     Green primary (G)                0.170                 0.797
+                                         Blue primary (B)                0.131                 0.046
+                                      Reference white (D65)              0.3127               0.3290
+(1)
+      Picture information can be linearly indicated by the tristimulus values of RGB in the range of 0-1.
+(2)
+      The colorimetric values of the picture information can be determined based on the reference RGB
+      primaries and the reference white.
+4                                          Rec. ITU-R BT.2020-2
+
+                                                    TABLE 4
+                                                 Signal format
+          Parameter                                                      Values
+                                                                      R’G’B’(1)
+         Signal format                    Constant luminance                       Non-constant luminance
+                                            Y’CC’BCC’RC(2)                              Y’C’BC’R(3)
+
+                                                               
+                                                               4.5E ,          0  E 
+                                                          E   0.45
+                                                               
+                                                               E      (  1),   E 1
+                               where E is voltage normalized by the reference white level and proportional
+                               to the implicit light intensity that would be detected with a reference camera
+                               colour channel R, G, B; E’ is the resulting non-linear signal.
+                               α and β are the solutions to the following simultaneous equations:
+      Non-linear transfer                       4.5  0.45    1                          (1)
+         function(4)                             
+                                                 4.5  0.450.55                             (2)
+                               The simultaneous equations provide the required condition to connect the
+                               two curve segments smoothly and yield α = 1.09929682680944... and
+                               β = 0.018053968510807.... For practical purpose, the following values can
+                               be used:
+                                α = 1.099 and β = 0.018 for 10-bit systems α = 1.0993 and β = 0.0181 for
+                                                             12-bit systems
+                                                                    
+    Derivation of Y’C and Y’    YC  0.2627R  0.6780G  0.0593B            Y'  0.2627R'  0.6780G'  0.0593B'
+
+                                           B'YC
+                                            2 N , N B  B'YC  0
+                                          
+                                        
+                                     C BC          B
+
+                                            B 'Y 
+                                                   C
+                                                     , 0  B'YC  PB
+                                           2 PB
+                                            R'YC
+                                             2 N , N R  R'YC  0
+                                           
+                                        
+                                     C RC          R
+
+                                            R 'Y 
+                                                   C
+                                                     , 0  R'YC  PR                         B'  Y'
+                                            2 PR                                       CB 
+     Derivation of colour                                                                      1.8814
+                               where
+                                                                                               R'  Y'
+                                                        
+      difference signals
+                               PB   1  0.05930.45  0.7909854...                      CR 
+                               N  1  0.9407          1  0.9701716...
+                                                   0.45                                        1.4746
+                               PR  1  0.26270.45   0.4969147...
+                                 B
+
+
+
+                               N  1  0.7373   1  0.8591209...
+                                 R
+                                                  0.45
+
+                               For practical purpose, the following
+                               values can be used:
+                                   PB  0.7910 , N B  0.9702
+                                   PR  0.4969 , N R  0.8591
+                                         Rec. ITU-R BT.2020-2                                                                       5
+
+Notes du Table 4
+(1)
+    R'G'B' may be used for programme exchange when the best quality programme production is of primary
+    importance.
+(2)
+    Constant luminance Y'CC'BCC'RC may be used when the most accurate retention of luminance
+    information is of primary importance or where there is an expectation of improved coding efficiency
+    for delivery (see Report ITU-R BT.2246).
+(3)
+    Conventional non-constant luminance Y'C'BC'R may be used when use of the same operational practices
+    as those in SDTV and HDTV environments is of primary importance through a broadcasting chain (see
+    Report ITU-R BT.2246).
+(4)
+    In typical production practice the encoding function of image sources is adjusted so that the final picture
+    has the desired look, as viewed on a reference monitor having the reference decoding function of
+    Recommendation ITU-R BT.1886, in the reference viewing environment defined in
+    Recommendation ITU-R BT.2035.
+
+
+                                                 TABLE 5
+                                          Digital representation
+          Parameters                                                         Values
+Coded signal                                       R', G', B' or Y', C'B, C'R or Y'C, C'BC, C'RC
+Sampling lattice
+                                               Orthogonal, line and picture repetitive co-sited
+– R', G', B', Y', Y'C
+                                       Orthogonal, line and picture repetitive co-sited with each other.
+                                       The first (top-left) sample is co-sited with the first Y’ samples.
+                                      4:4:4 system                  4:2:2 system                               4:2:0 system
+Sampling lattice
+                                                                                                            Horizontally and
+– C'B, C'R or C'BC, C'RC           Each has the same               Horizontally
+                                                                                                         vertically subsampled
+                                  number of horizontal       subsampled by a factor
+                                                                                                         by a factor of two with
+                                    samples as the Y'         of two with respect to
+                                                                                                          respect to the Y' (Y'C)
+                                    (Y'C) component.         the Y' (Y'C) component.
+                                                                                                               component.
+Coding format                                              10 or 12 bits per component
+                                                                         
+                                                            DR  INT 219  R  16 2n8          
+                                                                          
+                                                             DG  INT 219  G  16 2n 8    
+Quantization of R', G', B', Y',                                          
+                                                             DB  INT 219  B  16 2n 8     
+Y'C , C'B, C'R, C'BC, C'RC                                                    
+                                                        DY ( DYC )  INT 219  Y (YC )  16 2n8    
+                                                                         
+                                                                )  INT 224  CB (CBC
+                                                      DCB ( DCBC                                    
+                                                                                       )  128 2n 8
+
+                                                               )  INT 224  CR (CRC
+                                                     DCR ( DCRC                       )  128 2 
+                                                                                                   n8
+6                               Rec. ITU-R BT.2020-2
+
+                                    TABLE 5 (end)
+         Parameters                                   Values
+Quantization levels                10-bit coding                  12-bit coding
+– Black level
+  DR', DG', DB', DY', DY'C              64                             256
+– Achromatic
+  DC'B, DC'R , DC'BC, DC'RC            512                            2 048
+– Nominal Peak
+  DR', DG', DB', DY', DY'C
+                                       940                            3 760
+  DC'B, DC'R, DC'BC, DC'RC
+                                    64 and 960                    256 and 3 840
+Quantization level assignment      10-bit coding                  12-bit coding
+– Video data                      4 through 1 019                16 through 4 079
+– Timing reference              0-3 and 1 020-1 023            0-15 and 4 080-4 095
+

@@ -1,0 +1,12 @@
+{
+  "bad-dimension.cube": "e7a9cb916858488ff47d685172e2b72a06a2cb1fae86aa1833129ad4c055176b",
+  "extra-row.cube": "209b0830d54856d13cff3b1d73ddee086c0eee0f828d6a11e93c4eadec48ec34",
+  "huge-dimension.cube": "35bd6ddc5ab82e2b46098eff53257110fbba880d5a15a72d14e34e3ddd952bd5",
+  "missing-row.cube": "51ff3b4fa5a90e8cc0457c331bc35431963046a8964b680d8f88b3773bb57a16",
+  "nonfinite.cube": "dc26ea6b71f50d9692da5a491411b7893cccba6cd89a7a0bf3ab9bb19c365e4c",
+  "numeric-contracts.json": "217a1138bc6dee0d041608bbadd00264dacf377184b0f43ef2ea4ce68e7a9d8b",
+  "parser-contracts.json": "ddf6a9f19e26a482de88bb1ead1681b5ee70dff803da5f3e0d1e4856cbbf1086",
+  "partial-number.cube": "ee2d476d320aca2b61c9eb93353652e57c6c5c9dacaf0997dc56ffcb4fe258fb",
+  "reversed-domain.cube": "403e61b8024994c8a880925d51662dfcb80b4fa6ba725da7fd8a9370a01b98a8",
+  "valid-extended.cube": "0b91d883f285b02488b3f8bc1e292fab18f153326709a8874371eb51a6b37f84"
+}

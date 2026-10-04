@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+  />
+
+  <title>Samsung Log Video | Samsung Developer</title>
+  <link rel="canonical" href="/mobile/samsung-log-video.html" />
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <meta name="keywords" content="">
+      <!-- Open Graph tags  -->
+  <meta property="og:site_name" content="Samsung Developer">
+  <meta property="og:title" content="Samsung Log Video | Samsung Developer">
+  <meta property="og:description" content="The world runs on you.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="/mobile/samsung-log-video.html">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://d3unf4s5rp9dfh.cloudfront.net/public/img/common/SNS_1280x630.png">
+
+  <!-- Twitter card tags  -->
+  <meta name="twitter:site" content="@samsung_dev">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Samsung Log Video | Samsung Developer">
+  <meta name="twitter:description" content="The world runs on you.">
+  <meta name="twitter:domain" content="http://developer.samsung.com/">
+  <meta property="twitter:image" content="https://d3unf4s5rp9dfh.cloudfront.net/public/img/common/SNS_1280x630.png">
+
+  <link rel="icon" type="image/png" href="https://d3unf4s5rp9dfh.cloudfront.net/public/favicon-2023.ico" />
+  <link rel="manifest" href="https://d3unf4s5rp9dfh.cloudfront.net/public/manifest.json" />
+  <meta name="google-site-verification" content="" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="csrf-token" content="KmiAXxYZ-dG4B5HxXcrdcCnkZ2h30FyUHndU"/>
+  <meta name="user-locale" content="JPN"/>
+  <meta name="user-country" content="JP"/>
+  <meta name="user-lang" content="*"/>
+  <meta name="user-session" content="false"/>
+  <meta name="sa-id" content=""/>
+  <meta name="env" content="production"/>
+
+  <link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSSBody-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSSBody-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSSBody-Light.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSSHead-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSSHead-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSSHead-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="https://d3unf4s5rp9dfh.cloudfront.net/public/fonts/SamsungSSHead-Light.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+  
+
+  <link rel="stylesheet" href="https://d3unf4s5rp9dfh.cloudfront.net/public/25bea2d/css/sdp.vendors.min.css"/>
+  <link rel="stylesheet" href="https://d3unf4s5rp9dfh.cloudfront.net/public/25bea2d/css/sdp.global.min.css"/>
+  <link rel="stylesheet" href="https://d3unf4s5rp9dfh.cloudfront.net/public/25bea2d/css/sdp.app.min.css"/>
+  <link rel="stylesheet" href="https://d3unf4s5rp9dfh.cloudfront.net/public/25bea2d/css/sdp.docs.min.css"/>
+  <script type="text/javascript" src="https://d3unf4s5rp9dfh.cloudfront.net/public/25bea2d/js/sdp.vendors.min.js"></script>
+
+  
+
+  
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      // consent, config
+      function gtag(){
+        dataLayer.push(arguments);
+      }
+
+      // custom event function
+      function gtagEvent (event, params={}) {
+        if (typeof event !== 'string') return;
+        window.dataLayer.push({
+          event: event,
+          ...params
+        });
+      }
+    </script>
+
+    
+      <script>
+        const cookiePreference = null;
+        const consentVal = false ? 'denied' : 'granted';
+        gtag('consent', 'default', {
+          'ad_storage': consentVal,
+          'analytics_storage': cookiePreference ? (cookiePreference.performance ? 'granted' : 'denied') : consentVal,
+          'functionality_storage': cookiePreference ? (cookiePreference.functionality ? 'granted' : 'denied') : consentVal,
+          'personalization_storage': consentVal,
+          'security_storage': consentVal,
+          'ad_user_data': consentVal,
+          'ad_personalization': consentVal
+        });
+      </script>
+     
+
+    <!-- Google tag -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-THSQV3D');</script>
+    <!-- Start External Google Tags for tracking login flow -->
+    
+    <!-- End: External Google Tags for tracking login flow -->
+    
+  
+
+    <script src="https://account.samsung.com/resources/libs/account-internal/2.0.0/account-internal.min.js"></script>
+</head>
+<body>
+  
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-THSQV3D"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <!-- Start External Google Tags for tracking login flow -->
+  
+  
+
+    <div id="app" attr-url="/mobile/samsung-log-video.html" 
+        attr-ga-enabled="1" 
+        attr-cms="doc">
+      <div class="wrapper">
+          <header class="sdp-header-v2 has-subgnb" data-v2-role="header" data-target="header" data-component="true">
+  <div class="header2-bar">
+    <div class="header2-bar-inner">
+      <a type="button" class="header2-icon-btn header2-icon-btn--menu" data-v2-role="mobile-toggle" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 4.125H2" stroke="currentColor" stroke-width="1.5"></path>
+          <path d="M2 10.125H18" stroke="currentColor" stroke-width="1.5"></path>
+          <path d="M18 16.125H2" stroke="currentColor" stroke-width="1.5"></path>
+        </svg>
+      </a>
+
+      <a class="header2-logo" href="/" aria-label="Samsung Developer">
+        <span class="header2-logo-text">Samsung Developer</span>
+      </a>
+
+      <nav class="header2-nav" aria-label="Primary">
+        <ul class="header2-nav-list" data-v2-role="desktop-nav">
+        
+            <li class="header2-nav-item" data-v2-nav-item="develop" data-v2-has-panel="true">
+              <a class="header2-nav-link" href="#" data-header-label="Develop">Develop</a>
+            </li>
+          
+            <li class="header2-nav-item" data-v2-nav-item="design" data-v2-has-panel="true">
+              <a class="header2-nav-link" href="#" data-header-label="Design">Design</a>
+            </li>
+          
+            <li class="header2-nav-item" data-v2-nav-item="distribute" data-v2-has-panel="true">
+              <a class="header2-nav-link" href="#" data-header-label="Distribute">Distribute</a>
+            </li>
+          
+            <li class="header2-nav-item" data-v2-nav-item="learn" data-v2-has-panel="true">
+              <a class="header2-nav-link" href="#" data-header-label="Learn">Learn</a>
+            </li>
+          
+            <li class="header2-nav-item" data-v2-nav-item="connect" data-v2-has-panel="true">
+              <a class="header2-nav-link" href="#" data-header-label="Connect">Connect</a>
+            </li>
+          
+            <li class="header2-nav-item" data-v2-nav-item="support" data-v2-has-panel="false">
+              <a class="header2-nav-link" href="/support" data-header-label="Support">Support</a>
+            </li>
+          
+        </ul>
+      </nav>
+
+      <div class="header2-util">
+      
+        <a class="header2-gnb-button header2-signin" href="/login?redirectURL=/mobile/samsung-log-video.html%23gnb" data-header-label="Sign in">
+          <span class="optical-tight">Sign in</span>
+        </a>
+      
+        <a type="button" class="header2-icon-btn header2-icon-btn--search" aria-label="Search" data-open="headerSearch">
+          <svg width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.2529 17.2511L12.5469 12.5142" stroke="currentColor" stroke-width="1.5"></path>
+            <path d="M14.3843 8.55871C14.3843 11.7763 11.776 14.385 8.55883 14.385C5.34167 14.385 2.7334 11.7763 2.7334 8.55871C2.7334 5.34107 5.34167 2.73242 8.55883 2.73242C11.776 2.73242 14.3843 5.34107 14.3843 8.55871Z" stroke="currentColor" stroke-width="1.5"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div><div class="header2-subgnb" data-v2-role="subgnb">
+    <!-- Breadcrumb (PC) -->
+    <div class="header2-subgnb-desktop">
+        <div class="header2-subgnb-inner">
+            <div class="header2-subgnb-breadcrumb">
+                <a href="/mobile" class="header2-subgnb-crumb">Mobile</a>
+                
+                    
+                
+            </div>
+            
+            <div class="header2-subgnb-actions">
+            
+                
+                    <a href="/mobile" class="header2-subgnb-tab " data-label="Overview">
+                        Overview
+                        
+                    </a>
+            
+                
+                    <a href="/mobile/overview.html" class="header2-subgnb-tab is-active" data-label="Docs">
+                        Docs
+                        
+                    </a>
+            
+            
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb (Mobile) -->
+    <div class="header2-subgnb-mobile">
+        <button type="button" class="header2-subgnb-back" data-target="breadcrumbFilter">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M6.2 11.9999H16.4M16.4 11.9999L11.6 6.46144M16.4 11.9999L11.6 17.5384M2 5.3999L2 18.5999" stroke="#052832" stroke-width="1.8"></path>
+            </svg>
+        </button>
+        <button type="button" class="header2-subgnb-mobile-toggle">
+            <span class="header2-subgnb-mobile-overflow-wrap">
+                <span style="display: inline-flex; align-items: center;">
+                    <a class="header2-subgnb-mobile-title" href="/mobile">Mobile</a>
+                    
+                    
+                </span>
+            </span>
+        </button>
+        
+        <svg class="header2-subgnb-mobile-arrow" data-v2-role="subgnb-mobile-toggle" aria-expanded="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <g clip-path="url(#clip0_7181_171417)">
+              <path d="M12.0002 13.1719L16.9502 8.22192L18.3642 9.63592L12.0002 15.9999L5.63623 9.63592L7.05023 8.22192L12.0002 13.1719Z" fill="#052832"></path>
+            </g>
+            <defs>
+              <clipPath id="clip0_7181_171417">
+                <rect width="24" height="24" fill="white"></rect>
+              </clipPath>
+            </defs>
+        </svg>
+        
+    </div>
+    
+        <div class="header2-subgnb-mobile-panel" data-v2-role="subgnb-mobile-panel" aria-hidden="true" hidden="">
+            <ul class="header2-subgnb-mobile-menu">
+                
+                    <li>
+                        <a href="/mobile" class="header2-subgnb-mobile-item " data-label="Overview">
+                                Overview
+                                
+                            </a>    
+                    </li>
+                
+                    <li>
+                        <a href="/mobile/overview.html" class="header2-subgnb-mobile-item  is-active" data-label="Docs">
+                                Docs
+                                
+                            </a>    
+                    </li>
+                
+            </ul>
+        </div>
+    
+</div>
+
+
+
+
+
+
+
+
+
+  <div class="header2-mega-shell" data-v2-role="mega-shell" aria-hidden="true">
+    <div class="header2-mega-scroll" data-v2-role="mega-scroll">
+      <div class="header2-mega-stage" data-v2-role="mega-stage" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  
+    
+      <template data-v2-mega-template="develop">
+        
+        <div class="header2-mega-inner header2-mega-inner--develop">
+          <div class="header2-mega-main">
+            
+              
+              <div class="header2-mega-group header2-mega-group--two-col">
+                <p class="header2-mega-title">Mobile/Wearable</p>
+                <ul class="header2-mega-list header2-mega-list--two-col">
+                  
+                    <li><a href="/galaxy-gamedev" data-header-label="Galaxy GameDev">Galaxy GameDev</a></li>
+                  
+                    <li><a href="/galaxy-themes" data-header-label="Galaxy Themes">Galaxy Themes</a></li>
+                  
+                    <li><a href="/galaxy-watch" data-header-label="Galaxy Watch">Galaxy Watch</a></li>
+                  
+                    <li><a href="/health" data-header-label="Health">Health</a></li>
+                  
+                    <li><a href="/browser" data-header-label="Samsung Browser">Samsung Browser</a></li>
+                  
+                    <li><a href="/iap" data-header-label="Samsung IAP">Samsung IAP</a></li>
+                  
+                    <li><a href="/wallet" data-header-label="Samsung Wallet">Samsung Wallet</a></li>
+                  
+                    <li><a href="/remote-test-lab" data-header-label="Remote Test Lab">Remote Test Lab</a></li>
+                  
+                    <li><a href="/galaxy-emulator-skin" data-header-label="Galaxy Emulator Skin">Galaxy Emulator Skin</a></li>
+                  
+                </ul>
+              </div>
+            
+              
+                <div class="header2-mega-divider" aria-hidden="true"></div>
+              
+              <div class="header2-mega-group header2-mega-group--two-col">
+                <p class="header2-mega-title">Visual Display</p>
+                <ul class="header2-mega-list header2-mega-list--two-col">
+                  
+                    <li><a href="/smarttv/develop" data-header-label="Smart TV">Smart TV</a></li>
+                  
+                    <li><a href="/smarttv/hospitality-display" data-header-label="Smart Hospitality Display">Smart Hospitality Display</a></li>
+                  
+                    <li><a href="/smarttv/signage" data-header-label="Smart Signage">Smart Signage</a></li>
+                  
+                </ul>
+              </div>
+            
+              
+                <div class="header2-mega-divider" aria-hidden="true"></div>
+              
+              <div class="header2-mega-group">
+                <p class="header2-mega-title">Digital Appliance</p>
+                <ul class="header2-mega-list">
+                  
+                    <li><a href="/family-hub" data-header-label="Family Hub">Family Hub</a></li>
+                  
+                </ul>
+              </div>
+            
+              
+                <div class="header2-mega-divider" aria-hidden="true"></div>
+              
+              <div class="header2-mega-group header2-mega-group--two-col">
+                <p class="header2-mega-title">Platform</p>
+                <ul class="header2-mega-list header2-mega-list--two-col">
+                  
+                    <li><a href="/bixby" data-header-label="Bixby">Bixby</a></li>
+                  
+                    <li><a href="/knox" data-header-label="Knox">Knox</a></li>
+                  
+                    <li><a href="/smartthings" data-header-label="SmartThings">SmartThings</a></li>
+                  
+                    <li><a href="/tizen" data-header-label="Tizen.NET">Tizen.NET</a></li>
+                  
+                </ul>
+              </div>
+            
+          </div>
+
+          
+            <aside class="header2-mega-aside" aria-label="More Mobile Docs">
+              <div class="header2-mega-docs">
+                <p class="header2-mega-docs-title">More Mobile Docs</p>
+                <ul class="header2-mega-docs-list">
+                  
+                    <li><a href="/mobile/galaxy-sdk-getting-started.html" data-header-label="Galaxy SDK Getting Started">Galaxy SDK Getting Started</a></li>
+                  
+                    <li><a href="/galaxy-ar-emoji" data-header-label="Galaxy AR Emoji SDK">Galaxy AR Emoji SDK</a></li>
+                  
+                    <li><a href="/galaxy-performance" data-header-label="Galaxy Performance SDK">Galaxy Performance SDK</a></li>
+                  
+                    <li><a href="/galaxy-spen-remote" data-header-label="Galaxy S Pen Remote SDK">Galaxy S Pen Remote SDK</a></li>
+                  
+                    <li><a href="/galaxy-z" data-header-label="Galaxy Z (Foldable)">Galaxy Z (Foldable)</a></li>
+                  
+                    <li><a href="/automation" data-header-label="Samsung Automation Studio">Samsung Automation Studio</a></li>
+                  
+                    <li><a href="/blockchain" data-header-label="Samsung Blockchain">Samsung Blockchain</a></li>
+                  
+                    <li><a href="/samsung-dex" data-header-label="Samsung DeX">Samsung DeX</a></li>
+                  
+                    <li><a href="/ese" data-header-label="Samsung eSE SDK">Samsung eSE SDK</a></li>
+                  
+                    <li><a href="/teegris" data-header-label="Samsung TEEGRIS">Samsung TEEGRIS</a></li>
+                  
+                    <li><a href="/mobile/apv.html" data-header-label="APV Codec">APV Codec</a></li>
+                  
+                    <li><a href="/mobile/accessories.html " data-header-label="Mobile Accessories">Mobile Accessories</a></li>
+                  
+                    <li><a href="/mobile/app-management.html" data-header-label="Samsung App Management">Samsung App Management</a></li>
+                  
+                    <li><a href="/mobile/samsung-log-video.html" data-header-label="Samsung Log Video">Samsung Log Video</a></li>
+                  
+                    <li><a href="/mobile/wireless-fast-charge.html" data-header-label="Samsung Wireless Fast Charge">Samsung Wireless Fast Charge</a></li>
+                  
+                </ul>
+              </div>
+            </aside>
+          
+        </div>
+        
+      </template>
+    
+  
+    
+      <template data-v2-mega-template="design">
+        
+          <div class="header2-mega-inner header2-mega-inner--simple">
+          
+            <ul class="header2-mega-list header2-mega-list--simple">
+              
+                <li><a href="/design-system" data-header-label="Design System">Design System</a></li>
+              
+                <li><a href="/one-ui" data-header-label="One UI">One UI</a></li>
+              
+                <li><a href="/one-ui-watch" data-header-label="One UI Watch">One UI Watch</a></li>
+              
+                <li><a href="/smarttv/design" data-header-label="Smart TV">Smart TV</a></li>
+              
+            </ul>
+          
+        </div>
+        
+      </template>
+    
+  
+    
+      <template data-v2-mega-template="distribute">
+        
+          <div class="header2-mega-inner header2-mega-inner--simple">
+          
+            <ul class="header2-mega-list header2-mega-list--simple">
+              
+                <li><a href="/galaxy-store" data-header-label="Galaxy Store">Galaxy Store</a></li>
+              
+                <li><a href="/tv-seller-office" data-header-label="TV Seller Office">TV Seller Office</a></li>
+              
+                <li><a href="/instant-plays" data-header-label="Instant Plays">Instant Plays</a></li>
+              
+            </ul>
+          
+        </div>
+        
+      </template>
+    
+  
+    
+      <template data-v2-mega-template="learn">
+        
+          <div class="header2-mega-inner header2-mega-inner--simple header2-mega-inner--columns">
+          
+            <div class="header2-mega-columns">
+              
+                
+                <div class="header2-mega-col">
+                  
+                  <ul class="header2-mega-list header2-mega-list--simple">
+                    
+                      <li><a href="/codelab" data-header-label="Code Lab">Code Lab</a></li>
+                    
+                      <li><a href="/foldables-and-largescreens" data-header-label="Foldables and Large Screens">Foldables and Large Screens</a></li>
+                    
+                      <li><a href="/one-ui-beta" data-header-label="One UI Beta">One UI Beta</a></li>
+                    
+                  </ul>
+                </div>
+                
+              
+                
+                <div class="header2-mega-col has-title">
+                  
+                    <p class="header2-mega-title header2-mega-col-title">Tutorials</p>
+                  
+                  <ul class="header2-mega-list header2-mega-list--simple">
+                    
+                      <li><a href="https://www.youtube.com/@SamsungDevelopers" data-header-label="Go to Youtube">Go to Youtube</a></li>
+                    
+                      <li><a href="/blog" data-header-label="Go to Blog">Go to Blog</a></li>
+                    
+                  </ul>
+                </div>
+                
+              
+            </div>
+          
+        </div>
+        
+      </template>
+    
+  
+    
+      <template data-v2-mega-template="connect">
+        
+          <div class="header2-mega-inner header2-mega-inner--simple header2-mega-inner--columns">
+          
+            <div class="header2-mega-columns">
+              
+                
+                <div class="header2-mega-col">
+                  
+                  <ul class="header2-mega-list header2-mega-list--simple">
+                    
+                      <li><a href="/news" data-header-label="News and Updates">News and Updates</a></li>
+                    
+                      <li><a href="/events" data-header-label="Events">Events</a></li>
+                    
+                      <li><a href="https://forum.developer.samsung.com" data-header-label="Forums">Forums</a></li>
+                    
+                      <li><a href="/blog" data-header-label="Blog">Blog</a></li>
+                    
+                  </ul>
+                </div>
+                
+              
+                
+                <div class="header2-mega-col">
+                  
+                  <ul class="header2-mega-list header2-mega-list--simple">
+                    
+                      <li><a href="/conference" data-header-label="Samsung Developer Conference">Samsung Developer Conference</a></li>
+                    
+                  </ul>
+                </div>
+                
+              
+            </div>
+          
+        </div>
+        
+      </template>
+    
+  
+    
+  
+
+  <div class="header2-mobile sdp-lnb" data-v2-role="mobile-panel" aria-hidden="true">
+    <div class="sdp-lnb-mobile">
+      <div class="nav-btm-logo">
+          <svg width="180" height="24" viewBox="0 0 180 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g clip-path="url(#clip0_1_13833)">
+                  <path d="M5.184 18.43C2.826 18.43 1.26 17.422 0.054 16.072L2.286 14.308C2.952 15.46 3.96 16.09 5.166 16.09C6.462 16.09 7.164 15.244 7.164 14.326C7.164 13.228 5.814 12.868 4.428 12.436C2.646 11.86 0.702 11.194 0.702 8.692C0.702 6.586 2.538 4.93 5.058 4.93C7.164 4.93 8.406 5.74 9.468 6.838L7.452 8.368C6.894 7.522 6.102 7.108 5.076 7.108C3.87 7.108 3.24 7.756 3.24 8.602C3.24 9.664 4.482 9.97 5.922 10.456C7.704 11.032 9.72 11.824 9.72 14.344C9.72 16.414 8.064 18.43 5.184 18.43ZM15.9503 18.466C13.4123 18.466 10.7663 16.45 10.7663 12.994C10.7663 9.502 13.3223 7.504 15.9863 7.504C17.3723 7.504 18.5963 8.062 19.3703 8.98V7.72H21.8003V18.25H19.3703V16.882C18.5963 17.872 17.3363 18.466 15.9503 18.466ZM16.3463 16.234C18.1643 16.234 19.4962 14.776 19.4962 12.958C19.4962 11.158 18.1643 9.718 16.3463 9.718C14.5463 9.718 13.1603 11.14 13.1603 12.958C13.1603 14.794 14.5463 16.234 16.3463 16.234ZM23.2723 18.25V7.72H25.6843V8.944C26.3503 8.062 27.3943 7.504 28.6903 7.504C30.3463 7.504 31.4803 8.17 32.1103 9.322C32.8303 8.224 34.0543 7.504 35.5663 7.504C38.4283 7.504 39.8503 9.16 39.8503 11.914V18.25H37.3663V12.112C37.3663 10.582 36.5923 9.61 35.0803 9.61C33.7663 9.61 32.7583 10.51 32.7583 12.364V18.25H30.2923V12.04C30.2923 10.528 29.5363 9.61 28.0783 9.61C26.7103 9.61 25.7023 10.546 25.7023 12.418V18.25H23.2723ZM45.1972 18.466C42.8392 18.466 41.3632 17.566 40.5172 15.91L42.7672 14.83C43.2712 15.82 44.1532 16.36 45.3052 16.36C46.5112 16.36 47.1052 15.784 47.1052 15.082C47.1052 14.308 45.9352 14.164 44.6392 13.876C42.8392 13.498 40.9492 12.922 40.9492 10.708C40.9492 9.016 42.5872 7.486 45.0892 7.486C47.2312 7.486 48.5812 8.314 49.3912 9.664L47.3212 10.708C46.8892 9.97 46.0972 9.502 45.0892 9.502C43.9372 9.502 43.3972 10.042 43.3972 10.636C43.3972 11.338 44.2252 11.518 45.8092 11.86C47.5372 12.202 49.5172 12.814 49.5172 15.028C49.5172 16.504 48.2032 18.466 45.1972 18.466ZM59.9517 7.72V18.25H57.5397V17.044C56.8737 17.926 55.8657 18.466 54.5157 18.466C51.9957 18.466 50.4657 16.828 50.4657 13.966V7.72H52.9317V13.714C52.9317 15.352 53.6517 16.36 55.1817 16.36C56.5317 16.36 57.5217 15.352 57.5217 13.498V7.72H59.9517ZM61.452 18.25V7.72H63.864V9.016C64.566 8.098 65.646 7.504 67.014 7.504C69.66 7.504 71.19 9.142 71.19 12.004V18.25H68.724V12.256C68.724 10.618 67.932 9.61 66.348 9.61C64.962 9.61 63.882 10.618 63.882 12.472V18.25H61.452ZM80.8765 18.07V16.846C80.1025 17.854 78.8605 18.466 77.4385 18.466C74.9005 18.466 72.2545 16.45 72.2545 12.994C72.2545 9.502 74.8105 7.504 77.4745 7.504C78.8605 7.504 80.0845 8.116 80.8585 9.07V7.72H83.2885V17.98C83.2885 20.932 81.3985 23.344 77.8525 23.344C75.1165 23.344 73.4065 22.066 72.4525 20.32L74.6125 19.006C75.3865 20.428 76.2145 21.112 77.8885 21.112C79.7245 21.112 80.8765 19.672 80.8765 18.07ZM77.8345 16.234C79.6525 16.234 80.9845 14.776 80.9845 12.958C80.9845 11.158 79.6525 9.718 77.8345 9.718C76.0345 9.718 74.6485 11.14 74.6485 12.958C74.6485 14.794 76.0345 16.234 77.8345 16.234ZM89.174 18.25V5.11H92.756C97.184 5.11 99.704 7.954 99.704 11.68C99.704 15.424 96.86 18.25 92.864 18.25H89.174ZM92.468 7.378H91.622V15.982H92.576C95.456 15.982 97.256 14.128 97.256 11.68C97.256 9.16 95.726 7.378 92.468 7.378ZM106.012 18.466C102.7 18.466 100.45 16.054 100.45 13.012C100.45 9.934 102.844 7.504 105.922 7.504C109.054 7.504 111.34 9.808 111.34 12.922V13.84H102.772C103.114 15.334 104.284 16.324 106.012 16.324C107.38 16.324 108.424 15.604 108.928 14.47L110.926 15.622C110.008 17.332 108.388 18.466 106.012 18.466ZM105.922 9.646C104.464 9.646 103.33 10.51 102.898 11.806H108.874C108.514 10.384 107.434 9.646 105.922 9.646ZM115.182 18.25L111.168 7.72H113.706L116.424 15.136L119.088 7.72H121.59L117.63 18.25H115.182ZM126.895 18.466C123.583 18.466 121.333 16.054 121.333 13.012C121.333 9.934 123.727 7.504 126.805 7.504C129.937 7.504 132.223 9.808 132.223 12.922V13.84H123.655C123.997 15.334 125.167 16.324 126.895 16.324C128.263 16.324 129.307 15.604 129.811 14.47L131.809 15.622C130.891 17.332 129.271 18.466 126.895 18.466ZM126.805 9.646C125.347 9.646 124.213 10.51 123.781 11.806H129.757C129.397 10.384 128.317 9.646 126.805 9.646ZM133.311 18.25V4.93H135.759V18.25H133.311ZM142.273 18.466C139.231 18.466 136.819 16.018 136.819 12.994C136.819 9.916 139.231 7.504 142.273 7.504C145.297 7.504 147.727 9.916 147.727 12.994C147.727 16.018 145.297 18.466 142.273 18.466ZM142.273 16.18C144.001 16.18 145.333 14.74 145.333 12.994C145.333 11.212 144.001 9.79 142.273 9.79C140.527 9.79 139.213 11.212 139.213 12.994C139.213 14.74 140.527 16.18 142.273 16.18ZM154.648 18.466C153.208 18.466 151.948 17.944 151.21 17.008V23.092H148.798V7.72H151.21V9.124C151.948 8.134 153.19 7.504 154.63 7.504C157.276 7.504 159.814 9.502 159.814 12.994C159.814 16.45 157.186 18.466 154.648 18.466ZM154.252 16.234C156.034 16.234 157.42 14.794 157.42 12.958C157.42 11.14 156.034 9.718 154.252 9.718C152.434 9.718 151.12 11.158 151.12 12.958C151.12 14.776 152.434 16.234 154.252 16.234ZM166.129 18.466C162.817 18.466 160.567 16.054 160.567 13.012C160.567 9.934 162.961 7.504 166.039 7.504C169.171 7.504 171.457 9.808 171.457 12.922V13.84H162.889C163.231 15.334 164.401 16.324 166.129 16.324C167.497 16.324 168.541 15.604 169.045 14.47L171.043 15.622C170.125 17.332 168.505 18.466 166.129 18.466ZM166.039 9.646C164.581 9.646 163.447 10.51 163.015 11.806H168.991C168.631 10.384 167.551 9.646 166.039 9.646ZM172.546 18.25V7.72H174.958V9.286C175.444 8.242 176.344 7.72 177.658 7.72C178.432 7.72 179.026 7.9 179.512 8.17L178.594 10.474C178.234 10.24 177.838 10.06 177.136 10.06C175.714 10.06 174.976 10.816 174.976 12.634V18.25H172.546Z" fill="black"></path>
+              </g>
+              <defs>
+                  <clipPath id="clip0_1_13833">
+                      <rect width="180" height="23.5" fill="white" transform="translate(0 0.25)"></rect>
+                  </clipPath>
+              </defs>
+          </svg>
+      </div>
+    </div>
+    <div class="header2-mobile-inner">
+      
+      <div class="header2-mobile-acc">
+      
+          
+          
+
+          <div class="header2-mobile-acc-item">
+            <div class="header2-mobile-acc-row is-open">
+              <a class="header2-mobile-acc-link" href="#" data-header-label="Develop">Develop</a>
+
+              
+                <a type="button" class="header2-mobile-acc-toggle" data-v2-accordion="develop" aria-expanded="true">
+                  <span class="header2-mobile-acc-icon" aria-hidden="true"></span>
+                </a>
+              
+            </div>
+
+            
+              <div class="header2-mobile-acc-panel" data-v2-accordion-panel="develop">
+                
+                  
+                    <p class="header2-mobile-group">Mobile/Wearable</p>
+                    <ul class="header2-mobile-list">
+                      
+                        <li><a href="/galaxy-gamedev" data-header-label="Galaxy GameDev">Galaxy GameDev</a></li>
+                      
+                        <li><a href="/galaxy-themes" data-header-label="Galaxy Themes">Galaxy Themes</a></li>
+                      
+                        <li><a href="/galaxy-watch" data-header-label="Galaxy Watch">Galaxy Watch</a></li>
+                      
+                        <li><a href="/health" data-header-label="Health">Health</a></li>
+                      
+                        <li><a href="/browser" data-header-label="Samsung Browser">Samsung Browser</a></li>
+                      
+                        <li><a href="/iap" data-header-label="Samsung IAP">Samsung IAP</a></li>
+                      
+                        <li><a href="/wallet" data-header-label="Samsung Wallet">Samsung Wallet</a></li>
+                      
+                        <li><a href="/remote-test-lab" data-header-label="Remote Test Lab">Remote Test Lab</a></li>
+                      
+                        <li><a href="/galaxy-emulator-skin" data-header-label="Galaxy Emulator Skin">Galaxy Emulator Skin</a></li>
+                      
+                    </ul>
+                  
+                    <p class="header2-mobile-group">Visual Display</p>
+                    <ul class="header2-mobile-list">
+                      
+                        <li><a href="/smarttv/develop" data-header-label="Smart TV">Smart TV</a></li>
+                      
+                        <li><a href="/smarttv/hospitality-display" data-header-label="Smart Hospitality Display">Smart Hospitality Display</a></li>
+                      
+                        <li><a href="/smarttv/signage" data-header-label="Smart Signage">Smart Signage</a></li>
+                      
+                    </ul>
+                  
+                    <p class="header2-mobile-group">Digital Appliance</p>
+                    <ul class="header2-mobile-list">
+                      
+                        <li><a href="/family-hub" data-header-label="Family Hub">Family Hub</a></li>
+                      
+                    </ul>
+                  
+                    <p class="header2-mobile-group">Platform</p>
+                    <ul class="header2-mobile-list">
+                      
+                        <li><a href="/bixby" data-header-label="Bixby">Bixby</a></li>
+                      
+                        <li><a href="/knox" data-header-label="Knox">Knox</a></li>
+                      
+                        <li><a href="/smartthings" data-header-label="SmartThings">SmartThings</a></li>
+                      
+                        <li><a href="/tizen" data-header-label="Tizen.NET">Tizen.NET</a></li>
+                      
+                    </ul>
+                  
+
+                  
+                    <div class="header2-mobile-sub-acc">
+                      <a type="button" class="header2-mobile-sub-acc-btn" data-v2-sub-accordion="develop--aside" aria-expanded="false">
+                        <span class="header2-mobile-sub-acc-label">More Mobile Docs</span>
+                        <span class="header2-mobile-sub-acc-icon" aria-hidden="true"></span>
+                      </a>
+                      <ul class="header2-mobile-sub-acc-panel header2-mobile-list" data-v2-sub-accordion-panel="develop--aside" hidden="">
+                        
+                          <li><a href="/mobile/galaxy-sdk-getting-started.html" data-header-label="Galaxy SDK Getting Started">Galaxy SDK Getting Started</a></li>
+                        
+                          <li><a href="/galaxy-ar-emoji" data-header-label="Galaxy AR Emoji SDK">Galaxy AR Emoji SDK</a></li>
+                        
+                          <li><a href="/galaxy-performance" data-header-label="Galaxy Performance SDK">Galaxy Performance SDK</a></li>
+                        
+                          <li><a href="/galaxy-spen-remote" data-header-label="Galaxy S Pen Remote SDK">Galaxy S Pen Remote SDK</a></li>
+                        
+                          <li><a href="/galaxy-z" data-header-label="Galaxy Z (Foldable)">Galaxy Z (Foldable)</a></li>
+                        
+                          <li><a href="/automation" data-header-label="Samsung Automation Studio">Samsung Automation Studio</a></li>
+                        
+                          <li><a href="/blockchain" data-header-label="Samsung Blockchain">Samsung Blockchain</a></li>
+                        
+                          <li><a href="/samsung-dex" data-header-label="Samsung DeX">Samsung DeX</a></li>
+                        
+                          <li><a href="/ese" data-header-label="Samsung eSE SDK">Samsung eSE SDK</a></li>
+                        
+                          <li><a href="/teegris" data-header-label="Samsung TEEGRIS">Samsung TEEGRIS</a></li>
+                        
+                          <li><a href="/mobile/apv.html" data-header-label="APV Codec">APV Codec</a></li>
+                        
+                          <li><a href="/mobile/accessories.html " data-header-label="Mobile Accessories">Mobile Accessories</a></li>
+                        
+                          <li><a href="/mobile/app-management.html" data-header-label="Samsung App Management">Samsung App Management</a></li>
+                        
+                          <li><a href="/mobile/samsung-log-video.html" data-header-label="Samsung Log Video">Samsung Log Video</a></li>
+                        
+                          <li><a href="/mobile/wireless-fast-charge.html" data-header-label="Samsung Wireless Fast Charge">Samsung Wireless Fast Charge</a></li>
+                        
+                      </ul>
+                    </div>
+                  
+                
+              </div>
+            
+          </div>
+        
+          
+          
+
+          <div class="header2-mobile-acc-item">
+            <div class="header2-mobile-acc-row">
+              <a class="header2-mobile-acc-link" href="#" data-header-label="Design">Design</a>
+
+              
+                <a type="button" class="header2-mobile-acc-toggle" data-v2-accordion="design" aria-expanded="false">
+                  <span class="header2-mobile-acc-icon" aria-hidden="true"></span>
+                </a>
+              
+            </div>
+
+            
+              <div class="header2-mobile-acc-panel" data-v2-accordion-panel="design" hidden="">
+                
+                  <ul class="header2-mobile-list">
+                    
+                      <li><a href="/design-system" data-header-label="Design System">Design System</a></li>
+                    
+                      <li><a href="/one-ui" data-header-label="One UI">One UI</a></li>
+                    
+                      <li><a href="/one-ui-watch" data-header-label="One UI Watch">One UI Watch</a></li>
+                    
+                      <li><a href="/smarttv/design" data-header-label="Smart TV">Smart TV</a></li>
+                    
+                  </ul>
+                
+              </div>
+            
+          </div>
+        
+          
+          
+
+          <div class="header2-mobile-acc-item">
+            <div class="header2-mobile-acc-row">
+              <a class="header2-mobile-acc-link" href="#" data-header-label="Distribute">Distribute</a>
+
+              
+                <a type="button" class="header2-mobile-acc-toggle" data-v2-accordion="distribute" aria-expanded="false">
+                  <span class="header2-mobile-acc-icon" aria-hidden="true"></span>
+                </a>
+              
+            </div>
+
+            
+              <div class="header2-mobile-acc-panel" data-v2-accordion-panel="distribute" hidden="">
+                
+                  <ul class="header2-mobile-list">
+                    
+                      <li><a href="/galaxy-store" data-header-label="Galaxy Store">Galaxy Store</a></li>
+                    
+                      <li><a href="/tv-seller-office" data-header-label="TV Seller Office">TV Seller Office</a></li>
+                    
+                      <li><a href="/instant-plays" data-header-label="Instant Plays">Instant Plays</a></li>
+                    
+                  </ul>
+                
+              </div>
+            
+          </div>
+        
+          
+          
+
+          <div class="header2-mobile-acc-item">
+            <div class="header2-mobile-acc-row">
+              <a class="header2-mobile-acc-link" href="#" data-header-label="Learn">Learn</a>
+
+              
+                <a type="button" class="header2-mobile-acc-toggle" data-v2-accordion="learn" aria-expanded="false">
+                  <span class="header2-mobile-acc-icon" aria-hidden="true"></span>
+                </a>
+              
+            </div>
+
+            
+              <div class="header2-mobile-acc-panel" data-v2-accordion-panel="learn" hidden="">
+                
+                  
+                  
+                  
+                    <ul class="header2-mobile-list">
+                      
+                        <li><a href="/codelab" data-header-label="Code Lab">Code Lab</a></li>
+                      
+                        <li><a href="/foldables-and-largescreens" data-header-label="Foldables and Large Screens">Foldables and Large Screens</a></li>
+                      
+                        <li><a href="/one-ui-beta" data-header-label="One UI Beta">One UI Beta</a></li>
+                      
+                    </ul>
+                  
+                  
+                    
+                    <p class="header2-mobile-group">Tutorials</p>
+                    <ul class="header2-mobile-list">
+                      
+                        <li><a href="https://www.youtube.com/@SamsungDevelopers" data-header-label="Go to Youtube">Go to Youtube</a></li>
+                      
+                        <li><a href="/blog" data-header-label="Go to Blog">Go to Blog</a></li>
+                      
+                    </ul>
+                    
+                  
+                
+              </div>
+            
+          </div>
+        
+          
+          
+
+          <div class="header2-mobile-acc-item">
+            <div class="header2-mobile-acc-row">
+              <a class="header2-mobile-acc-link" href="#" data-header-label="Connect">Connect</a>
+
+              
+                <a type="button" class="header2-mobile-acc-toggle" data-v2-accordion="connect" aria-expanded="false">
+                  <span class="header2-mobile-acc-icon" aria-hidden="true"></span>
+                </a>
+              
+            </div>
+
+            
+              <div class="header2-mobile-acc-panel" data-v2-accordion-panel="connect" hidden="">
+                
+                  
+                  
+                  
+                    <ul class="header2-mobile-list">
+                      
+                        <li><a href="/news" data-header-label="News and Updates">News and Updates</a></li>
+                      
+                        <li><a href="/events" data-header-label="Events">Events</a></li>
+                      
+                        <li><a href="https://forum.developer.samsung.com" data-header-label="Forums">Forums</a></li>
+                      
+                        <li><a href="/blog" data-header-label="Blog">Blog</a></li>
+                      
+                        <li><a href="/conference" data-header-label="Samsung Developer Conference">Samsung Developer Conference</a></li>
+                      
+                    </ul>
+                  
+                  
+                
+              </div>
+            
+          </div>
+        
+          
+          
+
+          <div class="header2-mobile-acc-item">
+            <div class="header2-mobile-acc-row">
+              <a class="header2-mobile-acc-link" href="/support" data-header-label="Support">Support</a>
+
+              
+            </div>
+
+            
+          </div>
+        
+        
+      </div>
+      
+        <a href="/login?redirectURL=/mobile/samsung-log-video.html%23gnb" class="header2-mobile-floating" data-header-label="Sign in">
+          Sign in
+        </a>
+      
+    </div>
+  </div>
+
+  <!-- Dimmed Effect (used by existing header.js search open/close) -->
+  <div class="header-dimmed" data-target="headerDimmed"></div>
+
+  <!-- 필터 -->
+  <div id="filter"></div>
+
+  <!-- Global Header Search (shared view) -->
+<div class="sdp-header-search" data-target="headerSearch">
+  <div class="header-search-body">
+    <div class="base-search-input-box">
+      <input type="text" class="base-search-input" placeholder="Search developer.samsung.com" data-target="searchInput">
+
+      <svg class="icon-remove" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-target="searchRemove">
+        <circle cx="12" cy="12" r="12" fill="#EAEAEA"></circle>
+        <path d="M7.33301 7.3335L16.6663 16.6668" stroke="#9E9E9E" stroke-width="1.06667"></path>
+        <path d="M16.6663 7.3335L7.33301 16.6668" stroke="#9E9E9E" stroke-width="1.06667"></path>
+      </svg>
+
+      <svg class="icon-search" width="39" height="39" viewBox="0 0 39 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g>
+          <path d="M37.4072 37.4034L26.1128 26.0347" stroke="black" stroke-width="3.60003"></path>
+          <path d="M30.5248 16.5413C30.5248 24.2637 24.2649 30.5245 16.5437 30.5245C8.8224 30.5245 2.5625 24.2637 2.5625 16.5413C2.5625 8.81893 8.8224 2.55811 16.5437 2.55811C24.2649 2.55811 30.5248 8.81893 30.5248 16.5413Z" stroke="black" stroke-width="3.60003"></path>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="header-search-recommend">
+    <ul class="recommend-ul">
+    <li><p>Recommendation</p></li>
+    <!--
+      <li><p>Recommendations</p></li>
+      <li><span>Blog</span></li>
+      <li><span>Code Lab</span></li>
+      <li><span>Foldable and Large Screen Optimization</span></li>
+      <li><span>Health</span></li>
+      <li><span>Samsung Wallet</span></li>
+      <li><span>SDC24</span></li>
+    -->
+    
+            <li class="sdp-search-result-item" attr-keyword="Blog">
+              <a href="/search?query=Blog">
+                <span>Blog</span>
+              </a>
+            </li>
+            <li class="sdp-search-result-item" attr-keyword="Code Lab">
+              <a href="/search?query=Code%20Lab">
+                <span>Code Lab</span>
+              </a>
+            </li>
+            <li class="sdp-search-result-item" attr-keyword="Foldable and Large Screen Optimization">
+              <a href="/search?query=Foldable%20and%20Large%20Screen%20Optimization">
+                <span>Foldable and Large Screen Optimization</span>
+              </a>
+            </li>
+            <li class="sdp-search-result-item" attr-keyword="Galaxy Emulator Skin">
+              <a href="/search?query=Galaxy%20Emulator%20Skin">
+                <span>Galaxy Emulator Skin</span>
+              </a>
+            </li>
+            <li class="sdp-search-result-item" attr-keyword="Health">
+              <a href="/search?query=Health">
+                <span>Health</span>
+              </a>
+            </li>
+            <li class="sdp-search-result-item" attr-keyword="One UI Beta">
+              <a href="/search?query=One%20UI%20Beta">
+                <span>One UI Beta</span>
+              </a>
+            </li>
+            <li class="sdp-search-result-item" attr-keyword="Samsung Wallet">
+              <a href="/search?query=Samsung%20Wallet">
+                <span>Samsung Wallet</span>
+              </a>
+            </li></ul>
+  </div>
+
+  <i class="header-search-close" data-close="headerSearch">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1.00017 1L13 12.9998" stroke="#1E1E1E" stroke-width="1.5"></path>
+      <path d="M1 12.9998L12.9998 1" stroke="#1E1E1E" stroke-width="1.5"></path>
+    </svg>
+  </i>
+</div>
+
+</header>
+          
+          <div id="el-sdp-container" 
+  class="sdp-container sdp-ly-document tech-document
+  "
+  
+  attr-doc-type="tech-doc"
+  attr-program-url="/mobile">
+  
+  <div class="inner-wrap">
+    
+
+
+    <aside class="sdp-lnb" data-target="sdpLnb">
+  <!-- Mobile Menu -->
+  <div class="sdp-lnb-mobile">
+      <div class="nav-btm-logo">
+          <i role="button" class="global-nav-menu" data-target="gnb">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 4.125H2" stroke="#1E1E1E" stroke-width="1.5"/>
+                  <path d="M2 10.125H18" stroke="#1E1E1E" stroke-width="1.5"/>
+                  <path d="M18 16.125H2" stroke="#1E1E1E" stroke-width="1.5"/>
+              </svg>
+          </i>
+          <svg width="180" height="24" viewBox="0 0 180 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g clip-path="url(#clip0_1_13833)">
+                  <path
+                      d="M5.184 18.43C2.826 18.43 1.26 17.422 0.054 16.072L2.286 14.308C2.952 15.46 3.96 16.09 5.166 16.09C6.462 16.09 7.164 15.244 7.164 14.326C7.164 13.228 5.814 12.868 4.428 12.436C2.646 11.86 0.702 11.194 0.702 8.692C0.702 6.586 2.538 4.93 5.058 4.93C7.164 4.93 8.406 5.74 9.468 6.838L7.452 8.368C6.894 7.522 6.102 7.108 5.076 7.108C3.87 7.108 3.24 7.756 3.24 8.602C3.24 9.664 4.482 9.97 5.922 10.456C7.704 11.032 9.72 11.824 9.72 14.344C9.72 16.414 8.064 18.43 5.184 18.43ZM15.9503 18.466C13.4123 18.466 10.7663 16.45 10.7663 12.994C10.7663 9.502 13.3223 7.504 15.9863 7.504C17.3723 7.504 18.5963 8.062 19.3703 8.98V7.72H21.8003V18.25H19.3703V16.882C18.5963 17.872 17.3363 18.466 15.9503 18.466ZM16.3463 16.234C18.1643 16.234 19.4962 14.776 19.4962 12.958C19.4962 11.158 18.1643 9.718 16.3463 9.718C14.5463 9.718 13.1603 11.14 13.1603 12.958C13.1603 14.794 14.5463 16.234 16.3463 16.234ZM23.2723 18.25V7.72H25.6843V8.944C26.3503 8.062 27.3943 7.504 28.6903 7.504C30.3463 7.504 31.4803 8.17 32.1103 9.322C32.8303 8.224 34.0543 7.504 35.5663 7.504C38.4283 7.504 39.8503 9.16 39.8503 11.914V18.25H37.3663V12.112C37.3663 10.582 36.5923 9.61 35.0803 9.61C33.7663 9.61 32.7583 10.51 32.7583 12.364V18.25H30.2923V12.04C30.2923 10.528 29.5363 9.61 28.0783 9.61C26.7103 9.61 25.7023 10.546 25.7023 12.418V18.25H23.2723ZM45.1972 18.466C42.8392 18.466 41.3632 17.566 40.5172 15.91L42.7672 14.83C43.2712 15.82 44.1532 16.36 45.3052 16.36C46.5112 16.36 47.1052 15.784 47.1052 15.082C47.1052 14.308 45.9352 14.164 44.6392 13.876C42.8392 13.498 40.9492 12.922 40.9492 10.708C40.9492 9.016 42.5872 7.486 45.0892 7.486C47.2312 7.486 48.5812 8.314 49.3912 9.664L47.3212 10.708C46.8892 9.97 46.0972 9.502 45.0892 9.502C43.9372 9.502 43.3972 10.042 43.3972 10.636C43.3972 11.338 44.2252 11.518 45.8092 11.86C47.5372 12.202 49.5172 12.814 49.5172 15.028C49.5172 16.504 48.2032 18.466 45.1972 18.466ZM59.9517 7.72V18.25H57.5397V17.044C56.8737 17.926 55.8657 18.466 54.5157 18.466C51.9957 18.466 50.4657 16.828 50.4657 13.966V7.72H52.9317V13.714C52.9317 15.352 53.6517 16.36 55.1817 16.36C56.5317 16.36 57.5217 15.352 57.5217 13.498V7.72H59.9517ZM61.452 18.25V7.72H63.864V9.016C64.566 8.098 65.646 7.504 67.014 7.504C69.66 7.504 71.19 9.142 71.19 12.004V18.25H68.724V12.256C68.724 10.618 67.932 9.61 66.348 9.61C64.962 9.61 63.882 10.618 63.882 12.472V18.25H61.452ZM80.8765 18.07V16.846C80.1025 17.854 78.8605 18.466 77.4385 18.466C74.9005 18.466 72.2545 16.45 72.2545 12.994C72.2545 9.502 74.8105 7.504 77.4745 7.504C78.8605 7.504 80.0845 8.116 80.8585 9.07V7.72H83.2885V17.98C83.2885 20.932 81.3985 23.344 77.8525 23.344C75.1165 23.344 73.4065 22.066 72.4525 20.32L74.6125 19.006C75.3865 20.428 76.2145 21.112 77.8885 21.112C79.7245 21.112 80.8765 19.672 80.8765 18.07ZM77.8345 16.234C79.6525 16.234 80.9845 14.776 80.9845 12.958C80.9845 11.158 79.6525 9.718 77.8345 9.718C76.0345 9.718 74.6485 11.14 74.6485 12.958C74.6485 14.794 76.0345 16.234 77.8345 16.234ZM89.174 18.25V5.11H92.756C97.184 5.11 99.704 7.954 99.704 11.68C99.704 15.424 96.86 18.25 92.864 18.25H89.174ZM92.468 7.378H91.622V15.982H92.576C95.456 15.982 97.256 14.128 97.256 11.68C97.256 9.16 95.726 7.378 92.468 7.378ZM106.012 18.466C102.7 18.466 100.45 16.054 100.45 13.012C100.45 9.934 102.844 7.504 105.922 7.504C109.054 7.504 111.34 9.808 111.34 12.922V13.84H102.772C103.114 15.334 104.284 16.324 106.012 16.324C107.38 16.324 108.424 15.604 108.928 14.47L110.926 15.622C110.008 17.332 108.388 18.466 106.012 18.466ZM105.922 9.646C104.464 9.646 103.33 10.51 102.898 11.806H108.874C108.514 10.384 107.434 9.646 105.922 9.646ZM115.182 18.25L111.168 7.72H113.706L116.424 15.136L119.088 7.72H121.59L117.63 18.25H115.182ZM126.895 18.466C123.583 18.466 121.333 16.054 121.333 13.012C121.333 9.934 123.727 7.504 126.805 7.504C129.937 7.504 132.223 9.808 132.223 12.922V13.84H123.655C123.997 15.334 125.167 16.324 126.895 16.324C128.263 16.324 129.307 15.604 129.811 14.47L131.809 15.622C130.891 17.332 129.271 18.466 126.895 18.466ZM126.805 9.646C125.347 9.646 124.213 10.51 123.781 11.806H129.757C129.397 10.384 128.317 9.646 126.805 9.646ZM133.311 18.25V4.93H135.759V18.25H133.311ZM142.273 18.466C139.231 18.466 136.819 16.018 136.819 12.994C136.819 9.916 139.231 7.504 142.273 7.504C145.297 7.504 147.727 9.916 147.727 12.994C147.727 16.018 145.297 18.466 142.273 18.466ZM142.273 16.18C144.001 16.18 145.333 14.74 145.333 12.994C145.333 11.212 144.001 9.79 142.273 9.79C140.527 9.79 139.213 11.212 139.213 12.994C139.213 14.74 140.527 16.18 142.273 16.18ZM154.648 18.466C153.208 18.466 151.948 17.944 151.21 17.008V23.092H148.798V7.72H151.21V9.124C151.948 8.134 153.19 7.504 154.63 7.504C157.276 7.504 159.814 9.502 159.814 12.994C159.814 16.45 157.186 18.466 154.648 18.466ZM154.252 16.234C156.034 16.234 157.42 14.794 157.42 12.958C157.42 11.14 156.034 9.718 154.252 9.718C152.434 9.718 151.12 11.158 151.12 12.958C151.12 14.776 152.434 16.234 154.252 16.234ZM166.129 18.466C162.817 18.466 160.567 16.054 160.567 13.012C160.567 9.934 162.961 7.504 166.039 7.504C169.171 7.504 171.457 9.808 171.457 12.922V13.84H162.889C163.231 15.334 164.401 16.324 166.129 16.324C167.497 16.324 168.541 15.604 169.045 14.47L171.043 15.622C170.125 17.332 168.505 18.466 166.129 18.466ZM166.039 9.646C164.581 9.646 163.447 10.51 163.015 11.806H168.991C168.631 10.384 167.551 9.646 166.039 9.646ZM172.546 18.25V7.72H174.958V9.286C175.444 8.242 176.344 7.72 177.658 7.72C178.432 7.72 179.026 7.9 179.512 8.17L178.594 10.474C178.234 10.24 177.838 10.06 177.136 10.06C175.714 10.06 174.976 10.816 174.976 12.634V18.25H172.546Z"
+                      fill="black"/>
+              </g>
+              <defs>
+                  <clipPath id="clip0_1_13833">
+                      <rect width="180" height="23.5" fill="white" transform="translate(0 0.25)"/>
+                  </clipPath>
+              </defs>
+          </svg>
+      </div>
+      <div class="header-breadcrumb web">
+          <i class="breadcrumb-close" data-close="breadcrumbFilter">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.00017 4L16 15.9998" stroke="#1E1E1E" stroke-width="1.5"/>
+                  <path d="M4 15.9998L15.9998 4" stroke="#1E1E1E" stroke-width="1.5"/>
+              </svg>
+          </i>
+          <div class="breadcrumb-link-group">
+              <div class="breadcrumb-link-text-area">
+        <span class="breadcrumb-link">
+          <a href="/mobile">Mobile</a>
+        </span>
+              </div>
+          </div>
+      </div>
+  </div>
+  <div class="sdp-lnb-wrapper">
+      <!-- Filter area -->
+      <div class="sdp-lnb-filter">
+          <div class="filter-input-group">
+              <svg class="filter-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                   xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 15H10H12" stroke="#1E1E1E" stroke-width="1.5"/>
+                  <path d="M4 10H10H16" stroke="#1E1E1E" stroke-width="1.5"/>
+                  <path d="M2 5H10H18" stroke="#1E1E1E" stroke-width="1.5"/>
+              </svg>
+
+              <input class="filter-input" type="text" placeholder="Filter" data-input="filter" />
+
+              <svg class="filter-close" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                   xmlns="http://www.w3.org/2000/svg" data-remove="filterInput">
+                  <path d="M4.00017 4L16 15.9998" stroke="#1E1E1E" stroke-width="1.5"/>
+                  <path d="M4 15.9998L15.9998 4" stroke="#1E1E1E" stroke-width="1.5"/>
+              </svg>
+          </div>
+          <!-- Close button for mobile -->
+          <button type="button" class="lnb-panel-close" data-close="breadcrumbFilter" aria-label="Close panel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M13.8 12.0004H3.6M3.6 12.0004L8.4 6.46193M3.6 12.0004L8.4 17.5389M18 5.40039V18.6004" stroke="#052832" stroke-width="1.8"/>
+            </svg>
+          </button>
+      </div>
+
+      <!-- Menu -->
+      <div class="sdp-lnb-menu">
+          <ul class="menu-accordion depth01" data-target="lnbAccordion">
+              
+  <li>
+      
+      <div class="menu-accordion-header">
+        <p>
+          <a href='/mobile/galaxy-sdk-getting-started.html' 
+          onclick="handleLink(event, /mobile/galaxy-sdk-getting-started.html)
+          class="nav-link none-child">
+            Galaxy SDK Getting Started
+          </a>
+        </p>
+      </div>
+    
+  </li>
+
+  <li>
+      
+      <div class="menu-accordion-header">
+        <p>
+          <a href='/mobile/app-management.html' 
+          onclick="handleLink(event, /mobile/app-management.html)
+          class="nav-link none-child">
+            Samsung App Management
+          </a>
+        </p>
+      </div>
+    
+  </li>
+
+  <li>
+      
+      <div class="menu-accordion-header">
+        <p>
+          <a href='/mobile/wireless-fast-charge.html' 
+          onclick="handleLink(event, /mobile/wireless-fast-charge.html)
+          class="nav-link none-child">
+            Samsung Wireless Fast Charge
+          </a>
+        </p>
+      </div>
+    
+  </li>
+
+  <li>
+      
+      <div class="menu-accordion-header selected">
+        <p>
+          <a href='/mobile/samsung-log-video.html' 
+          onclick="handleLink(event, /mobile/samsung-log-video.html)
+          class="nav-link selected none-child">
+            Samsung Log Video
+          </a>
+        </p>
+      </div>
+    
+  </li>
+
+  <li>
+      
+      <div class="menu-accordion-header">
+        <p>
+          <a href='/mobile/apv.html' 
+          onclick="handleLink(event, /mobile/apv.html)
+          class="nav-link none-child">
+            APV Codec
+          </a>
+        </p>
+      </div>
+    
+  </li>
+
+  <li>
+      
+      <div class="menu-accordion-header">
+        <p>
+          <a href='/mobile/accessories.html' 
+          onclick="handleLink(event, /mobile/accessories.html)
+          class="nav-link none-child">
+            Mobile Accessories
+          </a>
+        </p>
+      </div>
+    
+  </li>
+
+          </ul>            
+      </div>
+  </div>
+</aside>
+
+
+
+    <main role="main" id="el-main-container"
+      class="main-container has-toc">
+      <div class="inner-container col">
+        <div class="inner-sec mkdown-docs">
+          
+          <nav class="nav-breadcrumb" aria-label="breadcrumb">
+            <ol id="inner-el-breadcrumb" class="breadcrumb">
+              
+              <li class="breadcrumb-item mobile-show">
+                <a class="item-text " 
+                  >
+                  Mobile
+                </a>
+              </li>
+            </ol>
+          </nav>
+          
+          
+<p class="mk-wall-cta" >
+
+  
+    <span>
+      <a href="/locale?to=en&redirectURL=/mobile/samsung-log-video.html?lang=en"
+        class="text-uppercase active">
+        en
+      </a>
+    </span>
+    
+    <span>
+      <a href="/locale?to=ko&redirectURL=/mobile/samsung-log-video.html?lang=ko"
+        class="text-uppercase ">
+        ko
+      </a>
+    </span>
+    
+
+</p>
+
+
+          <html><head></head><body><h1 id="Samsung-Log-Video">Samsung Log Video</h1>
+<h2 id="Major-changes">Major changes</h2>
+<table>
+<thead>
+<tr>
+<th>Version<p></p>
+</th>
+<th>Changes<p></p>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One UI 7.0<p></p>
+</td>
+<td>Samsung Log supported<p></p>
+</td>
+</tr>
+<tr>
+<td>One UI 8.5<p></p>
+</td>
+<td>-APV (Advanced Professional Video) codec supported (S26 Ultra only) <br>-LUT (Look-Up Table) preview and Samsung Log video editing features supported<br>-Samsung Cinematic LUT package deployed<p></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2 id="1.-Understanding-Log-Filming">1. Understanding Log Filming</h2>
+<p>Log filming is a technique that captures videos in a wider dynamic range, requiring post-production work to correct colors.</p>
+<p>In log filming, the camera sensor records a wider luminance range, from the darkest areas to the brightest areas.<br>
+While the dynamic range is compressed to fit a certain format in standard filming, log filming preserves more data. This provides video creators with greater flexibility in color adjustments and post-production, yielding more cinematic and visually appealing results.</p>
+<p>The general advantages of log filming are:<br>
+1) Cost-effectiveness: High-quality videos can be produced without the need for expensive, high-end equipment<br>
+2) Time efficiency: The filming process to achieve the desired look is simplified, reducing production time<br>
+3) Flexibility in post-production: Greater control over colors, shadows, highlights, and color tones</p>
+<p>When light passes through a lens and reaches the camera's sensor, each pixel in the sensor records the corresponding value. This sensor information is then digitized and recorded through an image processor.<br>
+Please note that this information is different to the visual information perceived by the human eye;<br>
+When the number of candles is increased from one to three in a dark room, a camera records that the light intensity has increased threefold. The human eye, however, perceives the increase as approximately 2.5 times, which is a relative value.<br>
+Because the human eye perceives light relatively; when you increase the number of candles from two to three, it perceives an increase of one candle, which is half of two. A camera, on the other hand, measures light intensity in a linear calculation.</p>
+<p>To mimic how the human eye perceives light, a "gamma" correction curve is applied to the video, converting the linear data to a logarithmic scale.<br>
+In this process, the range of darker tones (shadows) is expanded, while the range of brighter tones (highlights) is compressed, compensating for limited data in shadows by reallocating some of the abundant data in highlights.</p>
+<p>As a result, typical log footage saved appears flat and washed-out, with reduced contrast. To restore the footage to standard color and contrast levels, A LUT, which is a pre-defined set of color adjustment values, is applied to the footage in post-production, to restore a standard color profile and achieve a desired visual style.</p>
+<h2 id="2.-Filming-and-Color-Correction-with-Samsung-Log">2. Filming and Color Correction with Samsung Log</h2>
+<h3>1) Samsung Log</h3>
+<p>Today, we're living in an era of personal media, with platforms like Reels and Shorts. Creators, more often than not, edit their videos to reflect their unique style rather than using auto-corrected footages as they are.<br>
+Log filming is a technique that offers significantly greater editing flexibility for users who want their videos to stand out.<br>
+Giving a unique look to a video with fixed lines and colors is challenging, akin to painting over an already sketched and colored artwork. However, it's much easier for creators to express their colors and visual style when the footage contains only rough sketches. This is why we offer a log filming service.<br>
+Previously, log filming was considered a professional-only feature equipped in studio-grade cameras.<br>
+Samsung Log offers a log curve designed to extend tonal range in low-light areas and provide smooth highlight gradation without banding. It supports the 10-bit HEVC codec, ensuring excellent compatibility and storage efficiency. Additionally, it supports the visually lossless APV codec on the S26 Ultra, ensuring optimal image quality for post-production. With these features, we aim to provide professional-level quality for experts and accessibility for general users.</p>
+<p>※ Filming with the APV codec is only supported on S26 Ultra. Use the following link to learn more. <a href="https://developer.samsung.com/mobile/apv.html?lang=en">APV (Advanced Professional Video) Codec</a></p>
+<p style="text-align:center"><img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_EN_Figure_1.jpg" width="600/" class="img-fluid"></p>
+<p style="text-align:center; font-size:12px"><b>Figure 1: Samsung Log Video</b></p>
+<h3>2) Start Filming with Samsung Log</h3>
+<p>Log filming is supported by default in Pro Video mode. To start filming, select "Log" from the quick settings options displayed on the screen.</p>
+<p style="text-align:center"><img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_EN_Figure_2.jpg" width="600/" class="img-fluid"></p>
+<p style="text-align:center; font-size:12px"><b>Figure 2: Pro Video Mode: Log Filming</b></p>
+<p>You can set up the Log option under the Camera settings menu to enable it in Video mode for lens switching and easy filming. Select “Camera settings &gt; Video format &gt; Log &gt; Video and Pro Video mode” to enable log filming to be selected in the quick settings options in Video mode.</p>
+<img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_EN_Figure_3.jpg" class="img-fluid">
+<p style="text-align:center; font-size:12px"><b>Figure 3: How to Set Log Filming Feature in Video Mode</b></p>
+<p style="text-align:center"><img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_EN_Figure_4.jpg" width="600/" class="img-fluid"></p>
+<p style="text-align:center; font-size:12px"><b>Figure 4: Video Mode: Log Filming</b></p>
+<h3>3) LUT (Look-Up Table) Preview  <img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_Icon_OneUI8.5.png" width="40/" class="img-fluid"></h3>
+<p>Filming with Samsung Log adjusts the gamma curve to secure a wider dynamic range, resulting in a flat appearance. It can be challenging to intuitively grasp how the final image's color and exposure will appear. To address this issue, the LUT preview feature allows real-time preview of color-corrected video.</p>
+<p>Users can select from various LUT presets to monitor, depending on the shooting environment and video purpose.</p>
+<ul>
+<li><b>Standard</b>: Provides a standard correction that maps video footage to the Rec.709 color space, allowing users to accurately check exposure and colors during shooting.</li>
+<li><b>Cinematic LUT</b>: Four creative styles are provided to allow users to preview a cinematic mood in real-time while shooting.
+<ul>
+<li><b>Blockbuster</b>: Emphasizes Hollywood's signature orange and teal tones to create a cinematic look with more depth and tension.</li>
+<li><b>Coming-of-age</b>: Creates a mood often seen in coming-of-age films or K-pop music videos with calm pastel tones, soft contrast, and balanced color tones.</li>
+<li><b>Romance</b>: Uses soft, warm tones to render emotional moments for characters or create a romantic mood, suitable for reflective scenes.</li>
+<li><b>Thriller</b>: Creates an intense, dramatic effect by reducing saturation and increasing contrast to produce dark, gritty images.</li>
+</ul>
+</li>
+</ul>
+<p>※ Note: The LUT preview feature is intended to aid monitoring during filming. Users will see LUT-applied colors in previews, but the actual recorded video files are saved as original log footage without any LUT applied. This enables users to correct and grade colors as desired in post-production.</p>
+<p style="text-align:center"><img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_EN_Figure_5.jpg" width="600/" class="img-fluid"></p>
+<p style="text-align:center; font-size:12px"><b>Figure 5: LUT Preview</b></p>
+<img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_EN_Figure_6.jpg" class="img-fluid">
+<p style="text-align:center; font-size:12px"><b>Figure 6: LUT Presets</b></p>
+<h3>4) Samsung Log Filming Assist Feature (Exposure Monitor)</h3>
+<p>To easily check exposure during log filming, Samsung Log provides exposure monitoring features such as zebra patterns and false color, which assist with filming.<br>
+When used in conjunction with the LUT preview feature, users can precisely identify exposure values based on the corrected image, making it easier and more accurate to set appropriate exposure level even when shooting in log.<br>
+Zebra patterns are displayed in areas where exposure exceeds the pre-set value (70 to 100), easily identifying overexposed areas.<br>
+False color marks all areas in different colors based on exposure grade: red for overexposure, light green for proper exposure, and purple for underexposure, allowing you to see overall exposure at a glance.<br>
+These features can be toggled on or off at any time, before or during recording</p>
+<img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_EN_Figure_7.jpg" class="img-fluid">
+<p style="text-align:center; font-size:12px"><b>Figure 7: Samsung Log Exposure Monitor</b></p>
+<h3>5) Editing Samsung Log Video Footage on Mobile <img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_Icon_OneUI8.5.png" width="40/" class="img-fluid"></h3>
+<p>Samsung Log supports a seamless mobile workflow, from shooting to editing and sharing.<br>
+The LUT presets previewed during recording can also be applied in the Gallery application's editing menu while users process the original log data.<br>
+Users can use the 4 Cinematic LUTs (Blockbuster, Coming-of-Age, Romance, and Thriller) alongside tone adjustment features to apply a film look instantly and produce refined footage even in a mobile environment, without complex workflows.</p>
+<p>※ Compared to videos filmed in Video mode, Samsung Log offers greater editing flexibility, allowing for more detailed shadow expressions and customized color tones.</p>
+<img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_EN_Figure_8.jpg" class="img-fluid">
+<p style="text-align:center; font-size:12px"><b>Figure 8: Color Correction in Samsung Log</b></p>
+<h3>6) Editing Samsung Log Video Footage on PC <img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_Icon_OneUI8.5.png" width="40/" class="img-fluid"></h3>
+<p>For professionals seeking more control in post-production, LUT files compatible with professional PC editing software such as DaVinci Resolve are provided. The LUT files can be downloaded via the link in the following section.<br>
+The Cinematic LUT package for PC offers an expanded library of 12 LUT types (three per style) to enable more detailed and precise color grading based on the four base styles available on mobile.<br>
+Three versions with varying intensities per style are provided, allowing users to choose an appropriate level according to their creative intent. Attributes such as color structure, contrast, and color density have been redesigned for each tone to achieve optimal results at each intensity level. This ensures the intended tone is achieved accurately without compromising the overall mood of the video footage.</p>
+<table>
+<thead>
+<tr>
+<th>LUT Style<p></p>
+</th>
+<th>Characteristics<p></p>
+</th>
+<th>Tone Intensity<p></p>
+</th>
+<th>Design Approach<p></p>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blockbuster<p></p>
+</td>
+<td>Strong contrast, cool/warm split<p></p>
+</td>
+<td>Neutral – Strong1 - Strong2<p></p>
+</td>
+<td>Contrast adjustment by stage, adjustment of color temperature balance (between highlights and shadows) and color density<p></p>
+</td>
+</tr>
+<tr>
+<td>Coming-of-age<p></p>
+</td>
+<td>Low saturation, soft contrast<p></p>
+</td>
+<td>Soft2 - Soft1 - Neutral<p></p>
+</td>
+<td>Differential design of saturation and luminance balance in highlights/shadows to prevent a flat look<p></p>
+</td>
+</tr>
+<tr>
+<td>Romance<p></p>
+</td>
+<td>Focused on warm tones, detail preservation in highlights, reduced excessive weight in shadows<p></p>
+</td>
+<td>Soft – Neutral - Strong<p></p>
+</td>
+<td>Rebalancing of color temperatures and saturation/color density to minimize tonal fatigue<p></p>
+</td>
+</tr>
+<tr>
+<td>Thriller<p></p>
+</td>
+<td>Low saturation, high contrast, emphasis on shadows<p></p>
+</td>
+<td>Neutral - Strong1 - Strong2<p></p>
+</td>
+<td>Differential design of saturation and luminance balance in highlights/shadows<p></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-align:center; font-size:12px"><b>Table 1: Characteristics of Each LUT Style</b></p>
+<h2 id="3.-Samsung-Log-Profiles-and-LUT">3. Samsung Log Profiles and LUT</h2>
+<div class="btn-doc-cta cta-link"><div class="btn btn-arrow btn-right rounded-pill btn-gray-400 inner-btn base-bar"><span class="lft-txt"><span class="txt">Samsung Log White Paper_En.pdf</span></span></div><a href="/Mobile/file/24767859-feda-461f-8f2b-f3b547822874" target="_blank" class="tooltip-cta-area" data-toggle="tooltip" data-placement="top" title="" data-original-title="Samsung Log White Paper_En.pdf"></a></div>
+<div class="btn-doc-cta cta-link"><div class="btn btn-arrow btn-right rounded-pill btn-gray-400 inner-btn base-bar"><span class="lft-txt"><span class="txt">Samsung Log to Linear 1DLUT_v1.0.cube</span></span></div><a href="/Mobile/file/03cb55a3-a7b8-485d-8de7-1a6b5f2a19fd" target="_blank" class="tooltip-cta-area" data-toggle="tooltip" data-placement="top" title="" data-original-title="Samsung Log to Linear 1DLUT_v1.0.cube"></a></div>
+<div class="btn-doc-cta cta-link"><div class="btn btn-arrow btn-right rounded-pill btn-gray-400 inner-btn base-bar"><span class="lft-txt"><span class="txt">Samsung Log to Rec709 3DLUT_v1.0.cube</span></span></div><a href="/Mobile/file/12a52a67-175d-4f8e-acb5-d7f32e636e07" target="_blank" class="tooltip-cta-area" data-toggle="tooltip" data-placement="top" title="" data-original-title="Samsung Log to Rec709 3DLUT_v1.0.cube"></a></div>
+<div class="btn-doc-cta cta-link"><div class="btn btn-arrow btn-right rounded-pill btn-gray-400 inner-btn base-bar"><span class="lft-txt"><span class="txt">Samsung Log to CineLUT Rec709_v1.0.zip</span></span></div><a href="/Mobile/file/5d1bcb09-7c6c-4148-887f-4979bd250edd" target="_blank" class="tooltip-cta-area" data-toggle="tooltip" data-placement="top" title="" data-original-title="Samsung Log to CineLUT Rec709_v1.0.zip"></a></div>
+<h2 id="4.-Samsung-Log-Support-Information">4. Samsung Log Support Information</h2>
+<table>
+<thead>
+<tr>
+<th>Support Information<p></p>
+</th>
+<th>Samsung Log<p></p>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Filming device<p></p>
+</td>
+<td>Galaxy S26/S25/S24 series, Z Fold 7/6, Z Flip 7/6, Z Flip 7 FE<p></p>
+</td>
+</tr>
+<tr>
+<td>Resolution<p></p>
+</td>
+<td>All<p></p>
+</td>
+</tr>
+<tr>
+<td>Codec<p></p>
+</td>
+<td>10bit HEVC, <br>APV (S26 Ultra only)<p></p>
+</td>
+</tr>
+<tr>
+<td>Modes<p></p>
+</td>
+<td>Pro Video mode<br>Video mode (Log option needs to be enabled in “Camera” settings)<p></p>
+</td>
+</tr>
+<tr>
+<td>Lens<p></p>
+</td>
+<td>All<p></p>
+</td>
+</tr>
+<tr>
+<td>Pro Video mode filming options<p></p>
+</td>
+<td>Manual controls<br>- Exposure monitor (Zebra pattern, False color)<p></p>
+</td>
+</tr>
+<tr>
+<td>Storage options<p></p>
+</td>
+<td>Option to save in external storage (SSD)<p></p>
+</td>
+</tr>
+<tr>
+<td>LUT (Look-Up Table)<p></p>
+</td>
+<td>-Camera &gt; LUT preview  <img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_Icon_OneUI8.5.png" width="35/" class="img-fluid"> <br>-Gallery &gt; Edit &gt; Apply LUT  <img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_Icon_OneUI8.5.png" width="35/" class="img-fluid"><p></p>
+</td>
+</tr>
+<tr>
+<td>Editing<p></p>
+</td>
+<td>Samsung Log video editing features  <img src="https://d3unf4s5rp9dfh.cloudfront.net/Mobile_doc/SamsungLog_Icon_OneUI8.5.png" width="35/" class="img-fluid"><p></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>※ Details, including supported devices and features, are subject to change based on company policies.<br>
+※ Note: The APV codec is only available on the Galaxy S26 Ultra as it requires hardware support. Existing models do not support this codec, as it cannot be enabled with software updates.</p>
+</body></html>
+        </div>
+        <aside class="etc-aside">
+          <!-- deviceType:string[] TV, Signage, HTV -->
+
+
+          <a href="#app" class="btn-goto-top no-ga">
+  <span class="sr-only">top of page</span>
+  <span class="icon-top align-middle icon-size-2">
+    <i class="s-ico s-ico-arrow-top-white"></i>
+  </span>
+</a>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>  
+          <footer class="sdp-footer" translate="no" data-component="true">
+    <div class="sdp-ft-wrap web-d-none">
+        <a class="navbar-brand" href="/">Samsung Developer</a>
+    </div>
+    <div class="inner-wrap">
+        <div class="sdp-sitemap">
+            <div class="sdp-ft-wrap doc-d-none">
+                <a class="navbar-brand" href="/">Samsung Developer</a>
+            </div>
+            <div class="sdp-ft-wrap">
+                <div class="ft-header">
+                    <span>Quick Link</span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/android-usb-driver" data-footer-label="Android USB Driver"><span>Android USB Driver</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/codelab" data-footer-label="Code Lab"><span>Code Lab</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/galaxy-emulator-skin" data-footer-label="Galaxy Emulator Skin"><span>Galaxy Emulator Skin</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/foldables-and-largescreens" data-footer-label="Foldables and Large Screens"><span>Foldables and Large Screens</span></a>
+                            </li>
+                        
+                        </ul>
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/remote-test-lab" data-footer-label="Remote Test Lab"><span>Remote Test Lab</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/dev-support" data-footer-label="Dev Support"><span>Dev Support</span></a>
+                            </li>
+                         
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="sdp-ft-wrap">
+                <div class="ft-header">
+                    <span>Family Site</span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://bixbydevelopers.com" data-footer-label="Bixby"><span>Bixby</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://developer.samsungknox.com" data-footer-label="Knox"><span>Knox</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://developer.smartthings.com" data-footer-label="SmartThings"><span>SmartThings</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://samsungtizenos.com" data-footer-label="Tizen"><span>Tizen</span></a>
+                            </li>
+                         
+                        </ul>
+                        <ul class="nav ft-menu-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://seller.samsungapps.com" data-footer-label="Galaxy Store Seller Portal"><span>Galaxy Store Seller Portal</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://research.samsung.com" data-footer-label="Samsung Research"><span>Samsung Research</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://opensource.samsung.com/main" data-footer-label="Samsung Open Source"><span>Samsung Open Source</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" target="_blank" href="https://www.europe-samsung.com/smsdev/Home/Index" data-footer-label="Samsung Dev Spain"><span>Samsung Dev Spain</span></a>
+                            </li>
+                         
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sdp-ft-wrap sdp-ft-wrap-w-half">
+                <div class="ft-header">
+                    <span>Legal</span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list">
+                            <li class="menu-item ft-depth3-inner">
+                                <div class="menu-item-button">
+                                    <span class="item-link"><span>Terms</span></span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                        <path d="M1.71484 3.85547L6.00056 8.14118L10.2863 3.85547" stroke="currentColor" stroke-width="1.02857"></path>
+                                    </svg>
+                                </div>
+                                <ul class="footer-dropdown-list">
+                                    <li><a href="/terms" data-footer-label="Samsung Developer Terms">Samsung Developer Terms</a></li>
+                                    
+                                        <li><a href="/wallet/terms?type=tos" data-footer-label="Samsung Wallet Partner Terms">Samsung Wallet Partner Terms</a></li>
+                                    
+                                        <li><a href="/pay/terms?type=tos" data-footer-label="Samsung Pay Partner Terms">Samsung Pay Partner Terms</a></li>
+                                     
+                                </ul>
+                            </li>
+                            <li class="menu-item ft-depth3-inner">
+                                <div class="menu-item-button">
+                                    <span class="item-link"><span>Privacy</span></span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                        <path d="M1.71484 3.85547L6.00056 8.14118L10.2863 3.85547" stroke="currentColor" stroke-width="1.02857"></path>
+                                    </svg>
+                                </div>
+                                <ul class="footer-dropdown-list">
+                                    <li><a href="/privacy" data-footer-label="Samsung Developer Privacy Policy">Samsung Developer Privacy Policy</a></li>
+                                    
+                                        <li><a href="/wallet/terms?type=privacy" data-footer-label="Samsung Wallet Partner Privacy Policy">Samsung Wallet Partner Privacy Policy</a></li>
+                                    
+                                        <li><a href="/pay/terms?type=privacy" data-footer-label="Samsung Pay Partner Privacy Policy">Samsung Pay Partner Privacy Policy</a></li>
+                                     
+                                </ul>
+                            </li>
+                            <li class="menu-item ft-depth3-inner">
+                                <div class="menu-item-button">
+                                <a class="item-link" href="/open-source" data-footer-label="Open Source License"><span>Open Source License</span></a>
+                                </div>
+                            </li>
+                            <li class="menu-item ft-depth3-inner">
+                                <div class="menu-item-button">
+                                    <span class="item-link"><span>Cookie</span></span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                        <path d="M1.71484 3.85547L6.00056 8.14118L10.2863 3.85547" stroke="currentColor" stroke-width="1.02857"></path>
+                                    </svg>
+                                </div>
+                                <ul class="footer-dropdown-list">
+                                    <li><a href="/cookie-policy" data-footer-label="Samsung Developer Cookie Policy">Samsung Developer Cookie Policy</a></li>
+                                    
+                                        <li><a href="/wallet/terms?type=cookie" data-footer-label="Samsung Wallet Partner Cookie Policy">Samsung Wallet Partner Cookie Policy</a></li>
+                                    
+                                        <li><a href="/pay/terms?type=cookie" data-footer-label="Samsung Pay Partner Cookie Policy">Samsung Pay Partner Cookie Policy</a></li>
+                                    
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Social link ment for mobile  -->
+            <div class="sdp-ft-wrap li-mobile">
+                <div class="ft-header">
+                    <span>Social Communications</span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list ft-sns-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://www.facebook.com/samsungdev" data-footer-label="Facebook"><span>Facebook</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://instagram.com/samsung_dev" data-footer-label="Instagram"><span>Instagram</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://twitter.com/samsung_dev" data-footer-label="Twitter"><span>Twitter</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://www.youtube.com/samsungdevelopers" data-footer-label="YouTube"><span>YouTube</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/feed" data-footer-label="Rss"><span>Rss</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="https://www.linkedin.com/company/samsungdevelopers" data-footer-label="Linkedin"><span>Linkedin</span></a>
+                            </li>
+                         
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sdp-ft-wrap sdp-ft-wrap-w-half">
+                <div class="ft-header">
+                    <span></span>
+                    <button class="toggle-submenu"></button>
+                </div>
+                <div class="ft-depth2-wrap">
+                    <div class="ft-depth2-inner">
+                        <ul class="nav ft-menu-list system-list">
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/system-status" data-footer-label="System Status"><span>System Status</span></a>
+                            </li>
+                        
+                            <li class="menu-item">
+                                <a class="item-link" href="/sitemap" data-footer-label="Site Map"><span>Site Map</span></a>
+                            </li>
+                        
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <ul class="nav ft-menu-list system-list">
+             
+                <li class="menu-item">
+                    <a class="item-link" href="/system-status" data-footer-label="System Status"><span>System Status</span></a>
+                </li>
+             
+                <li class="menu-item">
+                    <a class="item-link" href="/sitemap" data-footer-label="Site Map"><span>Site Map</span></a>
+                </li>
+            
+            </ul>
+            <ul class="nav ft-sns-list">
+                <li class="menu-item"><a class="item-link" data-footer-label="Facebook" href="https://www.facebook.com/samsungdev" target="_blank"><i class="s-ico s-ico-facebook"></i><span class="sr-only">facebook</span></a></li>
+                <li class="menu-item"><a class="item-link" data-footer-label="Instagram" href="https://instagram.com/samsung_dev" target="_blank"><i class="s-ico s-ico-instagram"></i><span class="sr-only">instagram</span></a></li>
+                <li class="menu-item"><a class="item-link" data-footer-label="Twitter" href="https://twitter.com/samsung_dev" target="_blank"><i class="s-ico s-ico-twitter"></i><span class="sr-only">twitter</span></a></li>
+                <li class="menu-item"><a class="item-link" data-footer-label="YouTube" href="https://www.youtube.com/samsungdevelopers" target="_blank"><i class="s-ico s-ico-youtube"></i><span class="sr-only">youtube</span></a></li>
+                <li class="menu-item"><a class="item-link" data-footer-label="Rss" href="/feed" target="_blank"><i class="s-ico s-ico-rss"></i><span class="sr-only">rss</span></a></li>
+                <li class="menu-item"><a class="item-link" data-footer-label="Linkedin" href="https://www.linkedin.com/company/samsungdevelopers" target="_blank"><i class="s-ico s-ico-linkedin"></i><span class="sr-only">linkedin</span></a>
+                </li>
+            </ul>
+            <p class="copyright">Copyright © 2026 SAMSUNG. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+      </div>
+
+    
+<div id="el-sdp-popup-cookies-wrapper" attr-page-id="cookie-policy-popup">
+  
+  <!-- Cookie Management Tool Popup -->
+  <article id="el-sdp-popup-cookie" class="base-modal cookie-manager-modal page-modal" data-target="cookieManagerModal">
+    <section id="modal-main-menu" class="base-modal-dialog">
+        <div class="base-modal-frame">
+            <i class="base-modal-close close-button" role="button" data-close="cookieManagerModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M1 1L15 15" stroke="black" stroke-width="1.6"/>
+                    <path d="M15 1L1 15" stroke="black" stroke-width="1.6"/>
+                </svg>
+            </i>
+            <div class="base-modal-body">
+                <div class="base-text-group">
+                    <h1 class="text-group-title">
+                        Manage Your Cookies
+                    </h1>
+                    <p class="text-group-text">
+                      We use cookies to improve your experience on our website and to show you relevant
+                      advertising. Manage you settings for our cookies below.</p>
+                </div>
+                <div class="base-section">
+                    <div class="base-section-body">
+                        <div class="base-section-panel">
+                            <h2 class="base-section-title">Essential Cookies</h2>
+                            <p class="base-section-text">
+                              These cookies are essential as they enable you to move around the website. This
+                              category cannot be disabled.</p>
+                            <div class="cookie-manager-cta">
+                                <button type="button" class="cookie-manager-text-button" data-target="cookieButton">
+                                    <span>View Cookies</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M2 4.5L7 9.5L12 4.5" stroke="#363636" stroke-width="1.2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="cookie-manager-table" data-target="cookieTable">
+                                <dl>
+                                    <dt>Company</dt>
+                                    <dt>Domain</dt>
+                                    <dd>Samsung Electronics</dd>
+                                    <dd>developer.samsung.com, .samsung.com</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="base-section">
+                    <div class="base-section-body">
+                        <div class="base-section-panel">
+                            <h2 class="base-section-title">Analytical/Performance Cookies</h2>
+                            <p class="base-section-text">
+                              These cookies collect information about how you use our website. for example which
+                              pages you visit most often. All information these cookies collect is used to improve
+                              how the website works.</p>
+                            <div class="cookie-manager-cta">
+                                <button type="button" class="cookie-manager-text-button" data-target="cookieButton">
+                                    <span>View Cookies</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M2 4.5L7 9.5L12 4.5" stroke="#363636" stroke-width="1.2"/>
+                                    </svg>
+                                </button>
+                                <div class="base-sort" id="performance-select" value="performance">
+                                    <label>
+                                        <input type="radio" name="sort1" hidden checked />
+                                        <span class="base-sort-label">NO</span>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="sort1" hidden  />
+                                        <span class="base-sort-label">YES</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="cookie-manager-table" data-target="cookieTable">
+                                <dl>
+                                    <dt>Company</dt>
+                                    <dt>Domain</dt>
+                                    <dd>Samsung Electronics</dd>
+                                    <dd>.samsung.com</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="base-section">
+                    <div class="base-section-body">
+                        <div class="base-section-panel">
+                            <h2 class="base-section-title">Functionality Cookies</h2>
+                            <p class="base-section-text">
+                              These cookies allow our website to remember choices you make (such as your user name, language or the region your are in) and
+                              tailor the website to provide enhanced features and content for you.</p>
+                            <div class="cookie-manager-cta">
+                                <button type="button" class="cookie-manager-text-button" data-target="cookieButton">
+                                    <span>View Cookies</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M2 4.5L7 9.5L12 4.5" stroke="#363636" stroke-width="1.2"/>
+                                    </svg>
+                                </button>
+                                <div class="base-sort" id="functionality-select" value="functionality">
+                                    <label>
+                                        <input type="radio" name="sort2" hidden checked />
+                                        <span class="base-sort-label">NO</span>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="sort2" hidden  />
+                                        <span class="base-sort-label">YES</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="cookie-manager-table" data-target="cookieTable">
+                                <dl>
+                                    <dt>Company</dt>
+                                    <dt>Domain</dt>
+                                    <dd>Samsung Electronics</dd>
+                                    <dd>developer.samsung.com, google.account.samsung.com</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <footer class="base-modal-footer">
+                <button type="button" class="base-button submit-button">
+                    <span>Save Preference</span>
+                </button>
+            </footer>
+        </div>
+    </section>
+</article>
+  <!-- Preferences Submitted Popup -->
+  <article id="el-sdp-popup-submitted" class="base-modal alert" data-target="cookie-submit-popup">
+    <section class="base-modal-dialog">
+      <div class="base-modal-frame">
+        <i class="base-modal-close" role="button" data-close="cookie-submit-popup">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 1L15 15" stroke="black" stroke-width="1.6"/>
+              <path d="M15 1L1 15" stroke="black" stroke-width="1.6"/>
+            </svg>
+        </i>
+        <div class="base-modal-body">
+          <div class="base-text-group">
+            <h1 class="text-group-title">
+              Preferences Submitted
+            </h1>
+            <p class="text-group-text">
+              You have successfully updated your cookie preferences.
+            </p>
+          </div>
+        </div>
+        <footer class="base-modal-footer">
+          <button type="button" class="base-button" data-close="cookie-submit-popup">
+            <span>Close</span>
+          </button>
+        </footer>
+      </div>
+    </section>
+  </article>
+</div>
+
+    </div>
+    
+    <script type="text/javascript" src="https://d3unf4s5rp9dfh.cloudfront.net/public/25bea2d/js/sdp.common.min.js"></script>
+    <script type="text/javascript" src="https://d3unf4s5rp9dfh.cloudfront.net/public/25bea2d/js/sdp.ui.min.js"></script>
+    <script type="text/javascript" src="https://d3unf4s5rp9dfh.cloudfront.net/public/25bea2d/js/sdp.utils.min.js"></script>
+    <script type="text/javascript" src="/js/sdp.helper.min.js?v=2026-09-14_23-33_60e21883a30b
+"></script>
+    
+    <!-- START CUSTOM SCRIPTS -->
+    
+    <!-- END CUSTOM SCRIPTS -->
+
+    
+
+  <!-- Start Admin Preview / Review Part -->
+  
+  
+  
+  <!-- End Admin Preview / Review Part -->
+
+    
+
+    <script>
+      $(document).ready(() => {
+        const login = document.querySelector('meta[name="user-session"]').getAttribute('content');
+        if(login && login === 'true') {
+          const hashId = "";
+          const signUpDate = "";
+          if(!hashId || !signUpDate) return;
+          gtagEvent('load_profile_info', {
+            user_id: hashId,
+            sign_up_date: signUpDate
+          })
+        }
+      });
+</script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+              Recommendation ITU-R BT.1886
+                                      (03/2011)
+
+
+
+Reference electro-optical transfer function
+      for flat panel displays used in HDTV
+                         studio production
+
+
+
+
+                                    BT Series
+                         Broadcasting service
+                                 (television)
+ii                                                Rec. ITU-R BT.1886
+
+
+                                                          Foreword
+The role of the Radiocommunication Sector is to ensure the rational, equitable, efficient and economical use of the
+radio-frequency spectrum by all radiocommunication services, including satellite services, and carry out studies without
+limit of frequency range on the basis of which Recommendations are adopted.
+The regulatory and policy functions of the Radiocommunication Sector are performed by World and Regional
+Radiocommunication Conferences and Radiocommunication Assemblies supported by Study Groups.
+
+
+
+                                   Policy on Intellectual Property Right (IPR)
+ITU-R policy on IPR is described in the Common Patent Policy for ITU-T/ITU-R/ISO/IEC referenced in Annex 1 of
+Resolution ITU-R 1. Forms to be used for the submission of patent statements and licensing declarations by patent
+holders are available from http://www.itu.int/ITU-R/go/patents/en where the Guidelines for Implementation of the
+Common Patent Policy for ITU-T/ITU-R/ISO/IEC and the ITU-R patent information database can also be found.
+
+
+
+
+                                           Series of ITU-R Recommendations
+                                    (Also available online at http://www.itu.int/publ/R-REC/en)
+
+     Series                                                            Title
+
+     BO            Satellite delivery
+     BR            Recording for production, archival and play-out; film for television
+     BS            Broadcasting service (sound)
+     BT            Broadcasting service (television)
+     F             Fixed service
+     M             Mobile, radiodetermination, amateur and related satellite services
+     P             Radiowave propagation
+     RA            Radio astronomy
+     RS            Remote sensing systems
+     S             Fixed-satellite service
+     SA            Space applications and meteorology
+     SF            Frequency sharing and coordination between fixed-satellite and fixed service systems
+     SM            Spectrum management
+     SNG           Satellite news gathering
+     TF            Time signals and frequency standards emissions
+     V             Vocabulary and related subjects
+
+
+
+
+     Note: This ITU-R Recommendation was approved in English under the procedure detailed in Resolution ITU-R 1.
+
+
+
+                                                                                                          Electronic Publication
+                                                                                                                  Geneva, 2011
+
+
+                                                           ITU 2011
+All rights reserved. No part of this publication may be reproduced, by any means whatsoever, without written permission of ITU.
+                                            Rec. ITU-R BT.1886                                               1
+
+
+                             RECOMMENDATION ITU-R BT.1886
+
+                  Reference electro-optical transfer function for flat panel
+                        displays1 used in HDTV studio production
+
+                                                                                                      (2011)
+
+Scope
+This Recommendation specifies the reference electro-optical transfer function (EOTF) that the
+displays used in HDTV programme production should follow in order to facilitate consistent picture
+presentation2. The reference EOTF is specified as a simple equation, with exponent function, based
+on measured characteristics of the Cathode Ray Tube (CRT).
+
+
+The ITU Radiocommunication Assembly,
+           considering
+a)      that reference displays play a crucial role in television programme production as they are
+used as reference for picture presentation;
+b)      that the characteristics of reference displays should be unified to ensure consistent picture
+presentation of programmes produced for use in broadcasting;
+c)     that historically, picture presentation characteristics were determined based on Cathode Ray
+Tube (CRT) characteristics, and the opto-electronic transfer characteristics were implicitly based on
+the CRT physical characteristics;
+e)         that CRT reference displays are no longer available;
+f)       that the electro-optical transfer function (EOTF) of CRT displays differs amongst
+manufacturers, amongst models, and amongst regions, as well as varying with the settings of
+contrast and brightness;
+g)      that for the consistency of picture presentation, it is desirable that newly introduced display
+technologies have an EOTF that closely matches that of the CRT;
+h)    that the reference EOTF for a non-CRT display has not been defined in any ITU-R
+Recommendation;
+j)       that Recommendation ITU-R BT.709, provides specifications for the opto-electronic
+transfer characteristics at the source, and a common electro-optical transfer function should be
+employed to display signals mastered to this format,
+           recommends
+1       that the reference EOTF for displays used in HDTV production and programme interchange
+should be the one specified in Annex 1;
+
+
+
+
+1    May also include projectors and other display devices.
+2    The term picture presentation is intended to indicate the monitoring of picture characteristics to ensure
+     that image characteristics do not vary between different signal sources, and different programme
+     segments.
+2                                          Rec. ITU-R BT.1886
+
+2       that an alternative EOTF may be used in some cases where programme interchange is not
+required, a suggested equation is contained in informative Appendix 1.
+
+
+
+
+                                                   Annex 1
+
+                          Reference electro-optical transfer function
+
+The reference EOTF is specified by the equation:
+
+                                           L = a (max[(V + b),0]) γ
+where:
+                 L:    Screen luminance in cd/m2
+                LW:    Screen luminance for white
+                LB:    Screen luminance for black
+                 V:    Input video signal level (normalized, black at V = 0, to white at V = 1. For
+                       content mastered per Recommendation ITU-R BT.7093, 10-bit digital code
+                       values “D” map into values of V per the following equation: V = (D–64)/876
+                  γ:   Exponent of power function, γ = 2.404
+                  a:   Variable for user gain (legacy “contrast” control)
+
+                                            a = ( LW 1 / γ − LB1 / γ ) γ
+
+                  b:   Variable for user black level lift (legacy “brightness” control)
+
+                                                         LB1 / γ
+                                              b=
+                                                   LW 1 / γ − LB1 / γ
+
+Above variables a and b are derived by solving following equations in order that V = 1 gives
+L = LW and that V = 0 gives L = LB:
+                                                   LB = a ⋅ b γ
+
+                                               LW = a ⋅ (1 + b) γ
+
+NOTE 1 – This Recommendation defines the reference EOTF equation, if it is required to confirm that a
+display device meets the reference equation it is recommended that the measurement be conducted in a dark
+room.
+
+
+
+
+3   For reference black, D = 64, for reference white, D = 940.
+4   This value has been shown to be a satisfactory match to the legacy CRT display.
+                                             Rec. ITU-R BT.1886                                      3
+
+
+                                                Appendix 1
+                                               (Informative)
+
+                                       EOTF-CRT matching
+
+The EOTF specified in Annex 1 is considered to be a satisfactory, but not exact, match to the
+characteristic of an actual CRT. When it is desired to match a CRT, the Lw and LB parameters of the
+EOTF can be set to the corresponding values of the CRT that are being matched. For moderate
+black level settings, e.g. 0.1 cd/m2, setting the LB of the EOTF to 0.1 will give a satisfactory match
+to the CRT. In the event the CRT is operated at a lower black level, e.g. 0.01 cd/m2, the EOTF will
+provide a better match with LB set to a lower value such as 0.0 cd/m2. When it is necessary to more
+precisely match a flat panel display characteristic to a CRT, the alternative EOTF formulation
+specified below may provide a solution.
+An example of an alternative approximation of an EOTF of a CRT display
+An example of an EOTF that has alternative characteristics of a CRT’s EOTF:
+        L = k (Vc + b)( α1 − α2 )[V + b]α2              for V < Vc
+
+        L = k [V + b]α1                                 for Vc ≤ V
+
+where
+              Vc:    0.35, α1 = 2.6, α2 = 3.0
+               L:    Screen luminance (cd/m2)
+              LW:    Screen luminance for white, reference setting is LW = 100 cd/m2
+               V:    Input video signal level (normalized, black at 0, to white at 1. 10-bit digital
+                     code values “D” map into values of V per the following equation:
+
+                                               V = (D-64)/876)
+
+                k:   Coefficient for normalization (so that V = 1 gives white), (k = LW/[1 + b]α1)
+                b:   Variable for black level lift (legacy “brightness” control).
+                     The value of b is set so that the calculated luminance can be the same as the
+                     measurement data at input signal level 0.0183 (= (80-64)/876).
+                     The value of b changes depending on “brightness” control.
+4                                                   Rec. ITU-R BT.1886
+
+                                                              FIGURE 1
+                                  EOTFs: Black dot (measured data), Red line (reference EOTF),
+                                  Blue line (alternative EOTF equation, Vc: 0.35, α1 = 2.6, α2 = 3.0)
+                       1
+
+
+
+
+                       –1
+                  10
+
+
+
+
+                       –2
+                  10
+
+
+
+
+                       –3
+                  10
+
+
+
+
+                       –4
+                  10
+                            0.0              0.2            0.4           0.6           0.8               1.0
+
+                                                                                                        1886-01
+
+
+
+
+                                                         Appendix 2
+                                                        (Informative)
+
+
+Historic overview
+CRT displays have been used as the reference display in HDTV programme production and
+monitoring for many years. Displays based on different physical technology are now being
+employed to replace the aging CRT displays. It is important to specify the characteristics for this
+next generation of display technologies so that consistent results may be achieved in future
+programme production. It is useful for the EOTF specified for the new display technologies to
+closely match the EOTF of the legacy CRT display. However, the legacy CRT EOTF was never
+documented, as all CRTs naturally behaved similarly. This Recommendation specifies a reference
+EOTF that should be employed in displays used in HDTV programme production.
+While the image capture process of Recommendation ITU-R BT.709 had an optical to electrical
+transfer function, there has never been an EOTF documented. This was due in part to the fact that
+display devices until recently were all CRT devices which had somewhat consistent characteristics
+device to device.
+                                            Rec. ITU-R BT.1886                                   5
+
+This Recommendation does NOT change any signal parameters defined in Recommendation
+ITU-R BT.709; legacy installations are not impacted.
+
+                  Opto-electronic conversion Recommendation ITU-R BT.709
+ Item                  Parameter                                         Value
+  1.1   Opto-electronic transfer                                    Assumed linear
+        characteristics before non-linear
+        precorrection
+  1.2   Overall opto-electronic transfer           V = 1.099 L0.45 – 0.099 for 1 ≥ L ≥ 0.018
+        characteristics at source                  V = 4.500 L              for 0.018 > L ≥ 0
+                                                   where:
+                                                   L: luminance of the image 0 ≤ L ≤ 1
+                                                   V: corresponding electrical signal
+  1.3   Chromaticity coordinates (CIE, 1931)                x                             y
+        Primary
+        – Red (R)                                         0.640                         0.330
+        – Green (G)                                       0.300                         0.600
+        – Blue (B)                                        0.150                         0.060
+  1.4   Assumed chromaticity for equal
+        primary signals
+        (Reference white)                                                 D65
+                                                            x                             y
+        ER = EG = EB                                      0.3127                       0.3290
+
+
+With the introduction of new display technologies which have entirely different characteristics to
+the CRT displays, it is necessary to define the EOTF of new devices that emulate that of the CRT
+displays. In measuring the EOTF of a large number of CRTs it was determined that the EOTF of the
+CRT was in fact highly variable when the brightness/contrast was adjusted, it is therefore not
+possible to 100% emulate CRT capability (or limitations).
+Users of this Recommendation in combination with the new technologies should be able to achieve
+a higher degree of image presentation repeatability than that offered in the past.
+

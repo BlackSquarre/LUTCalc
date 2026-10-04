@@ -1,0 +1,85 @@
+{
+  "source": "ITU-R BT.709-6 item 1.2, domain 0 <= L <= 1",
+  "algorithmVersion": "rec709.itu-oetf-2015",
+  "precision": "Decimal.from_float, 80 and 120 digits agreed after Double rounding",
+  "encode": [
+    {
+      "input": 0.0,
+      "expected": 0.0
+    },
+    {
+      "input": 5e-324,
+      "expected": 2.5e-323
+    },
+    {
+      "input": 0.001,
+      "expected": 0.0045000000000000005
+    },
+    {
+      "input": 0.01,
+      "expected": 0.045
+    },
+    {
+      "input": 0.017999999999999995,
+      "expected": 0.08099999999999997
+    },
+    {
+      "input": 0.018,
+      "expected": 0.08124794403514048
+    },
+    {
+      "input": 0.018000000000000002,
+      "expected": 0.08124794403514049
+    },
+    {
+      "input": 0.05,
+      "expected": 0.18645272574482255
+    },
+    {
+      "input": 0.18,
+      "expected": 0.40900772886415043
+    },
+    {
+      "input": 0.5,
+      "expected": 0.7055150899221212
+    },
+    {
+      "input": 1.0,
+      "expected": 1.0
+    }
+  ],
+  "legacySameSpaceExposurePlusOne": [
+    {
+      "input": -0.1,
+      "expected": -0.2
+    },
+    {
+      "input": 0.0,
+      "expected": 0.0
+    },
+    {
+      "input": 0.05,
+      "expected": 0.09917645763871939
+    },
+    {
+      "input": 0.08112,
+      "expected": 0.14705117104660173
+    },
+    {
+      "input": 0.18,
+      "expected": 0.28212523163447634
+    },
+    {
+      "input": 0.5,
+      "expected": 0.7192581137958829
+    },
+    {
+      "input": 0.9,
+      "expected": 1.2656742164976411
+    },
+    {
+      "input": 1.0,
+      "expected": 1.4022782421730806
+    }
+  ]
+}

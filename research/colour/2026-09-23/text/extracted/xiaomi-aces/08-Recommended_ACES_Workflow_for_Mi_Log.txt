@@ -1,0 +1,158 @@
+Recommended ACES Workflow
+       for Mi-Log
+         December 2024
+Recommended ACES Workflow for Mi-Log                                                    Contents
+
+
+Contents
+
+1   Introduction                                                                                1
+
+2 Workflow                                                                                      2
+    2.1   Importing a HEVC Mi-Log Video . . . . . . . . . . . . . . . . . . . . . . . . . . .   2
+    2.2 Applying DCTL Effects . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   3
+    2.3 Applying ACES Transform . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+    2.4 Transforming to Rec.709 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+
+3 Mi DCTL File Loading Steps                                                                    6
+    3.1   Opening DaVinci Resolve and Accessing Project Settings . . . . . . . . . . . .        6
+    3.2 Creating a New Folder and Adding the DCTL File . . . . . . . . . . . . . . . .          6
+
+
+
+
+                                                 i
+Recommended ACES Workflow for Mi-Log
+
+
+
+1 Introduction
+
+
+
+
+    ACES (Academy Color Encoding System) is a color image encoding system in the film
+industry through which the color compatibility between different cameras can be better
+compatible. The guide takes an HEVC Mi-Log video as an example to provide instructions
+on how to use the ACES workflow using video editing software, such as DaVinci Resolve.
+
+
+
+
+                                     Page 1 of 6
+Recommended ACES Workflow for Mi-Log
+
+
+
+2 Workflow
+
+2.1 Importing a HEVC Mi-Log Video
+
+    Import a HEVC Mi-Log video to the editing software and add the video to the timeline.
+Click on the Color tab and create nodes for the video.
+
+
+
+
+                 Figure 1: import HEVC Mi-Log video and create nodes.
+
+
+
+
+                                      Page 2 of 6
+Recommended ACES Workflow for Mi-Log                           2.2   Applying DCTL Effects
+
+
+
+2.2 Applying DCTL Effects
+
+    Click on the Effects tab located in the upper right corner. Select DCTL, then click and
+hold to drag and drop it on the first node. Select MiLog_to_ACES_AP0 in the DCTL List.
+This step transforms the video from Mi-Log to linear AP0 color space in ACES.
+Note: It is required to load the Mi DCTL file first. For more information, refer to the Mi
+DCTL File Loading Steps section.
+
+
+
+
+                            Figure 2: applying DCTL effects.
+
+
+
+
+                                       Page 3 of 6
+Recommended ACES Workflow for Mi-Log                      2.3 Applying ACES Transform
+
+
+
+2.3 Applying ACES Transform
+
+    Click on the Effects tab in the upper right corner. Select ACES Transform, then click
+and hold to drag and drop it on the second node. Select ACES 1.3 in ACES version. Select
+No Input Transform in Input Transform. Select ACEScct-CSC* in Output Transform. This
+step transforms the video from linear AP0 color space to AP1 log color space. The user
+can adjust the brightness and color of the video in AP1 color space.
+Note: Users can also select ACEScc-CSC or ACEScg-CSC in Output Transform, if needed.
+
+
+
+
+                           Figure 3: applying ACES transform.
+
+
+
+
+                                       Page 4 of 6
+Recommended ACES Workflow for Mi-Log                       2.4 Transforming to Rec.709
+
+
+
+2.4 Transforming to Rec.709
+
+    After the color adjustment is completed, the user can continue to use ACES on sub-
+sequent nodes to transform the video to RRT or other color spaces. Here we take the
+transformation to Rec.709 as an example. Click on the Effects tab in the upper right cor-
+ner. Select ACES Transform, then click and hold to drag and drop it on the subsequent
+node. Select ACES 1.3 in ACES version. Select ACEScct-CSC in Input Transform. Select
+Rec.709 in Output Transform. This step transforms the video from AP1 color space to
+Rec.709 color space, so as to facilitate subsequent video export.
+
+
+
+
+                           Figure 4: transforming to REC.709.
+
+
+
+
+                                       Page 5 of 6
+Recommended ACES Workflow for Mi-Log
+
+
+
+3 Mi DCTL File Loading Steps
+
+3.1 Opening DaVinci Resolve and Accessing Project Settings
+
+    First, open DaVinci Resolve. Click on the Project Settings icon, which is located in
+the lower right corner of the interface. In the Project Settings pop-up, select the Color
+Management option. Then, click on Open LUT Folder.
+
+
+
+
+            Figure 5: opening Davinci resolve and accessing project settings.
+
+
+
+3.2 Creating a New Folder and Adding the DCTL File
+
+    In the opened folder, create a new folder. Rename this folder to DCTL. Then, place the
+MI DCTL file, which is named MiLog_to_ACES_AP0.dctl, into the DCTL folder. To ensure
+the DCTL file takes effect, restart Davinci Resolve.
+
+
+
+
+                                        Page 6 of 6
+

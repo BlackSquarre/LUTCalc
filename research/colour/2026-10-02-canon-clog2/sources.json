@@ -1,0 +1,17 @@
+{
+  "fixedCommit": "29b722bccd529460696a8382394504cae2e88419",
+  "files": [
+    {
+      "path": "CSC.Canon.CLog2_CGamut_to_ACES.ctl",
+      "url": "https://raw.githubusercontent.com/aces-aswf/aces-input-and-colorspaces/29b722bccd529460696a8382394504cae2e88419/canon/CSC.Canon.CLog2_CGamut_to_ACES.ctl",
+      "sha256": "9b4540450f5328c84cfa46803c1c2f94d0fc7ddee52b69446597b89abb3e33d6"
+    },
+    {
+      "path": "CSC.Canon.ACES_to_CLog2_CGamut.ctl",
+      "url": "https://raw.githubusercontent.com/aces-aswf/aces-input-and-colorspaces/29b722bccd529460696a8382394504cae2e88419/canon/CSC.Canon.ACES_to_CLog2_CGamut.ctl",
+      "sha256": "959ec4cd95bb666880732467779e958e449f069024391fb74d2074c9a95deabf"
+    }
+  ],
+  "legacySource": "js/gamma.js:LUTGammaLog registration and js/colourspace.js natTF=4 branches",
+  "scope": "公开 ACES CLog2/Cinema Gamut 双向解析式与 CAT02 矩阵；C-Log、C-Log3、Canon CP IDT 和实际相机 shoulder 不在本包。"
+}

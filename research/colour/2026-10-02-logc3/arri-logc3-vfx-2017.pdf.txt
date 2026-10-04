@@ -1,0 +1,292 @@
+ALEXA Log C Curve
+Usage in VFX
+Harald Brendel
+Version Author Change Note
+14-Jun-11 Harald Brendel Initial Draft
+14-Jun-11 Harald Brendel Added Wide Gamut Primaries
+14-Jun-11 Oliver Temmler Editorial
+20-Jun-11 Harald Brendel Film style matrix
+22-Jun-11 Joseph Goldstone Editorial
+27-Jun-11 Joseph Goldstone Revised Nuke example
+05-Oct-11 Jan Heugel renewed the URLs
+28-Mar-11 Harald Brendel Clarified usage of color matrix
+27-Jun-12 Harald Brendel Added ALEXA WG to ACES matrix
+24-Feb-17 Harald Brendel Remove LogCv2, clarify history
+09-Mar-17 Joseph Goldstone Make terminology consistent; modernize
+Table of Contents
+Introduction ................................................................................................... 2
+History ....................................................................................................... 2
+Terminology ............................................................................................... 2
+Curve Characteristics .................................................................................. 2
+Conversions .................................................................................................. 4
+Formula ..................................................................................................... 4
+Application in VFX ..................................................................................... 5
+Handling of Black ...................................................................................... 5
+Colorimetric Information .............................................................................. 5
+Conversion in Combination with Tone-Mapping ........................................ 5
+Linear Conversion ..................................................................................... 7
+Appendix ....................................................................................................... 8
+ALEXA (SUP 3.x) Log C Curve ................................................................. 8
+Example: How to configure Nuke to work with Log C data. ...................... 9
+ALEXA Wide Gamut RGB ....................................................................... 10
+Introduction
+The Log C curve is a logarithmic encoding for images that is used in the ARRI ALEXA. The encoding has a
+grayscale characteristic similar to a scan from negative film. Because of the fundamental differences
+between digital cameras and negatives, the color characteristics remain different, though.
+Logarithmic encoding means that the relation between exposure measured in stops and the encoded signal
+is linear (straight) over a wide range. Each stop of exposure increases the signal by the same amount. The
+slope of this part of the curve is called gamma. You see also the toe at the bottom of the curve. The toe
+occurs because the sensor cannot see low light levels with the same quantization as higher levels. The
+overall shape of the curve is similar to the exposure curves of film negatives.
+80
+Signal [%]
+60
+40
+20
+-14 -12 -10 -8 -6 -4 -2 0
+Exposure [Stops]
+This document describes how to handle Log C encoded images in a VFX workflow. In particular, it
+describes how to convert between Log C and a linear domain.
+History
+There are three versions of the Log C curve. It was first introduced with the ARRIFLEX D-20 and D-21.
+Version 3 [V3], the current version, has been used since 2011, when it was introduced in the SUP 3.0
+release of the ALEXA camera’s firmware. Log C V3 is also used in all AMIRA, ALEXA Mini, and ALEXA 65
+cameras. Earlier versions, such as Log C V2, are only useful for vaulted captures from 2011 and earlier;
+please contact ARRI if you need information on dealing with Log C versions prior to V3.
+Terminology
+For brevity, this document uses four terms as shorthand for more comprehensive ones.
+• It uses “Log C value” to mean a value between 0.0 and 1.0 representing a linearly normalized code
+value, thus avoiding distinction between 10-bit and 12-bit Log C encodings, both of which can be
+produced by ARRI cameras. (When an actual 10- or 12-bit code value is described, it uses “Log C
+code value”.)
+• It uses “sensor signal” to mean a value between 0.0 and 1.0 representing a linear normalization of
+the 16-bit code value (i.e. 0 to 65535) from the ARRI camera sensor. (When an actual 16-bit code
+value is described, it uses “sensor code value”.)
+• It uses “exposure value” to mean a relative scene exposure value. Relative scene exposure values
+are linear, and are “relative” to a theoretical perfectly exposed white card having a value of 1.0.
+Note that many objects, including specular highlights, pyrotechnics, etc. will have exposure values
+above 1.0.
+• It uses “linear domain” to describe either sensor signals or exposure values, both of which are
+linear encodings of the captured scene.
+Curve Characteristics
+ALEXA Log C Curve – Usage in VFX Page 2 of 10
+The Log C curve actually is a set of curves for different exposure indices. Each curve maps the sensor
+signal corresponding to 18% gray to the Log C value of 0.391, which is 400/1023.
+The following figure shows the Log C curves in a lin-lin plot. The x-axis represents the sensor signal.
+The maximum value of the Log C curve depends on the EI value. The reason is easy to understand. When
+one steps down the exposure, by one stop for example, the sensor will capture one stop more highlight
+information. Since Log C values represents scene exposure values, the maximum value needs to be
+higher.
+The curves for EI values above 1600 (including the shown curve for EI 3200) have an additional shoulder
+or roll-off built in to keep the maximum Log C code values within the available output range.
+The following figure shows the curves in a log-lin plot. The x-axis represents the exposure measured in
+stops, relative to maximum exposure at the right end of the axis. In the linear part, the Log C curve has 73-
+78 code values per stop in a 10-bit encoding.
+ALEXA Log C Curve – Usage in VFX Page 3 of 10
+Conversions
+ARRI provides lookup tables in different formats for the conversion between Log C value and sensor signal.
+Please go to http://www.arri.de/camera/digital_cameras/tools/lut_generator/lut_generator.html.
+Alternatively, the formula described in the next section can be used for the conversion.
+Formula
+The encoding of linear data using the ALEXA Log C curves can be expressed by the following formula:
+(x > cut) ? c * log10(a * x + b) + d: e * x + f
+in which x denotes the linear-domain data, cut and a through f denote parameters and log10 denotes the
+common logarithm. For a particular image being encoded, the values of cut and a through f will depend on
+two factors: which linear-domain quantity is being represented (sensor signal vs. exposure value), and
+exposure index (between 160 and 1600).
+The appendix contains values of cut and a through f for all possible combinations of the above factors.
+The decoding of ALEXA Log C values into linear-domain data can be expressed by the following formula:
+(t > e * cut + f) ? (pow(10, (t - d) / c) - b) / a: (t - f) / e
+The above formulas can be easily implemented in programming languages like C or as expressions in
+software systems like Nuke.
+ALEXA Log C Curve – Usage in VFX Page 4 of 10
+Application in VFX
+In VFX, the image data is usually round-trip converted. Log C images are converted to exposure values for
+use in 3D or compositing and converted back to Log C.
+Apply the transform described by the second formula to Log C-encoded images from ARRI cameras. In
+most cases you will want to use the parameters for conversion into exposure values.
+The composited image may be converted back to Log C by using the first formula. Use the parameters
+based on the same EI value in both directions.
+While the exact values of the parameters depend on the exposure index, this level of precision may not be
+needed for many applications. We suggest to use the parameters for EI 800; this is what pre-OpenColorIO
+[OCIO] versions of Nuke do, for example.
+For images actually encoded with EI values from 200 to 1600, the maximum deviation in exposure value
+between the formula’s results for EI 800 and the formula’s results for the actual EI will be less than 10% for
+tonal values up to scene white.
+When higher precision is needed, and the EI is less than or equal to 1600, use the parameters for the
+actual exposure index; this will return a result that is extremely accurate for all EIs below 1600, and for EI
+1600 up to a Log C value of about 0.8 (corresponding to an exposure value of about 10.0). At EI 1600,
+above Log C values of about 0.8, the error in calculated exposure value increases somewhat, eventually
+producing about a 3% difference from its true exposure value.
+The EI value is included as metadata in QuickTime™ and MXF. ARRI distributes a small app that can
+extract the metadata. The EI is also included in the header of ARRIRAW files and will be displayed by the
+ARRIRAW converter (ARC) and other applications that support the ARRIRAW format.
+Handling of Black
+When Log C values are converted to sensor signals, black (corresponding to zero exposure) will be
+represented by the value 256/65535. This sensor signal black level is the mean of all pixels. Because of
+read-out noise, single pixels may be above or below this value. The standard deviation of the read-out
+noise is approximately 2.5 sensor code values meaning that the offset of 256 is more than high enough to
+encode the full noise amplitude (usually one assumes a range of three times the standard deviation or ± 8
+code values).
+Using the parameters for exposure value will map the black value, as expected, to 0.0. With the noise,
+however, some pixels will come out as negative exposure values. When those values cannot be preserved
+and one does not want to clip them, a small offset of 8/65535 should be added to the sensor signal. This is
+equivalent of adding flare to the image data. The amount of flare expressed relative to the scene white will
+vary with the exposure index. It ranges from 0.1% (for EI 200) to 0.8% (for EI 3200).
+The flare should be subtracted before the images are converted back to Log C.
+Colorimetric Information
+ALEXA (SUP 3.x) Log C encodes image data in a wide gamut RGB color space that is detailed at the end
+of the Appendix. There are two ways to display Log C encoded images. The first approach is based on
+tone-mapping and is what the camera does internally to generate a video image. The full dynamic range of
+the camera is non-linearly compressed into a display signal. This approach attempts to create a preferred
+reproduction of the scene.
+The second approach is to invert the Log C curve obtaining scene linear data. This data is then scaled
+such that the exposure value of a white diffusing reflector is 1.0. ALEXA wide gamut RGB values are
+converted into the display’s RGB values and corrected for the non-linearity of the display (“gamma
+correction”). This approach attempts to create a colorimetric reproduction of the scene, but exposure
+values above 1.0 may be clipped in display.
+Conversion in Combination with Tone-Mapping
+Lookup tables for the tone-mapping can be downloaded from the ALEXA LUT generator (see below). After
+tone-mapping the RGB values may be converted into color spaces commonly used in digital post
+production.
+The matrix for conversion from tone-mapped ALEXA wide gamut RGB to the RGB color space defined by
+ITU Rec. 709 is given below.
+ALEXA Log C Curve – Usage in VFX Page 5 of 10
+1.485007 -0.033732 0.010776 -0.401216 -0.083791
+1.282887 -0.249155
+-0.122018 1.111242
+ALEXA Log C Curve – Usage in VFX Page 6 of 10
+For conversion into the P3-DCI color space1 the following matrix is used.
+1.296541 0.019844 0.031999 -0.194182 -0.102359
+1.224098 -0.243942
+-0.036114 1.004115
+The matrix above includes a chromatic adaptation transform to the DCI white point. If the projector is set up
+for a D65 white point or if no chromatic adaptation transform is desired, the following matrix can be used.
+1.213079 0.014386 0.030442 -0.098707 -0.114372
+1.230503 -0.244889
+-0.021558 0.991116
+After converting to the display’s RGB space the data needs to be gamma corrected. The presumed
+nonlinearity of the displays associated with the color space defined by ITU Rec. 709 is given by ITU Rec.
+1886. The presumed nonlinearity of the displays with P3 primaries (no matter which white point is chosen)
+is a pure gamma function with a gamma of 2.6.
+Note that the 3D lookup tables offered at
+http://www.arri.de/camera/digital_cameras/tools/lut_generator/lut_generator.html combine all of those steps
+(tone-mapping, color conversion, gamma correction) in one LUT.
+Linear Conversion
+For display of linear data without tone-mapping it’s recommended to calculate conversion matrices from
+ALEXA wide gamut RGB to the target color space based on the information given in the appendix.
+For example, the matrix for conversion from linear ALEXA wide gamut RGB into ITU Rec. 709 RGB is
+1.617523 -0.070573 -0.021102 -0.537287 -0.080237
+1.334613 -0.26404
+-0.226954 1.248056
+Comparing this matrix with the one given above, you may recognize that the latter generates less saturated
+RGB values (smaller values along the main diagonal). That deviation from the correct conversion is done to
+compensate for the increase of saturation produced by the tone-map curve.
+1 This refers to the minimum gamut of the reference projector as specified in SMPTE RP 431-2.
+ALEXA Log C Curve – Usage in VFX Page 7 of 10
+Appendix
+ALEXA (SUP 3.x) Log C Curve
+The parameters in this section apply to all images recorded with ARRI digital cameras released after 2011,
+and to pre-2011 “Classic” ALEXA cameras using SUP 3.0 or more recent firmware. Thus beyond the
+Classic ALEXA, this includes the AMIRA, ALEXA XT, ALEXA SXT, ALEXA MINI and ALEXA 65, no matter
+what their firmware version was when the images were created.
+The following table lists the Log C values corresponding to sensor signals representing no exposure (black)
+and sensor saturation (a sensor signal of 1.0) depending on the selected EI. Note that the Log C values for
+black level are constant in Log C V3.
+ASA Black Clipping Level
+160 0.0928 0.8128
+200 0.0928 0.8341
+250 0.0928 0.8549
+320 0.0928 0.8773
+400 0.0928 0.8968
+500 0.0928 0.9158
+640 0.0928 0.9362
+800 0.0928 0.9539
+1000 0.0928 0.9711
+1280 0.0928 0.9895
+1600 0.0928 1.0000
+2000 0.0928 1.0000
+2560 0.0928 1.0000
+3200 0.0928 1.0000
+Use the parameters in the following table for conversion between Log C values and sensor signal.
+EI cut a b c d e f e*cut+f
+160 0.004680 40.0 -0.076072 0.269036 0.381991 42.062665 -0.071569 0.125266
+200 0.004597 50.0 -0.118740 0.266007 0.382478 51.986387 -0.110339 0.128643
+250 0.004518 62.5 -0.171260 0.262978 0.382966 64.243053 -0.158224 0.132021
+320 0.004436 80.0 -0.243808 0.259627 0.383508 81.183335 -0.224409 0.135761
+400 0.004369 100.0 -0.325820 0.256598 0.383999 100.295280 -0.299079 0.139142
+500 0.004309 125.0 -0.427461 0.253569 0.384493 123.889239 -0.391261 0.142526
+640 0.004249 160.0 -0.568709 0.250219 0.385040 156.482680 -0.518605 0.146271
+800 0.004201 200.0 -0.729169 0.247190 0.385537 193.235573 -0.662201 0.149658
+1000 0.004160 250.0 -0.928805 0.244161 0.386036 238.584745 -0.839385 0.153047
+1280 0.004120 320.0 -1.207168 0.240810 0.386590 301.197380 -1.084020 0.156799
+1600 0.004088 400.0 -1.524256 0.237781 0.387093 371.761171 -1.359723 0.160192
+ALEXA Log C Curve – Usage in VFX Page 8 of 10
+The parameters are inserted in the conversion formula:
+lin2log(x)
+(x > cut) ? c * log10(a * x + b) + d: e * x + f
+log2lin(t)
+(t > e * cut + f) ? (pow(10, (t - d) / c) - b) / a: (t - f) / e
+Refer to the main text for more explanations.
+Use the parameters in the following table for conversion between Log C values and exposure values.
+EI cut a b c d e f e*cut+f
+160 0.005561 5.555556 0.080216 0.269036 0.381991 5.842037 0.092778 0.125266
+200 0.006208 5.555556 0.076621 0.266007 0.382478 5.776265 0.092782 0.128643
+250 0.006871 5.555556 0.072941 0.262978 0.382966 5.710494 0.092786 0.132021
+320 0.007622 5.555556 0.068768 0.259627 0.383508 5.637732 0.092791 0.135761
+400 0.008318 5.555556 0.064901 0.256598 0.383999 5.571960 0.092795 0.139142
+500 0.009031 5.555556 0.060939 0.253569 0.384493 5.506188 0.092800 0.142526
+640 0.009840 5.555556 0.056443 0.250219 0.385040 5.433426 0.092805 0.146271
+800 0.010591 5.555556 0.052272 0.247190 0.385537 5.367655 0.092809 0.149658
+1000 0.011361 5.555556 0.047996 0.244161 0.386036 5.301883 0.092814 0.153047
+1280 0.012235 5.555556 0.043137 0.240810 0.386590 5.229121 0.092819 0.156799
+1600 0.013047 5.555556 0.038625 0.237781 0.387093 5.163350 0.092824 0.160192
+It’s not possible to express the Log C V3 function for EI values greater than 1600 in the compact formula.
+At EI 1600 there is a very small difference between the maximum value of the Log C function used in the
+camera and the formula provided in this document. The maximum value of the Log C curve using the
+parameters for EI 1600 will rise just above 1.0. Those values should be clipped to 1.0.
+Example: How to configure Nuke to work with Log C data.
+This example assumes that you are using Nuke in its pre-OpenColorIO configuration. This corresponds to
+using the ‘Nuke’ setting for color management in Nuke’s Project Settings’ ‘Color’ tab. If you are working
+with a monitor that supports multiple color spaces, it assumes you have set that monitor for ‘Rec. 709’. This
+example also assumes you are working with DPX files.
+The following can be added to the Nuke init.py file. It uses one of the LUTs downloaded from
+http://www.arri.de/camera/digital_cameras/tools/lut_generator/lut_generator.html. With this setup, you can
+convert ALEXA Log C data into exposure values for compositing, while displaying the data in exactly the
+same way as did the video output of the camera.
+Note that the LUT file’s path will differ on your system.
+# ViewerProcess LUTs
+nuke.ViewerProcess.register("AlexaV3Rec709", nuke.createNode,
+("Vectorfield", "vfield_file
+/mnt/libs/nukelib/luts/AlexaV3_EI0800_LogC2Video_Rec709_EE_nuke3d.cube
+colorspaceIn AlexaV3LogC"))
+ALEXA Log C Curve – Usage in VFX Page 9 of 10
+When reading in a DPX image, the Colorspace in the Read node should be set to ‘AlexaV3LogC’. Do NOT
+use the default setting (“Cineon”). Be sure that the viewer process installed by the init.py file
+(‘AlexaV3Rec709’) is selected. This choice will emulate the clean, uncorrected look that was seen on set.
+As an alternative to the viewer 3DLUT you can use the ALEXA wide gamut to Rec 709 conversion matrix
+and apply a gamma correction to the “normal” range (from 0.0 to 1.0) of your scene data. This results in a
+linear representation of the scene, but will clip all highlight information and will not match the look that was
+seen on set.
+ALEXA Wide Gamut RGB
+A digital camera does not have RGB primary colors like a monitor. ALEXA Wide Gamut RGB is based on
+virtual primaries optimized for the encoding of the color data generated by the camera.
+The chromaticity coordinates of the primaries and of the white point are given in the table below.
+x y
+Red 0.6840 0.3130
+Green 0.2210 0.8480
+Blue 0.0861 -0.1020
+White 0.3127 0.3290
+The ALEXA Wide Gamut RGB to CIE 1931 XYZ conversion matrix is
+0.638008 0.214704 0.097744
+0.291954 0.823841 -0.115795
+0.002798 -0.067034 1.153294
+The inverse matrix for conversion from XYZ into ALEXA Wide Gamut RGB is
+1.789066 -0.482534 -0.200076
+-0.639849 1.396400 0.194432
+-0.041532 0.082335 0.878868
+The matrix for conversion from ALEXA Wide Gamut RGB to ACES RGB is
+0.680205 0.236137 0.083658
+0.085415 1.017471 -0.102886
+0.002057 -0.062563 1.060506
+ALEXA Log C Curve – Usage in VFX Page 10 of 10

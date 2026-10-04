@@ -1,0 +1,146 @@
+{
+  "date": "2026-09-23",
+  "node": "v22.21.0",
+  "scope": "只读最小复现；不代表端到端 UI 审计，也不把旧缺陷写成新实现应遵守的预期",
+  "sourceHashes": [
+    {
+      "path": "js/lut.js",
+      "sha256": "359aabf3502eb38508bd0799d631475ecb9ad19a1af6297e95a01f1fd6f501c4"
+    },
+    {
+      "path": "js/ring.js",
+      "sha256": "197b111472e04361bb77189c6a0981fd3531aa7747e01d4763f38e25327471b5"
+    },
+    {
+      "path": "js/bounding.js",
+      "sha256": "9876fe83cb099e2fde343c707dfa7095abbd47016156a9d05d31e0c0b5e4cdf1"
+    },
+    {
+      "path": "js/brent.js",
+      "sha256": "9c2c9ece9a889ac4c5d94ade127ce3db9b06e7276336814ae6800574895ccf09"
+    },
+    {
+      "path": "js/gamma.js",
+      "sha256": "250017d8efe758f3555148ba9fcb923698add0ac7d9380fa290716eb98e0821e"
+    },
+    {
+      "path": "js/colourspace.js",
+      "sha256": "89f5d45d2783056fe663ab045346a25482f6873c74213377ef227865324a622c"
+    },
+    {
+      "path": "js/lut-cube.js",
+      "sha256": "96e33d0b3dbd6467e45b54a97dac7f06e86b6303f2f98eacfa1cd47bdd4c5da5"
+    }
+  ],
+  "observations": [
+    {
+      "id": "LEG-01",
+      "scope": "inCalcRGB 的 nul/inL/outL 分支，独立调用",
+      "actual": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1
+      ],
+      "expected": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "mismatched": 5
+    },
+    {
+      "id": "LEG-02",
+      "scope": "CUBE 解析器，分别输入缺行和 Infinity",
+      "accepted": true,
+      "channels": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "LEG-03",
+      "scope": "CUBE 解析器，分别输入缺行和 Infinity",
+      "accepted": true,
+      "channels": [
+        [
+          0,
+          1
+        ],
+        [
+          "Infinity",
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "LEG-04",
+      "scope": "常量函数无根",
+      "actual": -65536,
+      "expectedStatus": "notBracketed"
+    },
+    {
+      "id": "LEG-05",
+      "scope": "Brent 局部变量作用域",
+      "rootValue": 1.4142135623906729,
+      "newGlobals": [
+        "c",
+        "d"
+      ]
+    },
+    {
+      "id": "LEG-06",
+      "scope": "LUTSpline 批量方法；未证明当前 UI 路径会调用",
+      "methods": {
+        "RGBCub": "ReferenceError: out is not defined",
+        "RGBTet": "missing",
+        "RGBLin": "ReferenceError: out is not defined"
+      }
+    },
+    {
+      "id": "LEG-07",
+      "scope": "colourspace.calc 曝光分支；下游输出模拟为恒等以定位行为",
+      "input": [
+        "NaN",
+        0.2,
+        0.3
+      ],
+      "actual": [
+        0,
+        0.2,
+        0.3
+      ]
+    }
+  ]
+}

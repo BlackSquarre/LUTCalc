@@ -1,0 +1,16 @@
+[
+  {
+    "url": "https://www.arri.com/resource/blob/31918/66f56e6abb6e5b6553929edf9aa7483b/2017-03-alexa-logc-curve-in-vfx-data.pdf",
+    "resolvedURL": "https://www.arri.com/resource/blob/31918/66f56e6abb6e5b6553929edf9aa7483b/2017-03-alexa-logc-curve-in-vfx-data.pdf",
+    "path": "research/colour/2026-10-02-logc3/arri-logc3-vfx-2017.pdf",
+    "sha256": "348d2761d3b1df259011204c7080ff9cfdc0512b3073f521384794f88fe1b665",
+    "downloadedUTC": "2026-10-02T01:03:40.105673+00:00"
+  },
+  {
+    "url": "https://drive.google.com/uc?export=download&id=1t73fAG_QpV7hJxoQPYZDWvOojYkYDgvn",
+    "resolvedURL": "https://drive.usercontent.google.com/download?id=1t73fAG_QpV7hJxoQPYZDWvOojYkYDgvn&export=download",
+    "path": "research/colour/2026-10-02-logc3/arri-logc-vfx-2012-mirror.pdf",
+    "sha256": "03970d2a35497e38d871f37c7128cc13b72d01b01c6a4e8b1ced65efd9daa680",
+    "downloadedUTC": "2026-10-02T01:03:41.898164+00:00"
+  }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "file": "missing-row.cube",
+    "expected": "reject",
+    "error": "rowCountMismatch"
+  },
+  {
+    "file": "extra-row.cube",
+    "expected": "reject",
+    "error": "rowCountMismatch"
+  },
+  {
+    "file": "nonfinite.cube",
+    "expected": "reject",
+    "error": "nonFiniteValue"
+  },
+  {
+    "file": "bad-dimension.cube",
+    "expected": "reject",
+    "error": "invalidDimension"
+  },
+  {
+    "file": "reversed-domain.cube",
+    "expected": "reject",
+    "error": "invalidDomain"
+  },
+  {
+    "file": "huge-dimension.cube",
+    "expected": "reject",
+    "error": "resourceLimit"
+  },
+  {
+    "file": "partial-number.cube",
+    "expected": "reject",
+    "error": "invalidNumber"
+  },
+  {
+    "file": "valid-extended.cube",
+    "expected": "accept",
+    "dimension": 1,
+    "size": 2,
+    "domainMin": [
+      -1,
+      -2,
+      -3
+    ],
+    "domainMax": [
+      2,
+      3,
+      4
+    ],
+    "rows": [
+      [
+        -0.001,
+        0.5,
+        0.25
+      ],
+      [
+        2,
+        3,
+        4
+      ]
+    ]
+  }
+]

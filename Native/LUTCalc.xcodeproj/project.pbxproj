@@ -1,0 +1,546 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2D61855F2C3A642DD49A423F /* LUTCalcIOSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2DCE3F329CAEFCD204AD02 /* LUTCalcIOSUITests.swift */; };
+		3DF859C8FF903F912C330461 /* LUTSharedUI in Frameworks */ = {isa = PBXBuildFile; productRef = C5AB83F56FCD1A5F60056A64 /* LUTSharedUI */; };
+		60E950E02D9D74745EA97B0E /* LUTSharedUI in Frameworks */ = {isa = PBXBuildFile; productRef = A8D1D42521931AC508B667CD /* LUTSharedUI */; };
+		B451BFF900D394AB62381967 /* LUTCalcMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECB59F0FDED420A8EFC4E81 /* LUTCalcMacApp.swift */; };
+		FCB9729B1A85DD8DF6019E6A /* LUTCalcIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4055071F49D6FD95330310A /* LUTCalcIOSApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3F19940A9E0619DF5BE6DF66 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 72DA27F4624699CAA7C11B23 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E1A0352D5A14BF0B8862F89;
+			remoteInfo = LUTCalcIOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0B0B5192F489C106D481CFC9 /* LUTCalcMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LUTCalcMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0ECB59F0FDED420A8EFC4E81 /* LUTCalcMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LUTCalcMacApp.swift; sourceTree = "<group>"; };
+		117E469DEA725AED7FD5F55B /* LUTCalcIOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LUTCalcIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E2DCE3F329CAEFCD204AD02 /* LUTCalcIOSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LUTCalcIOSUITests.swift; sourceTree = "<group>"; };
+		334490B2A43642939FA95E47 /* LUTCalcIOSUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LUTCalcIOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		439454A0314F4DF3A5AD3CDD /* LUTKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LUTKit; path = Packages/LUTKit; sourceTree = SOURCE_ROOT; };
+		506AA0B8B6E9B96E05F6D7F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A24D376E02158892C1DD35C6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C4055071F49D6FD95330310A /* LUTCalcIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LUTCalcIOSApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		59CC634A20B467B10905B06A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3DF859C8FF903F912C330461 /* LUTSharedUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A9C014321A29D2A13D1ABF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				60E950E02D9D74745EA97B0E /* LUTSharedUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0EB86A79CD1E8358331C7F29 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				439454A0314F4DF3A5AD3CDD /* LUTKit */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		12BD0DBB60EC2FE008BC123E /* iOSUI */ = {
+			isa = PBXGroup;
+			children = (
+				1E2DCE3F329CAEFCD204AD02 /* LUTCalcIOSUITests.swift */,
+			);
+			path = iOSUI;
+			sourceTree = "<group>";
+		};
+		36789E354F1E15FFB2790D97 /* Apps */ = {
+			isa = PBXGroup;
+			children = (
+				DFA611B5991FD24A03B723A8 /* iOS */,
+				7281D3B4FA95FD43C805830F /* macOS */,
+			);
+			path = Apps;
+			sourceTree = "<group>";
+		};
+		65067631315C5CC74C3E0C59 = {
+			isa = PBXGroup;
+			children = (
+				36789E354F1E15FFB2790D97 /* Apps */,
+				0EB86A79CD1E8358331C7F29 /* Packages */,
+				C8C038078CB5C2E6A89C2274 /* Tests */,
+				9CAD14B979A64B2EE88B37D9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7281D3B4FA95FD43C805830F /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+				506AA0B8B6E9B96E05F6D7F1 /* Info.plist */,
+				0ECB59F0FDED420A8EFC4E81 /* LUTCalcMacApp.swift */,
+			);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+		9CAD14B979A64B2EE88B37D9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				117E469DEA725AED7FD5F55B /* LUTCalcIOS.app */,
+				334490B2A43642939FA95E47 /* LUTCalcIOSUITests.xctest */,
+				0B0B5192F489C106D481CFC9 /* LUTCalcMac.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C8C038078CB5C2E6A89C2274 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				12BD0DBB60EC2FE008BC123E /* iOSUI */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		DFA611B5991FD24A03B723A8 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				A24D376E02158892C1DD35C6 /* Info.plist */,
+				C4055071F49D6FD95330310A /* LUTCalcIOSApp.swift */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7E1A0352D5A14BF0B8862F89 /* LUTCalcIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 003CB2B352B2519C516B5462 /* Build configuration list for PBXNativeTarget "LUTCalcIOS" */;
+			buildPhases = (
+				FE26FD007AAEB4FD88A8C334 /* Sources */,
+				D1A9C014321A29D2A13D1ABF /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LUTCalcIOS;
+			packageProductDependencies = (
+				A8D1D42521931AC508B667CD /* LUTSharedUI */,
+			);
+			productName = LUTCalcIOS;
+			productReference = 117E469DEA725AED7FD5F55B /* LUTCalcIOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DC8CED8D2D329C225E8D6D44 /* LUTCalcIOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EED7173438708958A0F862E8 /* Build configuration list for PBXNativeTarget "LUTCalcIOSUITests" */;
+			buildPhases = (
+				63C3BBEE6F03B45D9553E4B8 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				60CA090FD045175B76823BAB /* PBXTargetDependency */,
+			);
+			name = LUTCalcIOSUITests;
+			packageProductDependencies = (
+			);
+			productName = LUTCalcIOSUITests;
+			productReference = 334490B2A43642939FA95E47 /* LUTCalcIOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		E064F612127DD362843BD9F9 /* LUTCalcMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1059C4E55993E7632D1075A5 /* Build configuration list for PBXNativeTarget "LUTCalcMac" */;
+			buildPhases = (
+				E92589221239C7851ED718AE /* Sources */,
+				59CC634A20B467B10905B06A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LUTCalcMac;
+			packageProductDependencies = (
+				C5AB83F56FCD1A5F60056A64 /* LUTSharedUI */,
+			);
+			productName = LUTCalcMac;
+			productReference = 0B0B5192F489C106D481CFC9 /* LUTCalcMac.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		72DA27F4624699CAA7C11B23 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					DC8CED8D2D329C225E8D6D44 = {
+						TestTargetID = 7E1A0352D5A14BF0B8862F89;
+					};
+				};
+			};
+			buildConfigurationList = 541477B41590075B8FAB4520 /* Build configuration list for PBXProject "LUTCalc" */;
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = 65067631315C5CC74C3E0C59;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7F3EA337081DF14A4118137B /* XCLocalSwiftPackageReference "Packages/LUTKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 9CAD14B979A64B2EE88B37D9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E064F612127DD362843BD9F9 /* LUTCalcMac */,
+				7E1A0352D5A14BF0B8862F89 /* LUTCalcIOS */,
+				DC8CED8D2D329C225E8D6D44 /* LUTCalcIOSUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		63C3BBEE6F03B45D9553E4B8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2D61855F2C3A642DD49A423F /* LUTCalcIOSUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E92589221239C7851ED718AE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B451BFF900D394AB62381967 /* LUTCalcMacApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FE26FD007AAEB4FD88A8C334 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCB9729B1A85DD8DF6019E6A /* LUTCalcIOSApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		60CA090FD045175B76823BAB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7E1A0352D5A14BF0B8862F89 /* LUTCalcIOS */;
+			targetProxy = 3F19940A9E0619DF5BE6DF66 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2F0FCAEDB115402EAE170AC4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Apps/macOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.lutcalc.native.dev.mac;
+				SDKROOT = macosx;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		39EDA9311558985D8DFAB9B4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		7136FBE457C3BD79E0F345AD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Apps/iOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.lutcalc.native.dev.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		83B725A759206E186D5F9618 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.lutcalc.native.dev.ios.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = LUTCalcIOS;
+			};
+			name = Debug;
+		};
+		8C64FC23C1944347A5DC317E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Apps/macOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.lutcalc.native.dev.mac;
+				SDKROOT = macosx;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		CE7FCEAE57232AE906D5EF2A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Apps/iOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.lutcalc.native.dev.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		EC72B9F1D84CF55D8C9D4058 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		FC47BE9C4BF37BCDDEDCC9FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.lutcalc.native.dev.ios.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = LUTCalcIOS;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		003CB2B352B2519C516B5462 /* Build configuration list for PBXNativeTarget "LUTCalcIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE7FCEAE57232AE906D5EF2A /* Debug */,
+				7136FBE457C3BD79E0F345AD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1059C4E55993E7632D1075A5 /* Build configuration list for PBXNativeTarget "LUTCalcMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8C64FC23C1944347A5DC317E /* Debug */,
+				2F0FCAEDB115402EAE170AC4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		541477B41590075B8FAB4520 /* Build configuration list for PBXProject "LUTCalc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				39EDA9311558985D8DFAB9B4 /* Debug */,
+				EC72B9F1D84CF55D8C9D4058 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EED7173438708958A0F862E8 /* Build configuration list for PBXNativeTarget "LUTCalcIOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83B725A759206E186D5F9618 /* Debug */,
+				FC47BE9C4BF37BCDDEDCC9FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		7F3EA337081DF14A4118137B /* XCLocalSwiftPackageReference "Packages/LUTKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/LUTKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A8D1D42521931AC508B667CD /* LUTSharedUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LUTSharedUI;
+		};
+		C5AB83F56FCD1A5F60056A64 /* LUTSharedUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LUTSharedUI;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 72DA27F4624699CAA7C11B23 /* Project object */;
+}

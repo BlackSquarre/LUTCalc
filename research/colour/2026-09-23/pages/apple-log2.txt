@@ -1,0 +1,35 @@
+<!--
+{
+  "availability" : [
+    "iOS: 26.0.0 -",
+    "iPadOS: 26.0.0 -",
+    "macCatalyst: 26.0.0 -",
+    "tvOS: 26.0.0 -"
+  ],
+  "documentType" : "symbol",
+  "framework" : "AVFoundation",
+  "identifier" : "/documentation/AVFoundation/AVCaptureColorSpace/appleLog2",
+  "metadataVersion" : "0.1.0",
+  "role" : "Case",
+  "symbol" : {
+    "kind" : "Case",
+    "modules" : [
+      "AVFoundation"
+    ],
+    "preciseIdentifier" : "c:@E@AVCaptureColorSpace@AVCaptureColorSpace_AppleLog2"
+  },
+  "title" : "AVCaptureColorSpace.appleLog2"
+}
+-->
+
+# AVCaptureColorSpace.appleLog2
+
+The Apple Log 2 Color space, which uses Apple Gamut as the color primaries, and an Apple defined Log curve as a transfer function. When you set this as the active color space on an [`AVCaptureDevice`](/documentation/AVFoundation/AVCaptureDevice), any [`AVCapturePhotoOutput`](/documentation/AVFoundation/AVCapturePhotoOutput) or [`AVCaptureStillImageOutput`](/documentation/AVFoundation/AVCaptureStillImageOutput) connected to the same [`AVCaptureDevice`](/documentation/AVFoundation/AVCaptureDevice) is made inactive (its [`isActive`](/documentation/AVFoundation/AVCaptureConnection/isActive) property returns `false`).
+
+```
+case appleLog2
+```
+
+---
+
+Copyright &copy; 2026 Apple Inc. All rights reserved. | [Terms of Use](https://www.apple.com/legal/internet-services/terms/site.html) | [Privacy Policy](https://www.apple.com/privacy/privacy-policy)

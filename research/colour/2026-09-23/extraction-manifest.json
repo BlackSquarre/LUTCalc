@@ -1,0 +1,254 @@
+[
+  {
+    "parent_id": "fuji-flog2c-ctl",
+    "parent_sha256": "faa1bf80deb38c926ec5f9c25879d78ec9c265f4e7437698c935b450f51c0491",
+    "member": "FUJIFILM_IDT_F-Log2C_Ver.1.10.ctl",
+    "path": "extracted/fuji-flog2c-ctl/00-FUJIFILM_IDT_F-Log2C_Ver.1.10.ctl",
+    "bytes": 994,
+    "sha256": "876b1ac1619191ad77325ea72c7018c4e3e22933412fcf569d60732099610f41",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "fuji-flog2c-clf",
+    "parent_sha256": "8d10b19e8d98e0a7e137498543a852fdcf547d9ff9508e123c004fea357d0440",
+    "member": "FUJIFILM_IDT_F-Log2C_Ver.1.10.clf",
+    "path": "extracted/fuji-flog2c-clf/00-FUJIFILM_IDT_F-Log2C_Ver.1.10.clf",
+    "bytes": 781,
+    "sha256": "475fea9c9f1e5dd6c88247d4dc41dd8e36074f5e813f40c3054943ce5c1ea022",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "xiaomi-aces",
+    "parent_sha256": "cb0767a690c4b916f7c848dbc9cb56149765cf1c0615a781250edd5cc1ba6e8d",
+    "member": "Mi-Log_ACES Profiles/Mi-Log_Whitepaper.pdf",
+    "path": "extracted/xiaomi-aces/02-Mi-Log_Whitepaper.pdf",
+    "bytes": 129543,
+    "sha256": "d80d9a237e7602d5896092bb8e935095dd5d9d6fd46aca60a57470846d92c340",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "xiaomi-aces",
+    "parent_sha256": "cb0767a690c4b916f7c848dbc9cb56149765cf1c0615a781250edd5cc1ba6e8d",
+    "member": "Mi-Log_ACES Profiles/Mi-Log_to_ACES_AP0.dctl",
+    "path": "extracted/xiaomi-aces/06-Mi-Log_to_ACES_AP0.dctl",
+    "bytes": 3210,
+    "sha256": "00103d1f7c5de33a4d0cf1d81bc02dd12d2f068457bf947c37498e78a0ef9ea2",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "xiaomi-aces",
+    "parent_sha256": "cb0767a690c4b916f7c848dbc9cb56149765cf1c0615a781250edd5cc1ba6e8d",
+    "member": "Mi-Log_ACES Profiles/Recommended_ACES_Workflow_for_Mi_Log.pdf",
+    "path": "extracted/xiaomi-aces/08-Recommended_ACES_Workflow_for_Mi_Log.pdf",
+    "bytes": 10551843,
+    "sha256": "e81d8c57c446e9f44683c57a5630fb7380a7a3c09842ff33e9bc11793718c1cb",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "xiaomi-aces",
+    "parent_sha256": "cb0767a690c4b916f7c848dbc9cb56149765cf1c0615a781250edd5cc1ba6e8d",
+    "member": "Mi-Log_ACES Profiles/Mi-LogTo709_3DLUT.cube",
+    "path": "extracted/xiaomi-aces/10-Mi-LogTo709_3DLUT.cube",
+    "bytes": 4341052,
+    "sha256": "35c610b97de85666c184a7fd5a7315ce5c4d28644262d7a761b4a07c4fde4069",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "om-log400-2020",
+    "parent_sha256": "60b4204f5daff1e10075b54a51067589dc3182f4e328b3473f29e022b864e586",
+    "member": "om1m2_LUT_OM-Log400_BT.2020_to_WDR_BT.709_v1.0/OMSYSTEM_Datasheet.pdf",
+    "path": "extracted/om-log400-2020/00-OMSYSTEM_Datasheet.pdf",
+    "bytes": 197839,
+    "sha256": "514f4951efd1e729a07a1e5bd3b308db7bdda347f39082056006c923d276417b",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "om-log400-2020",
+    "parent_sha256": "60b4204f5daff1e10075b54a51067589dc3182f4e328b3473f29e022b864e586",
+    "member": "om1m2_LUT_OM-Log400_BT.2020_to_WDR_BT.709_v1.0/OMSYSTEM_OM-Log400_BT.2020_to_WDR_BT.709_v1.0.cube",
+    "path": "extracted/om-log400-2020/01-OMSYSTEM_OM-Log400_BT.2020_to_WDR_BT.709_v1.0.cube",
+    "bytes": 1006424,
+    "sha256": "f698abc43999857c4a4c31335a6adb3ba4872a83c6fc14c7f9a70770f643edba",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "om-log400-p3",
+    "parent_sha256": "9ff8b5dfbec404df7a69a34292cfe5200c962a17355da5ce595ab58a2511c342",
+    "member": "om1m2_LUT_OM-Log400_P3-D65_to_WDR_BT.709_v1.0/OMSYSTEM_Datasheet.pdf",
+    "path": "extracted/om-log400-p3/00-OMSYSTEM_Datasheet.pdf",
+    "bytes": 197839,
+    "sha256": "514f4951efd1e729a07a1e5bd3b308db7bdda347f39082056006c923d276417b",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "om-log400-p3",
+    "parent_sha256": "9ff8b5dfbec404df7a69a34292cfe5200c962a17355da5ce595ab58a2511c342",
+    "member": "om1m2_LUT_OM-Log400_P3-D65_to_WDR_BT.709_v1.0/OMSYSTEM_OM-Log400_P3-D65_to_WDR_BT.709_v1.0.cube",
+    "path": "extracted/om-log400-p3/01-OMSYSTEM_OM-Log400_P3-D65_to_WDR_BT.709_v1.0.cube",
+    "bytes": 1006423,
+    "sha256": "2276aad388d3fd446cb26404d0f6e6b0548d7463312b9093eb3f3051850ba4b2",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog2-aces",
+    "parent_sha256": "1adacca9b160d7b743dd170a55e5dc07ac48a47ce92fefe45a853d848dc06a7a",
+    "member": "O-Log2_ACES_Workflow_Guide_CHN_V2/O-Log2_to_ACES_AP0_V2.dctl",
+    "path": "extracted/oppo-olog2-aces/01-O-Log2_to_ACES_AP0_V2.dctl",
+    "bytes": 3011,
+    "sha256": "0830625fec1bcc21eceed249bf7054eed69d92d2ff258d570997e17c6eae7281",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog2-aces",
+    "parent_sha256": "1adacca9b160d7b743dd170a55e5dc07ac48a47ce92fefe45a853d848dc06a7a",
+    "member": "O-Log2_ACES_Workflow_Guide_CHN_V2/ACESµÄ¿ΦìÉσñäτÉåµ╡üτ¿ï_O-Log2.pdf",
+    "path": "extracted/oppo-olog2-aces/04-ACES___________________O-Log2.pdf",
+    "bytes": 3261224,
+    "sha256": "2329e69f20ba7502f1b4df5e7ab5230cf96316b29be5e50f38a79b0f08fbcffe",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog2-aces",
+    "parent_sha256": "1adacca9b160d7b743dd170a55e5dc07ac48a47ce92fefe45a853d848dc06a7a",
+    "member": "O-Log2_ACES_Workflow_Guide_CHN_V2/Recommended ACES Workflow for O-Log2.pdf",
+    "path": "extracted/oppo-olog2-aces/06-Recommended_ACES_Workflow_for_O-Log2.pdf",
+    "bytes": 3244098,
+    "sha256": "3d371e11b9af5a826064b839f1526bef932c5de3ad7ac8df144485f76870ef64",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog2-aces",
+    "parent_sha256": "1adacca9b160d7b743dd170a55e5dc07ac48a47ce92fefe45a853d848dc06a7a",
+    "member": "O-Log2_ACES_Workflow_Guide_CHN_V2/O-Log2_to_ACES_AP0_V2.ctl",
+    "path": "extracted/oppo-olog2-aces/07-O-Log2_to_ACES_AP0_V2.ctl",
+    "bytes": 1432,
+    "sha256": "4373d3c4f0bfaf5a5a82e412a8dac6ac33a50dbfa5bf87a4449208ba0b000365",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog2-tools",
+    "parent_sha256": "a7417fbfe77116263fc7c8c81265dd3bf09c0425b891b2744e7ee33f0ebe565f",
+    "member": "O-Log2-technical-transform-tools_v1/O-Log2-to-Rec2020_PQ1000_65.cube",
+    "path": "extracted/oppo-olog2-tools/03-O-Log2-to-Rec2020_PQ1000_65.cube",
+    "bytes": 7035691,
+    "sha256": "bca5058e8773cebc69701200c7d25d8254e657fdaef31f40d4fae93c5208258c",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog2-tools",
+    "parent_sha256": "a7417fbfe77116263fc7c8c81265dd3bf09c0425b891b2744e7ee33f0ebe565f",
+    "member": "O-Log2-technical-transform-tools_v1/O-Log2-to-Rec2020_HLG-D65_65.cube",
+    "path": "extracted/oppo-olog2-tools/04-O-Log2-to-Rec2020_HLG-D65_65.cube",
+    "bytes": 7101970,
+    "sha256": "bfcdf09e5b37eef9950ce0b2f3be021462ff7f89a701d2d81413ea7a86818e62",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog2-tools",
+    "parent_sha256": "a7417fbfe77116263fc7c8c81265dd3bf09c0425b891b2744e7ee33f0ebe565f",
+    "member": "O-Log2-technical-transform-tools_v1/O-Log2-to-Rec709_Gamma24-D65_65.cube",
+    "path": "extracted/oppo-olog2-tools/06-O-Log2-to-Rec709_Gamma24-D65_65.cube",
+    "bytes": 5081625,
+    "sha256": "6eedce48b68c0fbb6b21f6d20227844309cd033c21b0013e5420e1d1a3fef58d",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog-tools",
+    "parent_sha256": "d6ffb3a009e2672a7bdb55afe8009765c9e9dd5f6b9a84ddc81f31c2cc966e13",
+    "member": "O-Log-technical-transform-tools_v0/O-Log-Rec.709 Gamma2.4_v1.6.cube",
+    "path": "extracted/oppo-olog-tools/04-O-Log-Rec.709_Gamma2.4_v1.6.cube",
+    "bytes": 7801351,
+    "sha256": "c839ac0ac4a794548fcefb141a2be8f36aec42c56b02697a1b7e4c0952221203",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "oppo-olog-tools",
+    "parent_sha256": "d6ffb3a009e2672a7bdb55afe8009765c9e9dd5f6b9a84ddc81f31c2cc966e13",
+    "member": "O-Log-technical-transform-tools_v0/O-Log-Rec.2020 PQ1000_v1.6.cube",
+    "path": "extracted/oppo-olog-tools/06-O-Log-Rec.2020_PQ1000_v1.6.cube",
+    "bytes": 7574774,
+    "sha256": "128aa131b369adaa370b9cd555fbfbf3949325bf4c79a084962cc03860b38fc0",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivoLog_to_ACES_AP0.dctle",
+    "path": "extracted/vivo-aces/03-vivoLog_to_ACES_AP0.dctle",
+    "bytes": 2144,
+    "sha256": "fcd2b8a1a9f5cb3155dff0c10e3d74b8586706a693c83e4d7a537ec4e279a840",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivo-Log-ACES Workflow Guide.pdf",
+    "path": "extracted/vivo-aces/05-vivo-Log-ACES_Workflow_Guide.pdf",
+    "bytes": 9129870,
+    "sha256": "8cd994b4bfc0575933eb36b8138408a1db326d976f2359a4edfeb442f3ad952e",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivoLogtoRec709.cube",
+    "path": "extracted/vivo-aces/09-vivoLogtoRec709.cube",
+    "bytes": 9337292,
+    "sha256": "c7afba0ea849ea6e78cafcad2a16f7b2a578a89d0dd54a84a1db4b57ef41a36c",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivoLog_LUTs/Porcelain.cube",
+    "path": "extracted/vivo-aces/11-Porcelain.cube",
+    "bytes": 511305,
+    "sha256": "000f0f3ffa2d2d530cf8601407795e4c075b045ce4423fb024fd70daa0745978",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivoLog_LUTs/Classic Film.cube",
+    "path": "extracted/vivo-aces/13-Classic_Film.cube",
+    "bytes": 900179,
+    "sha256": "108f65b0d15b1c3b6ec616c26c31317c7d3126d16edc457bab0331c354342000",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivoLog_LUTs/Sunlit.cube",
+    "path": "extracted/vivo-aces/15-Sunlit.cube",
+    "bytes": 755684,
+    "sha256": "a0141e3d1fa2ce9bbc4717d15abd50b558f4728ff8c2996c7622f72279216ecc",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivoLog_LUTs/Refined.cube",
+    "path": "extracted/vivo-aces/17-Refined.cube",
+    "bytes": 547793,
+    "sha256": "82195cd462df1fc664172e925626a498831c4323ac769032acd87a705a6b9e47",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivoLog_LUTs/Positive.cube",
+    "path": "extracted/vivo-aces/19-Positive.cube",
+    "bytes": 695399,
+    "sha256": "184a2fe34948ffd7f8951bd13ece6c7fb8d236ac3a4267972bb5916b89389577",
+    "runtime_allowed": false
+  },
+  {
+    "parent_id": "vivo-aces",
+    "parent_sha256": "de733f06b738c37a237e08ec6783fb55722174c3b56834343cc98942241272a4",
+    "member": "vivo-Log_ACES_Profiles/vivoLog_LUTs/Negative.cube",
+    "path": "extracted/vivo-aces/21-Negative.cube",
+    "bytes": 700988,
+    "sha256": "16c0e95b740dd750c770fa0a202a1fea119ba2db7352660174da2e6e426545a8",
+    "runtime_allowed": false
+  }
+]

@@ -1,0 +1,101 @@
+{
+  "date": "2026-09-23",
+  "checked_files": 71,
+  "cube_checks": [
+    {
+      "path": "official-luts/honor-log-v1.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "official-luts/honor-log-v2.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/xiaomi-aces/10-Mi-LogTo709_3DLUT.cube",
+      "rows": 274625,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/om-log400-2020/01-OMSYSTEM_OM-Log400_BT.2020_to_WDR_BT.709_v1.0.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/om-log400-p3/01-OMSYSTEM_OM-Log400_P3-D65_to_WDR_BT.709_v1.0.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/oppo-olog2-tools/03-O-Log2-to-Rec2020_PQ1000_65.cube",
+      "rows": 274625,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/oppo-olog2-tools/04-O-Log2-to-Rec2020_HLG-D65_65.cube",
+      "rows": 274625,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/oppo-olog2-tools/06-O-Log2-to-Rec709_Gamma24-D65_65.cube",
+      "rows": 274625,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/oppo-olog-tools/04-O-Log-Rec.709_Gamma2.4_v1.6.cube",
+      "rows": 274625,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/oppo-olog-tools/06-O-Log-Rec.2020_PQ1000_v1.6.cube",
+      "rows": 274625,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/vivo-aces/09-vivoLogtoRec709.cube",
+      "rows": 274625,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/vivo-aces/11-Porcelain.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/vivo-aces/13-Classic_Film.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/vivo-aces/15-Sunlit.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/vivo-aces/17-Refined.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/vivo-aces/19-Positive.cube",
+      "rows": 35937,
+      "status": "passed"
+    },
+    {
+      "path": "extracted/vivo-aces/21-Negative.cube",
+      "rows": 35937,
+      "status": "passed"
+    }
+  ],
+  "unavailable": [
+    "leica-llog-v1.6",
+    "zcam-page",
+    "samsung-pdf",
+    "samsung-linear",
+    "samsung-rec709",
+    "sony-workflow"
+  ],
+  "scope": "检查下载与解包完整性、文件签名、LUT 尺寸/有限数值；不证明颜色算法准确或参考资料互相一致。",
+  "status": "passed"
+}

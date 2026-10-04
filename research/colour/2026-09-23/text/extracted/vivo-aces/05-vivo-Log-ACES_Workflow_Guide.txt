@@ -1,0 +1,108 @@
+                                                vivo Log × ACES
+                                          Color Grading Workﬂow Guide
+
+
+
+
+A step-by-step technical guide to integra;ng vivo Log footage into an ACES-compliant color management workﬂow
+— from camera input to ﬁnal deliverable.
+
+The Academy Color Encoding System (ACES) is the global standard for color management across mo;on picture,
+television, and commercial produc;on. Developed by the Academy of Mo;on Picture Arts and Sciences in
+collabora;on with leading cinematographers and color scien;sts, ACES provides a uniﬁed framework that
+preserves crea;ve intent at every stage — from principal photography through editorial, visual eﬀects, mastering,
+theatrical exhibi;on, and long-term archival.
+By anchoring all color decisions to a single, device-independent reference, ACES eliminates the guesswork of cross-
+plaLorm consistency: what you grade is what the audience sees, regardless of the display technology or delivery
+format.
+
+vivo Log is oﬃcially ACES-cer;ﬁed. Having passed the Academy's rigorous technical review, vivo Log footage
+integrates seamlessly into any ACES pipeline and matches eﬀortlessly with professional camera systems and
+broadcast standards worldwide.
+
+
+
+
+1 : Loading the vivo DCTL File
+Install the vivo Input Transform before beginning any color work.
+This is a one-;me setup per worksta;on.
+
+STEP 1.1
+    1. Launch DaVinci Resolve. In the lower-right corner of the interface, click the Project SeVngs icon to open
+         the project conﬁgura;on panel.
+    2. Navigate to the Color Management sec;on. From there, select Open LUT Folder. This reveals the directory
+         on your system where Resolve stores all LUTs and DCTL ﬁles.
+STEP 1.2
+    • Create a DCTL folder and install the transform ﬁle
+    • Inside the LUT folder, create a new subfolder named DCTL.
+    • Place the vivo DCTL ﬁle (vivoLog_to_ACES_AP0.DCTLE) into this folder.
+    • Fully quit and relaunch DaVinci Resolve to allow the applica;on to register the newly installed DCTL.
+    The transform will now appear in the Eﬀects Library and remain available for all future projects.
+2: ACES Color Workﬂow
+A three-node pipeline that takes vivo Log footage through ACES-compliant color management, from camera
+encoding to Rec.709 output.
+
+
+
+
+The workﬂow described here uses DaVinci Resolve's Color Tab.
+Each node in the pipeline performs a precise color space transforma;on — follow the sequence carefully to ensure
+mathema;cally correct results at every stage.
+
+              Node 1                       Node 2                      Grade                      Node 3
+         DCTL Transform                ACES Transform             Crea7ve Grade               Output Transform
+      vivo Log → Linear AP0     No Input Transform→ ACEScct    Work in AP1 LOG Space        ACES CCT → Rec. 709
+
+
+
+
+STEP 2.1
+
+Import vivo Log footage and prepare the node structure
+Import your HEVC-encoded vivo Log clip into DaVinci Resolve and add it to a ;meline. Open the Color page and,
+with the clip selected in the viewer, build your node structure. You will need at least three serial nodes for this
+pipeline.
+
+
+
+
+STEP 2.2 : Apply the DCTL Eﬀect
+    •   In the Eﬀects Library, locate the DCTL plugin and drag it onto the ﬁrst node.
+    •   From the DCTL dropdown, select vivoLog_to_ACES_AP0.
+
+This opera;on decodes the vivo Log gamma curve and wide-gamut primaries, mathema;cally conver;ng the signal
+into ACES linear AP0 — the scene-referred reference color space that sits at the heart of the ACES ecosystem.
+
+PREREQUISITE : The DCTL ﬁle must be installed before this step. If vivoLog_to_ACES_AP0 does not appear in the
+dropdown, complete the installa;on steps in Sec>on 2 and relaunch Resolve.
+
+
+
+
+STEP 2.3
+
+Apply the ACES Transform on Node 2 — linear AP0 to ACEScct
+From the Eﬀects Library, drag the ACES Transform plugin onto the second node and conﬁgure it as follows:
+
+    •   ACES Version: No version restric;ons
+    •   Input Transform: No Input Transform
+    •   Output Transform: ACEScct-CSC
+
+This converts the scene-linear AP0 color space into the ACEScct logarithmic AP1 color space — a perceptually
+weighted working space designed for intui;ve intui;ve grading with familiar tools.
+
+All primary color correc;ons, curves, and secondaries should be performed in this space on subsequent nodes.
+
+
+
+STEP 2.4 : Conver;ng to Rec.709
+Once all crea;ve grading decisions are complete, add a ﬁnal ACES Transform plugin to the third node and conﬁgure
+it for output:
+
+    •   ACES Version: No version restric;ons
+    •   Input Transform: ACEScct-CSC
+    •   Output Transform: Rec.709 or Rec.709 BT.1886
+
+This applies the ACES Reference Rendering Transform (RRT) and the Rec.709 Output Display Transform (ODT),
+conver;ng the graded AP1 signal into Rec.709 color space for expor;ng the video.
+

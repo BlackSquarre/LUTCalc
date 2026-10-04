@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ProcessList compCLFversion="3.0" id="F-Log2CtoAP0">
+    <Description>F-Log2C to ACES AP0</Description>
+    <InputDescriptor>F-Log2C</InputDescriptor>
+    <OutputDescriptor>ACES2065-1</OutputDescriptor>
+    <Log inBitDepth="32f" outBitDepth="32f" style="cameraLogToLin">
+        <LogParams base="10" linSideSlope="5.555556" linSideOffset="0.064829" logSideSlope="0.245281" logSideOffset="0.384316" linSideBreak="0.000889" />
+    </Log>
+    <Matrix inBitDepth="32f" outBitDepth="32f">
+        <Array dim="3 3">
+      0.84089501562825  0.02752756409115  0.13157742028060
+      0.00092026357010  1.00739011387088 -0.00831037744099
+     -0.00055982840886 -0.00077644453594  1.00133627294480
+        </Array>
+    </Matrix>
+    
+</ProcessList>
+

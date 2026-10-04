@@ -1,0 +1,6 @@
+TITLE "扩展域"
+LUT_1D_SIZE 2
+DOMAIN_MIN -1 -2 -3
+DOMAIN_MAX 2 3 4
+-1e-3 +0.5 .25
+2 3 4

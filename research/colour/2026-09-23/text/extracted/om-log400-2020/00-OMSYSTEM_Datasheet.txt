@@ -1,0 +1,51 @@
+Datasheet
+
+   Camera      ： OM-1 MarkII
+
+
+
+   Code Value     ：
+      Codec   Picture Mode      Input reflection (%)        IRE (%)      8bit Code Value
+                                               0                0                 16
+      H.264    Flat                          18                47                118
+                                             90                84                200
+                                               0                0                 16
+               OM-Log400                     18                38                 99
+                                             90                72                174
+
+      Codec    Picture Mode     Input reflection (%)        IRE (%)      10bit Code Value
+                                               0                0                 64
+      H.265    OM-Log400                     18                38                397
+                                             90                72                694
+
+
+
+   Proper exposure condition      ：
+      - example of proper exposure settings for the same object -
+      Codec    Picture Mode    Aperture      Shutter speed      ISO   ND filter
+      H.264    Natural            F4.0          1/60s           200   0 stop
+               Flat               F4.0          1/60s           200   0 stop
+               OM-Log400          F4.0          1/60s           400   1 stop
+      H.265    OM-Log400          F4.0          1/60s           400   1 stop
+
+
+
+   Color Gamut        ：
+      Codec    Picture Mode    Gamut
+      H.264    Flat            BT.709
+               OM-Log400       P3-D65
+      H.265    OM-Log400       BT.2020
+
+
+
+   3D-LUT for Color Grading      ：
+      Codec    Picture Mode    LUT
+      H.264    Flat            OMSYSTEM_Flat_BT.709_to_SDR_BT.709_v1.0.cube
+               OM-Log400       OMSYSTEM_OM-Log400_P3-D65_to_WDR_BT.709_v1.0.cube
+      H.265    OM-Log400       OMSYSTEM_OM-Log400_BT.2020_to_WDR_BT.709_v1.0.cube
+
+
+
+
+© 2024 OM Digital Solutions Corporation
+

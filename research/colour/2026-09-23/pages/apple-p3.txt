@@ -1,0 +1,43 @@
+<!--
+{
+  "availability" : [
+    "iOS: 9.3.0 -",
+    "iPadOS: 9.3.0 -",
+    "macCatalyst: 13.1.0 -",
+    "macOS: 10.11.2 -",
+    "tvOS: 9.2.0 -",
+    "visionOS: 1.0.0 -",
+    "watchOS: 2.2.0 -"
+  ],
+  "documentType" : "symbol",
+  "framework" : "CoreGraphics",
+  "identifier" : "/documentation/CoreGraphics/CGColorSpace/displayP3",
+  "metadataVersion" : "0.1.0",
+  "role" : "Type Property",
+  "symbol" : {
+    "kind" : "Type Property",
+    "modules" : [
+      "Core Graphics",
+      "CoreGraphics"
+    ],
+    "preciseIdentifier" : "c:@kCGColorSpaceDisplayP3"
+  },
+  "title" : "displayP3"
+}
+-->
+
+# displayP3
+
+The Display P3 color space, created by Apple.
+
+```
+class let displayP3: CFString
+```
+
+## Discussion
+
+This color space uses the DCI P3 primaries, a D65 white point, and the sRGB transfer function.
+
+---
+
+Copyright &copy; 2026 Apple Inc. All rights reserved. | [Terms of Use](https://www.apple.com/legal/internet-services/terms/site.html) | [Privacy Policy](https://www.apple.com/privacy/privacy-policy)

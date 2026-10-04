@@ -1,0 +1,62 @@
+[
+  {
+    "repo": "colour-science/colour",
+    "commit": "ae8d53efdc91bced3fc57aa6a461b3ebc678ddf5",
+    "url": "https://raw.githubusercontent.com/colour-science/colour/ae8d53efdc91bced3fc57aa6a461b3ebc678ddf5/colour/models/rgb/transfer_functions/nikon_n_log.py",
+    "path": "colour-nikon-nlog.py",
+    "bytes": 5603,
+    "sha256": "0d84dafbd4b99a3fd1cbc15e51d19ac606e9efb8c68fa157c7d786d2399ffef8",
+    "retrieved_at_utc": "2026-10-03T20:58:57.123608+00:00",
+    "runtime_allowed": false
+  },
+  {
+    "repo": "colour-science/colour",
+    "commit": "ae8d53efdc91bced3fc57aa6a461b3ebc678ddf5",
+    "url": "https://raw.githubusercontent.com/colour-science/colour/ae8d53efdc91bced3fc57aa6a461b3ebc678ddf5/colour/models/rgb/transfer_functions/cineon.py",
+    "path": "colour-cineon.py",
+    "bytes": 3892,
+    "sha256": "251714056a6af568858e841bdce3f373589c3dbc07a81a02456d816129f0f3b8",
+    "retrieved_at_utc": "2026-10-03T20:58:58.286270+00:00",
+    "runtime_allowed": false
+  },
+  {
+    "repo": "imageworks/OpenColorIO-Configs",
+    "commit": "c0ff0e96574e823606a81e62e3867d9d8ba238db",
+    "url": "https://raw.githubusercontent.com/imageworks/OpenColorIO-Configs/c0ff0e96574e823606a81e62e3867d9d8ba238db/nuke-default/make.py",
+    "path": "ocio-nuke-default-make.py",
+    "bytes": 14792,
+    "sha256": "bec3b433728e32510d4605bc47e922b4f3f23cc6817c3a244da78f7da80d1fac",
+    "retrieved_at_utc": "2026-10-03T20:58:59.564384+00:00",
+    "runtime_allowed": false
+  },
+  {
+    "repo": "colour-science/colour",
+    "url": "https://raw.githubusercontent.com/colour-science/colour/ae8d53efdc91bced3fc57aa6a461b3ebc678ddf5/colour/models/rgb/transfer_functions/sony.py",
+    "path": "colour-sony.py",
+    "bytes": 14029,
+    "sha256": "da93c0ff6fa43f4164edddcddb298be16f86911254a53ab87d401c7fb0255fa9",
+    "retrieved_at_utc": "2026-10-03T21:30:08.451588+00:00",
+    "runtime_allowed": false,
+    "commit": "ae8d53efdc91bced3fc57aa6a461b3ebc678ddf5"
+  },
+  {
+    "repo": "ampas/aces-dev",
+    "url": "https://raw.githubusercontent.com/ampas/aces-dev/710ecbe52c87ce9f4a1e02c8ddf7ea0d6b611cc8/transforms/ctl/idt/vendorSupplied/sony/IDT.Sony.SLog2_SGamut_Daylight_10i.ctl",
+    "path": "sony-aces/IDT.Sony.SLog2_SGamut_Daylight_10i.ctl",
+    "bytes": 1824,
+    "sha256": "4fece8ec849755ac5242aa64ed6be0efa1adf0ac0c1015c20ad0a314ff1204aa",
+    "retrieved_at_utc": "2026-10-03T21:30:08.451821+00:00",
+    "runtime_allowed": false,
+    "commit": "710ecbe52c87ce9f4a1e02c8ddf7ea0d6b611cc8"
+  },
+  {
+    "repo": "ampas/aces-dev",
+    "url": "https://raw.githubusercontent.com/ampas/aces-dev/710ecbe52c87ce9f4a1e02c8ddf7ea0d6b611cc8/transforms/ctl/idt/vendorSupplied/sony/IDT.Sony.SLog2_SGamut_Daylight_12i.ctl",
+    "path": "sony-aces/IDT.Sony.SLog2_SGamut_Daylight_12i.ctl",
+    "bytes": 1827,
+    "sha256": "f7be3d7788671b6a2f1ed28854ce17983bd76be4d2b3b4a0d43bc0420e72e22f",
+    "retrieved_at_utc": "2026-10-03T21:30:08.451877+00:00",
+    "runtime_allowed": false,
+    "commit": "710ecbe52c87ce9f4a1e02c8ddf7ea0d6b611cc8"
+  }
+]

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>LUTCalc Project</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.lutcalc.project</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+		</dict>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+				<string>public.content</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>LUTCalc 项目</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.lutcalc.project</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>lutcalc</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>CUBE LUT</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.lutcalc.cube</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>cube</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>SPI3D LUT</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.lutcalc.spi3d</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+				<string>spi3d</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
+			<key>UTTypeDescription</key><string>SPI1D LUT</string>
+			<key>UTTypeIdentifier</key><string>com.lutcalc.spi1d</string>
+			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>spi1d</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
+			<key>UTTypeDescription</key><string>3DL LUT</string>
+			<key>UTTypeIdentifier</key><string>com.lutcalc.3dl</string>
+			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>3dl</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
+			<key>UTTypeDescription</key><string>ILUT</string>
+			<key>UTTypeIdentifier</key><string>com.lutcalc.ilut</string>
+			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>ilut</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
+			<key>UTTypeDescription</key><string>OLUT</string>
+			<key>UTTypeIdentifier</key><string>com.lutcalc.olut</string>
+			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>olut</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
+			<key>UTTypeDescription</key><string>Assimilate LUT</string>
+			<key>UTTypeIdentifier</key><string>com.lutcalc.lut</string>
+			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>lut</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key><array><string>public.data</string></array>
+			<key>UTTypeDescription</key><string>VLT LUT</string>
+			<key>UTTypeIdentifier</key><string>com.lutcalc.vlt</string>
+			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>vlt</string></array></dict>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,14 @@
+'use strict';
+const fs = require('node:fs'), vm = require('node:vm'), path = require('node:path'), crypto = require('node:crypto');
+const root = path.resolve(__dirname, '../..');
+const source = fs.readFileSync(path.join(root, 'js/gamma.js'), 'utf8');
+const context = vm.createContext({ Float64Array, Float32Array, Uint8Array, ArrayBuffer });
+vm.runInContext(source, context, { filename: 'gamma.js' });
+const params = [0.1144737, -0.010630486, 0.344676, 0.5000004, 10, 0.790453, 0.009468, 0.100537775, 0.000988889];
+const curve = new context.LUTGammaLog('Fujifilm F-Log', params);
+const values = [-0.1, -0.010630486, 0, 0.000988889 - 1e-15, 0.000988889, 0.000988889 + 1e-15, 0.05, 0.18, 0.2, 0.5, 1, 4];
+const apply = (x, method) => { const a = new Float64Array([x]); curve[method](a.buffer); return { input: x, output: String(a[0]) }; };
+const output = { precision: 64, source: 'js/gamma.js:LUTGammaLog Fujifilm F-Log', sourceSHA256: crypto.createHash('sha256').update(source).digest('hex'), params: params.map(String), encode: values.map(x => apply(x, 'linToD')), decode: [0, 0.100537775 - 1e-15, 0.100537775, 0.100537775 + 1e-15, 0.2, 0.5, 0.790453, 1].map(x => apply(x, 'linFromD')) };
+const target = path.join(root, 'tests/fixtures/native-contracts/flog-legacy-reference.json');
+fs.writeFileSync(target, JSON.stringify(output, null, 2) + '\n');
+console.log(JSON.stringify({path: target, sourceSHA256: output.sourceSHA256}));
