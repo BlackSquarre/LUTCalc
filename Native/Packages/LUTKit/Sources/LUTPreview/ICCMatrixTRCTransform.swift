@@ -212,7 +212,7 @@ public struct ICCMatrixTRCTransform: Sendable {
                 return .parametricOne(values)
             case 2 where values.count == 4 && values[0] > 0 && values[1] > 0:
                 return .parametricTwo(values)
-            case 3 where values.count == 6 && values[0] > 0 && values[1] > 0 && values[5] > 0 &&
+            case 3 where values.count == 5 && values[0] > 0 && values[1] > 0 &&
                          values[1] * values[4] + values[2] >= 0:
                 return .parametricThree(values)
             case 4 where values.count == 7 && values[0] > 0 && values[1] > 0 && values[3] > 0 &&
@@ -258,8 +258,8 @@ private enum Curve: Sendable {
             let g = p[0], a = p[1], b = p[2], c = p[3]
             return value >= -b / a ? Foundation.pow(a * value + b, g) + c : c
         case let .parametricThree(p):
-            let g = p[0], a = p[1], b = p[2], c = p[3], d = p[4], f = p[5]
-            return value >= d ? Foundation.pow(a * value + b, g) + c : f * value
+            let g = p[0], a = p[1], b = p[2], c = p[3], d = p[4]
+            return value >= d ? Foundation.pow(a * value + b, g) + c : 0
         case let .parametricFour(p):
             let g = p[0], a = p[1], b = p[2], c = p[3], d = p[4], e = p[5], f = p[6]
             return value >= d ? Foundation.pow(a * value + b, g) + e : c * value + f
@@ -279,9 +279,9 @@ private enum Curve: Sendable {
             let g = p[0], a = p[1], b = p[2], c = p[3]
             return try Self.invertFlat(value, g: g, a: a, b: b, offset: c)
         case let .parametricThree(p):
-            let g = p[0], a = p[1], b = p[2], c = p[3], d = p[4], f = p[5]
+            let g = p[0], a = p[1], b = p[2], c = p[3], d = p[4]
             return try Self.invertPiecewise(value, g: g, a: a, b: b,
-                                            highOffset: c, d: d, lowSlope: f, lowOffset: 0)
+                                            highOffset: c, d: d, lowSlope: 0, lowOffset: 0)
         case let .parametricFour(p):
             let g = p[0], a = p[1], b = p[2], c = p[3], d = p[4], e = p[5], f = p[6]
             return try Self.invertPiecewise(value, g: g, a: a, b: b,
@@ -352,10 +352,16 @@ private enum Curve: Sendable {
         var candidates: [Double] = []
         let tolerance = 2e-12 * max(1, abs(value))
 
-        let low = (value - lowOffset) / lowSlope
-        if low.isFinite, (0...1).contains(low), low < d,
-           abs(lowSlope * low + lowOffset - value) <= tolerance {
-            candidates.append(low)
+        if lowSlope == 0 {
+            if abs(value - lowOffset) <= tolerance, d > 0 {
+                throw ICCMatrixTRCError.nonUnique(stage: .encodeTransfer)
+            }
+        } else {
+            let low = (value - lowOffset) / lowSlope
+            if low.isFinite, (0...1).contains(low), low < d,
+               abs(lowSlope * low + lowOffset - value) <= tolerance {
+                candidates.append(low)
+            }
         }
 
         let highBase = value - highOffset

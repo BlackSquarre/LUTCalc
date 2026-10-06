@@ -51,7 +51,8 @@ final class FLog2ContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 1
         )
         let plan = try TransformPlan(settings: settings)
-        XCTAssertEqual(plan.planVersion, "minimal-flog2-v1")
+        XCTAssertEqual(plan.planVersion,
+                       "minimal-flog2-v1:fujifilm.flog2.v1:linear.scene.v1:inSpace:fujifilm.fgamut.v1:outSpace:fujifilm.fgamut.v1")
         let output = try plan.evaluate(RGB64(0.092864, 0.39100724189123005, 0.5))
         XCTAssertEqual(output.r, 0, accuracy: tolerance)
         XCTAssertEqual(output.g, 0.36, accuracy: tolerance)
@@ -65,7 +66,8 @@ final class FLog2ContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 0
         )
         let plan = try TransformPlan(settings: settings)
-        XCTAssertEqual(plan.planVersion, "minimal-flog2c-v1")
+        XCTAssertEqual(plan.planVersion,
+                       "minimal-flog2c-v1:fujifilm.flog2.v1:linear.scene.v1:inSpace:fujifilm.fgamut-c.v1:outSpace:aces.ap0.v1")
         let output = try plan.evaluate(RGB64(0.39100724189123005, 0.39100724189123005, 0.39100724189123005))
         XCTAssertTrue(output.r.isFinite && output.g.isFinite && output.b.isFinite)
         XCTAssertNotEqual(output.r, output.g)
@@ -121,10 +123,66 @@ final class FLog2ContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 1
         )
         let plan = try TransformPlan(settings: settings)
-        XCTAssertEqual(plan.planVersion, "minimal-flog2-legacy-v1")
+        XCTAssertEqual(plan.planVersion,
+                       "minimal-flog2-legacy-v1:fujifilm.flog2.lutcalc-legacy.v1:linear.scene.v1:inSpace:fujifilm.fgamut.v1:outSpace:fujifilm.fgamut.v1")
         let output = try plan.evaluate(RGB64(0.09286400228842304, 0.39100724189123004, 0.5))
         XCTAssertEqual(output.r, 0, accuracy: tolerance)
         XCTAssertEqual(output.g, 0.36, accuracy: tolerance)
         XCTAssertEqual(output.b, 1.0431130809720578, accuracy: tolerance)
+    }
+
+    func testFLog2PlanIdentityIncludesDirectionTransfersAndBothColorSpaces() throws {
+        func plan(inputTransfer: TransferID, outputTransfer: TransferID,
+                  inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> TransformPlan {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: inputTransfer, outputTransfer: outputTransfer,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            ))
+        }
+
+        let forward = try plan(inputTransfer: .fujifilmFLog2, outputTransfer: .linearScene,
+                               inputSpace: .fujifilmFGamut, outputSpace: .acesAP0)
+        let reverse = try plan(inputTransfer: .linearScene, outputTransfer: .fujifilmFLog2,
+                               inputSpace: .acesAP0, outputSpace: .fujifilmFGamut)
+        XCTAssertNotEqual(forward.planVersion, reverse.planVersion)
+        for id in [TransferID.fujifilmFLog2.rawValue, TransferID.linearScene.rawValue,
+                   ColorSpaceID.fujifilmFGamut.rawValue, ColorSpaceID.acesAP0.rawValue] {
+            XCTAssertTrue(forward.planVersion.contains(id))
+            XCTAssertTrue(reverse.planVersion.contains(id))
+        }
+    }
+
+    func testFLog2LegacyPlanIdentityIncludesDirectionTransfersAndBothColorSpaces() throws {
+        let forward = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .fujifilmFLog2LUTCalcLegacy, outputTransfer: .linearScene,
+            inputSpace: .fujifilmFGamut, outputSpace: .acesAP0,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        let reverse = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .linearScene, outputTransfer: .fujifilmFLog2LUTCalcLegacy,
+            inputSpace: .acesAP0, outputSpace: .fujifilmFGamut,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        XCTAssertNotEqual(forward.planVersion, reverse.planVersion)
+        for id in [TransferID.fujifilmFLog2LUTCalcLegacy.rawValue, TransferID.linearScene.rawValue,
+                   ColorSpaceID.fujifilmFGamut.rawValue, ColorSpaceID.acesAP0.rawValue] {
+            XCTAssertTrue(forward.planVersion.contains(id))
+            XCTAssertTrue(reverse.planVersion.contains(id))
+        }
+    }
+
+    func testFLog2CPlanIdentityIncludesBothGamutDirections() throws {
+        func plan(inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> TransformPlan {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: .fujifilmFLog2, outputTransfer: .fujifilmFLog2,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            ))
+        }
+
+        let inputC = try plan(inputSpace: .fujifilmFGamutC, outputSpace: .fujifilmFGamut)
+        let outputC = try plan(inputSpace: .fujifilmFGamut, outputSpace: .fujifilmFGamutC)
+        XCTAssertNotEqual(inputC.planVersion, outputC.planVersion)
+        XCTAssertTrue(inputC.planVersion.contains(":inSpace:" + ColorSpaceID.fujifilmFGamutC.rawValue))
+        XCTAssertTrue(outputC.planVersion.contains(":outSpace:" + ColorSpaceID.fujifilmFGamutC.rawValue))
     }
 }

@@ -49,4 +49,17 @@ final class MonotonicAnalysisContractsTests: XCTestCase {
         let curve = try MonotonicCurve1D(values: [0.5, 0.5, 0.5], domain: 0...1)
         XCTAssertEqual(curve.inverse(0.5).status, .nonUnique)
     }
+
+    func testStrictCurveUsesIndependentLinearReferenceOnNonUnitDomain() throws {
+        let curve = try MonotonicCurve1D(values: [10, 20, 40], domain: -2...4)
+
+        // The samples are uniformly spaced at -2, 1, and 4.  At x = 2.5,
+        // the second segment's independent linear reference is 30.
+        XCTAssertEqual(try curve.evaluate(2.5), 30, accuracy: 1e-15)
+
+        let inverse = curve.inverse(30)
+        XCTAssertEqual(inverse.status, .converged)
+        XCTAssertEqual(inverse.value!, 2.5, accuracy: 2e-12)
+        XCTAssertLessThanOrEqual(inverse.residual!, 2e-12)
+    }
 }

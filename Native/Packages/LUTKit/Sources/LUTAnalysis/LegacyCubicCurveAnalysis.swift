@@ -279,11 +279,34 @@ private func derivativeCriticalPoints(_ segment: LegacyCubicSegment) -> [Double]
         }
         return result
     }
-    let discriminant = qb * qb - 4 * qa * qc
-    guard discriminant >= 0, discriminant.isFinite else { return result }
+    let rawDiscriminant = qb * qb - 4 * qa * qc
+    let discriminant: Double
+    let scaledA: Double
+    let scaledB: Double
+    let scaledC: Double
+    if rawDiscriminant.isFinite {
+        guard rawDiscriminant >= 0 else { return result }
+        discriminant = rawDiscriminant
+        scaledA = qa
+        scaledB = qb
+        scaledC = qc
+    } else {
+        // The coefficients themselves are finite, but the unscaled
+        // discriminant can overflow. Normalize before solving so a finite
+        // derivative root is not silently discarded.
+        let scale = max(abs(segment.a), max(abs(segment.b), abs(segment.c)))
+        guard scale.isFinite, scale > 0 else { return result }
+        scaledA = qa / scale
+        scaledB = qb / scale
+        scaledC = qc / scale
+        let scaledDiscriminant = scaledB * scaledB - 4 * scaledA * scaledC
+        guard scaledDiscriminant >= 0, scaledDiscriminant.isFinite else { return result }
+        discriminant = scaledDiscriminant
+    }
     let root = sqrt(discriminant)
-    let denominator = 2 * qa
-    for candidate in [(-qb - root) / denominator, (-qb + root) / denominator]
+    let denominator = 2 * scaledA
+    guard denominator != 0, denominator.isFinite else { return result }
+    for candidate in [(-scaledB - root) / denominator, (-scaledB + root) / denominator]
         where candidate > 0 && candidate < 1 && candidate.isFinite {
         if !result.contains(candidate) { result.append(candidate) }
     }

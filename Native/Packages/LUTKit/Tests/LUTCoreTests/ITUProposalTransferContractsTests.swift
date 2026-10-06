@@ -58,6 +58,20 @@ final class ITUProposalTransferContractsTests: XCTestCase {
         }
     }
 
+    func testPlanIdentityIncludesDirectionalColorSpaces() throws {
+        let base = TransformSettings(
+            inputTransfer: .ituProposal400, outputTransfer: .linearScene,
+            inputSpace: .rec2020, outputSpace: .rec2020,
+            inputRange: .data, outputRange: .data, exposureStops: 0)
+        let alternateInput = base.withInput(transfer: .ituProposal400, space: .srgb)
+        let alternateOutput = base.withOutput(transfer: .linearScene, space: .srgb)
+        let baseline = try TransformPlan(settings: base).planVersion
+        XCTAssertNotEqual(baseline, try TransformPlan(settings: alternateInput).planVersion)
+        XCTAssertNotEqual(baseline, try TransformPlan(settings: alternateOutput).planVersion)
+        XCTAssertTrue(baseline.contains(":inSpace:" + ColorSpaceID.rec2020.rawValue))
+        XCTAssertTrue(baseline.contains(":outSpace:" + ColorSpaceID.rec2020.rawValue))
+    }
+
     func testNonFiniteInputsAreRejected() throws {
         for transfer in [ITUProposalTransfer.percent400, .percent800] {
             for value in [Double.nan, Double.infinity, -Double.infinity] {

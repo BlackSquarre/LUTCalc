@@ -48,13 +48,50 @@ final class ConventionalGammaContractsTests: XCTestCase {
                 inputRange: .data, outputRange: .data, exposureStops: 0
             )
             let plan = try TransformPlan(settings: settings)
-            XCTAssertEqual(plan.planVersion, "legacy-conventional-gamma-v1+" + OutputCodeUnitPolicy.completeV2.rawValue)
+            XCTAssertEqual(plan.planVersion,
+                           "legacy-conventional-gamma-v2:\(id.rawValue):\(id.rawValue):inSpace:srgb.d65.v1:outSpace:srgb.d65.v1+" + OutputCodeUnitPolicy.completeV2.rawValue)
             let input = try RGB64(0.05, 0.45531089682619447, 0.92)
             let output = try plan.evaluate(input)
             XCTAssertEqual(output.r, input.r, accuracy: 3e-14, "(id) red")
             XCTAssertEqual(output.g, input.g, accuracy: 3e-14, "(id) green")
             XCTAssertEqual(output.b, input.b, accuracy: 3e-14, "(id) blue")
         }
+    }
+
+    func testGamma22AndGamma24HaveDistinctDirectionalPlanIdentities() throws {
+        func plan(_ input: TransferID, _ output: TransferID) throws -> TransformPlan {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: input, outputTransfer: output,
+                inputSpace: .srgb, outputSpace: .srgb,
+                inputRange: .data, outputRange: .data, exposureStops: 0))
+        }
+        let decode22 = try plan(.gamma22, .linearScene)
+        let decode24 = try plan(.gamma24, .linearScene)
+        let identity22 = try plan(.gamma22, .gamma22)
+        let identity24 = try plan(.gamma24, .gamma24)
+        let encode22 = try plan(.linearScene, .gamma22)
+        let encode24 = try plan(.linearScene, .gamma24)
+        XCTAssertNotEqual(decode22.planVersion, decode24.planVersion)
+        XCTAssertNotEqual(identity22.planVersion, identity24.planVersion)
+        XCTAssertNotEqual(encode22.planVersion, encode24.planVersion)
+        XCTAssertNotEqual(decode22.planVersion, encode22.planVersion)
+
+        let input = try RGB64(0.4, 0.4, 0.4)
+        XCTAssertNotEqual(try decode22.evaluate(input).r, try decode24.evaluate(input).r)
+        XCTAssertNotEqual(try encode22.evaluate(input).r, try encode24.evaluate(input).r)
+    }
+
+    func testConventionalGammaPlanIdentityIncludesBothColorSpaces() throws {
+        func plan(inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: .gamma22, outputTransfer: .gamma22,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            )).planVersion
+        }
+        let baseline = try plan(inputSpace: .srgb, outputSpace: .srgb)
+        XCTAssertNotEqual(baseline, try plan(inputSpace: .acesAP0, outputSpace: .srgb))
+        XCTAssertNotEqual(baseline, try plan(inputSpace: .srgb, outputSpace: .acesAP0))
     }
 
     func testNonFiniteAndNonGammaInputsAreRejected() throws {

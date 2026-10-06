@@ -17,6 +17,47 @@ public enum ImportedLUTAnalysisError: Error, Equatable, Sendable {
     case reconstructionEmptyReference
     case reconstructionNonFiniteReference
     case reconstructionOutsideDomain
+    case invalidInverseLimit
+}
+
+public enum CombinedShaperColourInverseStatus: Equatable, Sendable {
+    case unique
+    case multiple
+    case noSolution
+    case unresolved
+    case nonFinite
+}
+
+public struct CombinedShaperColourInverseSolution: Equatable, Sendable {
+    public let input: RGB64
+    public let shapedInput: RGB64
+    public let residual: Double
+
+    public init(input: RGB64, shapedInput: RGB64, residual: Double) {
+        self.input = input
+        self.shapedInput = shapedInput
+        self.residual = residual
+    }
+}
+
+public struct CombinedShaperColourInverseReport: Equatable, Sendable {
+    public let status: CombinedShaperColourInverseStatus
+    public let solutions: [CombinedShaperColourInverseSolution]
+    public let unresolvedColourCellCount: Int
+    public let unresolvedShaperChannelCount: Int
+    public let isGloballyComplete: Bool
+
+    public init(status: CombinedShaperColourInverseStatus,
+                solutions: [CombinedShaperColourInverseSolution],
+                unresolvedColourCellCount: Int,
+                unresolvedShaperChannelCount: Int,
+                isGloballyComplete: Bool) {
+        self.status = status
+        self.solutions = solutions
+        self.unresolvedColourCellCount = unresolvedColourCellCount
+        self.unresolvedShaperChannelCount = unresolvedShaperChannelCount
+        self.isGloballyComplete = isGloballyComplete
+    }
 }
 
 /// Residuals from an explicitly requested transfer-then-colour reconstruction.
@@ -383,6 +424,15 @@ public enum ImportedLUTAnalyzer {
         value.r.isFinite && value.g.isFinite && value.b.isFinite
     }
 
+    private static func sameInput(_ left: RGB64, _ right: RGB64) -> Bool {
+        let scale = max(1, abs(left.r), abs(left.g), abs(left.b),
+                        abs(right.r), abs(right.g), abs(right.b))
+        let limit = 64 * Double.ulpOfOne * scale
+        return abs(left.r - right.r) <= limit
+            && abs(left.g - right.g) <= limit
+            && abs(left.b - right.b) <= limit
+    }
+
     public static func analyze(lut: CubeLUT,
                                analysisFile: LUTAnalysisFile?) throws -> ImportedLUTAnalysisReport {
         let transferLUT = analysisFile?.transferLUT ?? (lut.dimension == .one ? lut : nil)
@@ -499,6 +549,216 @@ public enum ImportedLUTAnalyzer {
         return try Trilinear3DInverse.analyze(output, in: lut,
                                                tolerance: tolerance,
                                                maxBoxes: maxBoxes)
+    }
+
+    /// Conservatively diagnoses the legacy tensor-product cubic inverse. The
+    /// result is accepted only after replaying the same production sampler;
+    /// unresolved cells remain explicit instead of being treated as no root.
+    public static func diagnoseTricubicColourInverse(
+        lut: CubeLUT,
+        output: RGB64,
+        interpolation: LUTInterpolation = .tricubicLegacyV1,
+        tolerance: Double = 2e-12,
+        maxCells: Int = 100_000
+    ) throws -> Tricubic3DInverseReport {
+        guard interpolation == .tricubicLegacyV1 else {
+            throw ImportedLUTAnalysisError.unsupportedInverseInterpolation
+        }
+        return try Tricubic3DInverse.analyze(output, in: lut,
+                                              tolerance: tolerance,
+                                              maxCells: maxCells)
+    }
+
+    /// Diagnoses the explicit composition `shaper -> colour LUT`. The colour
+    /// section is inverted first, then every certified scalar shaper root is
+    /// combined and replayed through the complete production sampler. This is
+    /// a diagnostic only: unresolved colour cells or shaper branches remain
+    /// visible and no root is inferred from an arbitrary LUT.
+    public static func diagnoseCombinedShaperColourInverse(
+        lut: CubeLUT,
+        output: RGB64,
+        colourInterpolation: LUTInterpolation = .tricubicLegacyV1,
+        shaperInterpolation: LUTInterpolation = .tricubicLegacyV1,
+        tolerance: Double = 2e-12,
+        maxCells: Int = 100_000,
+        maxSolutions: Int = 100_000
+    ) throws -> CombinedShaperColourInverseReport {
+        guard lut.dimension == .three, lut.shaper != nil else {
+            throw ImportedLUTAnalysisError.noShaperLUT
+        }
+        guard tolerance.isFinite, tolerance >= 0,
+              maxCells > 0, maxSolutions > 0 else {
+            throw ImportedLUTAnalysisError.invalidInverseLimit
+        }
+        guard output.r.isFinite, output.g.isFinite, output.b.isFinite else {
+            return CombinedShaperColourInverseReport(status: .nonFinite,
+                                                      solutions: [],
+                                                      unresolvedColourCellCount: 0,
+                                                      unresolvedShaperChannelCount: 0,
+                                                      isGloballyComplete: false)
+        }
+        guard colourInterpolation == .trilinear || colourInterpolation == .tetrahedral
+                || colourInterpolation == .tricubicLegacyV1,
+              shaperInterpolation == .trilinear || shaperInterpolation == .tricubicLegacyV1 else {
+            throw ImportedLUTAnalysisError.unsupportedInverseInterpolation
+        }
+
+        // Invert the colour section without passing the shaper twice. The
+        // original LUT remains untouched for the final production replay.
+        let colourLUT = try CubeLUT(dimension: .three, size: lut.size,
+                                    domain: lut.domain, samples: lut.samples)
+        let colourStatus: CombinedShaperColourInverseStatus
+        let colourSolutions: [(RGB64, Double)]
+        let unresolvedColour: Int
+        switch colourInterpolation {
+        case .trilinear:
+            let report = try Trilinear3DInverse.analyze(output, in: colourLUT,
+                                                        tolerance: tolerance,
+                                                        maxBoxes: maxCells)
+            colourStatus = combinedStatus(report.status)
+            colourSolutions = report.solutions.map { ($0.input, $0.residual) }
+            unresolvedColour = report.unresolvedBoxCount
+        case .tetrahedral:
+            let report = try Tetrahedral3DInverse.analyze(output, in: colourLUT,
+                                                          tolerance: tolerance,
+                                                          maxTetrahedra: maxCells)
+            colourStatus = combinedStatus(report.status)
+            colourSolutions = report.solutions.map { ($0.input, $0.residual) }
+            unresolvedColour = report.unresolvedTetrahedronCount
+        case .tricubicLegacyV1:
+            let report = try Tricubic3DInverse.analyze(output, in: colourLUT,
+                                                       tolerance: tolerance,
+                                                       maxCells: maxCells)
+            colourStatus = combinedStatus(report.status)
+            colourSolutions = report.solutions.map { ($0.input, $0.residual) }
+            unresolvedColour = report.unresolvedCellCount
+        }
+
+        let shaper = lut.shaper!
+        let curves = try (0..<3).map { channel in
+            try LegacyCubicCurve1D(values: shaper.samples.map { $0[channel] },
+                                    lower: shaper.domain.min[channel],
+                                    upper: shaper.domain.max[channel])
+        }
+        var unresolvedShaper = 0
+        var solutions: [CombinedShaperColourInverseSolution] = []
+        for (shapedInput, _) in colourSolutions {
+            try Task.checkCancellation()
+            let roots = try curves.enumerated().map { index, curve in
+                try Task.checkCancellation()
+                return try scalarShaperRoots(curve: curve, target: shapedInput[index],
+                                             interpolation: shaperInterpolation,
+                                             tolerance: tolerance,
+                                             unresolved: &unresolvedShaper)
+            }
+            guard roots.allSatisfy({ !$0.isEmpty }) else { continue }
+            for r in roots[0] {
+                try Task.checkCancellation()
+                for g in roots[1] {
+                    try Task.checkCancellation()
+                    for b in roots[2] {
+                        try Task.checkCancellation()
+                        let input = try RGB64(r, g, b)
+                        guard let replay = try? lut.sample(input,
+                                                          interpolation: colourInterpolation,
+                                                          outside: .reject) else { continue }
+                        let residual = max(abs(replay.r - output.r),
+                                           abs(replay.g - output.g),
+                                           abs(replay.b - output.b))
+                        let scale = max(1, abs(output.r), abs(output.g), abs(output.b))
+                        guard residual.isFinite, residual <= tolerance * scale else { continue }
+                        if !solutions.contains(where: { sameInput($0.input, input) }) {
+                            if solutions.count >= maxSolutions {
+                                throw ImportedLUTAnalysisError.invalidInverseLimit
+                            }
+                            solutions.append(CombinedShaperColourInverseSolution(
+                                input: input, shapedInput: shapedInput, residual: residual))
+                        }
+                    }
+                }
+            }
+        }
+        solutions.sort {
+            if $0.input.r != $1.input.r { return $0.input.r < $1.input.r }
+            if $0.input.g != $1.input.g { return $0.input.g < $1.input.g }
+            return $0.input.b < $1.input.b
+        }
+        let status: CombinedShaperColourInverseStatus
+        if colourStatus == .nonFinite { status = .nonFinite }
+        else if unresolvedColour > 0 || unresolvedShaper > 0 { status = .unresolved }
+        else if solutions.count > 1 { status = .multiple }
+        else if solutions.count == 1 { status = .unique }
+        else { status = .noSolution }
+        return CombinedShaperColourInverseReport(status: status,
+                                                 solutions: solutions,
+                                                 unresolvedColourCellCount: unresolvedColour,
+                                                 unresolvedShaperChannelCount: unresolvedShaper,
+                                                 isGloballyComplete: unresolvedColour == 0 && unresolvedShaper == 0)
+    }
+
+    private static func combinedStatus(_ status: Tricubic3DInverseStatus)
+        -> CombinedShaperColourInverseStatus {
+        switch status {
+        case .unique: return .unique
+        case .multiple: return .multiple
+        case .noSolution: return .noSolution
+        case .unresolved: return .unresolved
+        case .nonFinite: return .nonFinite
+        }
+    }
+
+    private static func combinedStatus(_ status: Trilinear3DInverseStatus)
+        -> CombinedShaperColourInverseStatus {
+        switch status {
+        case .unique: return .unique
+        case .multiple: return .multiple
+        case .noSolution: return .noSolution
+        case .unresolved: return .unresolved
+        case .nonFinite: return .nonFinite
+        }
+    }
+
+    private static func combinedStatus(_ status: Tetrahedral3DInverseStatus)
+        -> CombinedShaperColourInverseStatus {
+        switch status {
+        case .unique: return .unique
+        case .multiple: return .multiple
+        case .noSolution: return .noSolution
+        case .unresolved: return .unresolved
+        case .nonFinite: return .nonFinite
+        }
+    }
+
+    private static func scalarShaperRoots(curve: LegacyCubicCurve1D,
+                                          target: Double,
+                                          interpolation: LUTInterpolation,
+                                          tolerance: Double,
+                                          unresolved: inout Int) throws -> [Double] {
+        if interpolation == .tricubicLegacyV1 {
+            let results = curve.allInverseRoots(target,
+                                                tolerance: SolveTolerance(
+                                                    fAbsolute: tolerance,
+                                                    fRelative: tolerance))
+            let roots = results.compactMap { $0.status == .converged ? $0.value : nil }
+            if results.contains(where: { $0.status == .nonUnique }) { unresolved += 1 }
+            if roots.isEmpty && results.contains(where: {
+                $0.status != .notBracketed && $0.status != .converged
+            }) { unresolved += 1 }
+            return roots
+        }
+        do {
+            let monotonic = try MonotonicCurve1D(values: curve.values,
+                                                  domain: curve.lower...curve.upper)
+            let result = monotonic.inverse(target)
+            guard result.status == .converged, let value = result.value else {
+                if result.status != .notBracketed { unresolved += 1 }
+                return []
+            }
+            return [value]
+        } catch Curve1DError.notMonotonic {
+            unresolved += 1
+            return []
+        }
     }
 
     /// Reports each independent 1D shaper channel without traversing the

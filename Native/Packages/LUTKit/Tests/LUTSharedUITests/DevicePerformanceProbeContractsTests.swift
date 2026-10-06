@@ -8,7 +8,7 @@ final class DevicePerformanceProbeContractsTests: XCTestCase {
 
         XCTAssertEqual(result.schema, "native.device-performance.v1")
         XCTAssertEqual(result.planVersion,
-                       "minimal-linear-scene-v1:dji.dlog2.v1:linear.scene.v1")
+                       "minimal-linear-scene-v1:dji.dlog2.v1:linear.scene.v1:inSpace:dji.dgamut2.v1:outSpace:aces.ap0.v1")
         XCTAssertEqual(result.results.map(\.size), [2, 3])
         XCTAssertEqual(result.results.map(\.nodes), [8, 27])
         XCTAssertEqual(result.results.map(\.checksum), [

@@ -34,6 +34,36 @@ final class ILUTContractsTests: XCTestCase {
         XCTAssertEqual(reread.samples[16_383], samples[16_383])
     }
 
+    func testWriterMatchesIndependentHalfUpIntegerReference() throws {
+        let codes = [0, 1, 2, 8_191, 8_192, 16_382, 16_383]
+        var samples: [RGB64] = []
+        samples.reserveCapacity(ILUTParser.size)
+        for index in 0..<ILUTParser.size {
+            let code = codes[index % codes.count]
+            let value = Double(code) / Double(ILUTParser.codeMax)
+            samples.append(try RGB64(value, value, value))
+        }
+        let lut = try CubeLUT(dimension: .one, size: ILUTParser.size, domain: .unit, samples: samples)
+        let rows = try ILUTWriter.serialize(lut).split(separator: "\n")
+        for (index, row) in rows.enumerated() {
+            let expected = codes[index % codes.count]
+            XCTAssertEqual(String(row), "\(expected),\(expected),\(expected),0", "row \(index)")
+        }
+    }
+
+    func testParserAcceptsCRLFWithoutChangingIntegerReference() throws {
+        let first = "0,16383,8192,0\r\n"
+        let last = "16383,0,0,0\r\n"
+        var text = String()
+        text.reserveCapacity(16_384 * 18)
+        text += first
+        for _ in 1..<16_383 { text += "8192,8192,8192,0\r\n" }
+        text += last
+        let lut = try ILUTParser.parse(Data(text.utf8))
+        XCTAssertEqual(lut.samples.first, try RGB64(0, 1, 8192.0 / 16_383))
+        XCTAssertEqual(lut.samples.last, try RGB64(1, 0, 0))
+    }
+
     func testRejectsMalformedCodesAndRowCounts() throws {
         let cases: [(String, ILUTFailureCategory)] = [
             ("0,0,0,0\n", .rowCountMismatch),

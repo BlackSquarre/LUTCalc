@@ -73,7 +73,7 @@ import LUTSharedUI
         let requests = try flavors.map { try batch(folder, flavor: $0) }
         XCTAssertEqual(plain.fingerprint, requests[0].fingerprint)
         // Frozen from the preceding accepted checkpoint; this is a read-only request.
-        XCTAssertEqual(plain.fingerprint, "14203e2798be5c95c73957c75a3648755c152294791b449a728e04fd1a5f55f8")
+        XCTAssertEqual(plain.fingerprint, "063239c1008d6e1b01e5ba88677bcded9d767b41611381a47376fe81d557254b")
         XCTAssertEqual(Set(requests.map(\.fingerprint)).count, 3)
         XCTAssertEqual(requests.map(\.threeDLFlavor), flavors)
         for format in FileLUTFormat.allCases where format != .threeDL {
@@ -153,7 +153,7 @@ import LUTSharedUI
 
     func testSchema24RoundtripMigrationPreservesOldDiskBytesAndUndoRedo() throws {
         let catalog = try AlgorithmCatalog.builtIn()
-        XCTAssertEqual(ProjectManifest.currentSchema, 25)
+        XCTAssertEqual(ProjectManifest.currentSchema, 27)
         for flavor in flavors {
             let preset = try ExposureBatchPreset(sequence: sequence(), basename: "batch", format: .threeDL,
                 blockNodes: 127, workerCount: 4, threeDLFlavor: flavor)
@@ -177,7 +177,7 @@ import LUTSharedUI
             try FileManager.default.createDirectory(at: old, withIntermediateDirectories: true)
             let source = old.appendingPathComponent("manifest.json"); try original.write(to: source)
             let migrated = try ProjectStore.open(at: old, catalog: catalog)
-            XCTAssertEqual(migrated.schemaVersion, 25)
+            XCTAssertEqual(migrated.schemaVersion, ProjectManifest.currentSchema)
             XCTAssertEqual(migrated.exposureBatchPreset?.threeDLFlavor, .flame)
             XCTAssertEqual(migrated.algorithmVersions["exposureBatchFormat"], ThreeDLFlavor.batchAlgorithm)
             XCTAssertEqual(try Data(contentsOf: source), original)

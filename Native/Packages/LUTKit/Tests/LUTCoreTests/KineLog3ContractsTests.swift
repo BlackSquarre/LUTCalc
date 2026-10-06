@@ -41,9 +41,27 @@ final class KineLog3ContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 1
         )
         let plan = try TransformPlan(settings: settings)
-        XCTAssertEqual(plan.planVersion, "minimal-kinelog3-v1")
+        XCTAssertTrue(plan.planVersion.hasPrefix("minimal-kinelog3-v1:"))
         let encoded = try KineLog3Transfer.encodeSceneToData(0.18)
         let result = try plan.evaluate(RGB64(encoded, encoded, encoded))
         XCTAssertEqual(result.r, 0.36, accuracy: tolerance)
+    }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        func version(inputTransfer: TransferID = .kineLog3,
+                     outputTransfer: TransferID = .linearScene,
+                     inputSpace: ColorSpaceID = .kinefinityWideGamut,
+                     outputSpace: ColorSpaceID = .kinefinityWideGamut) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: inputTransfer, outputTransfer: outputTransfer,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            )).planVersion
+        }
+
+        let baseline = try version()
+        XCTAssertNotEqual(try version(inputTransfer: .linearScene, outputTransfer: .kineLog3), baseline)
+        XCTAssertNotEqual(try version(inputSpace: .rec2020), baseline)
+        XCTAssertNotEqual(try version(outputSpace: .displayP3), baseline)
     }
 }

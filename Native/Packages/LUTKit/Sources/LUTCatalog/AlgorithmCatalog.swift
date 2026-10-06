@@ -56,6 +56,25 @@ public struct AlgorithmCatalog: Sendable {
     private let spaceNames: [String: Int]
     private let presetNames: [String: Int]
 
+    /// Legacy registrations backed by sampled lookup data. These names are
+    /// kept as an audit allowlist so a future catalog change cannot silently
+    /// present an unimplemented lookup as a native formula.
+    public static let blockedLookupRegistrationNames: [String] = [
+        "DJI DLog-M", "DJI Mini 2", "s709", "Rec709 (800%)",
+        "Nikon Standard", "Nikon Neutral", "Nikon Vivid", "Nikon Monochrome",
+        "Nikon Portrait", "Nikon Landscape", "Amira709", "Alexa-X-2",
+        "LC709A", "LC709", "Sony Cine+709", "Varicam V709", "REDGamma",
+        "REDGamma2", "REDGamma3", "REDGamma4", "EOS Standard",
+        "EOS Standard (Legal)", "Canon Normal 1", "Canon Normal 2",
+        "Canon Normal 3", "Canon Normal 4", "HG3250G36 (HG1)",
+        "HG4600G30 (HG2)", "HG3259G40 (HG3)", "HG4609G33 (HG4)",
+        "HG8000G36 (HG5)", "HG8000G30 (HG6)", "HG8009G40 (HG7)",
+        "HG8009G33 (HG8)", "Cinegamma1", "Cinegamma2", "Cinegamma3",
+        "Cinegamma4", "Sony STD1", "Sony STD2 - x4.5", "Sony STD3 - x3.5",
+        "Sony STD4 - SMPTE240M", "Sony STD5 - Rec709", "Sony STD6 - x5",
+        "Canon WideDR"
+    ]
+
     public init(transfers: [TransferDescriptor], colorSpaces: [ColorSpaceDescriptor],
                 presets: [PresetDescriptor]) throws {
         var transferNames: [String: Int] = [:]
@@ -135,10 +154,22 @@ public struct AlgorithmCatalog: Sendable {
                     source: "ITU-R BT.709-6 item 1.2; js/gamma.js:LUTGammaGam Rec709 inverse threshold",
                     linearReference: .legacyGrey02,
                     validationScope: "scalar official-domain forward, old 10/12-bit decode and same-space exposure plan"),
+                TransferDescriptor(id: .gpLog2, aliases: ["GoPro GP-Log2 (base 600)"],
+                    source: GPLog2Transfer.referenceURL,
+                    linearReference: .sceneReflectance,
+                    validationScope: "normalized [0,1] base-600 scalar encode/decode only; no negative extension or camera preset"),
+                TransferDescriptor(id: .smpte240M, aliases: ["SMPTE 240M"],
+                    source: SMPTE240MTransfer.referenceURL + " SMPTE 240M OETF constants",
+                    linearReference: .sceneReflectance,
+                    validationScope: "published piecewise OETF and inverse on normalized scene values"),
                 TransferDescriptor(id: .rec2020TenBit, aliases: ["Rec.2020 10-bit"],
                     source: "ITU-R BT.2020-2, Table 3 OETF practical 10-bit values",
                     linearReference: .sceneReflectance,
                     validationScope: "BT.2020 10-bit scalar branches and same-space exposure plan"),
+                TransferDescriptor(id: .rec2020Continuous, aliases: ["Rec.2020 continuous"],
+                    source: Rec2020ContinuousTransfer.referenceURL + " Table 3 continuous OETF constants",
+                    linearReference: .sceneReflectance,
+                    validationScope: "published continuous BT.2020 OETF and inverse"),
                 TransferDescriptor(id: .rec2020TwelveBit, aliases: ["Rec.2020 12-bit"],
                     source: Rec2020TwelveBitTransfer.referenceSource,
                     linearReference: .legacyGrey02,
@@ -486,6 +517,15 @@ public struct AlgorithmCatalog: Sendable {
                 ColorSpaceDescriptor(id: .proPhoto, aliases: ["ProPhoto RGB", "ROMM RGB"],
                     source: "ITU-R BT.2380-0 §2.7 RIMM-ROMM chromaticities; js/colourspace.js ProPhoto RGB registration",
                     validationScope: "D50 primaries and analytic conversion matrix"),
+                ColorSpaceDescriptor(id: .bt601SMPTEC, aliases: ["BT.601 525 (SMPTE-C)", "SMPTE-C"],
+                    source: "ITU-R BT.2380-0 §2.2, SMPTE-C chromaticities",
+                    validationScope: "published SMPTE-C D65 primaries and analytic Double RGB-to-XYZ matrix"),
+                ColorSpaceDescriptor(id: .bt601EBU, aliases: ["BT.601 625 (EBU)", "EBU 3213"],
+                    source: "ITU-R BT.2380-0 §2.2, EBU 3213 chromaticities",
+                    validationScope: "published EBU 3213 D65 primaries and analytic Double RGB-to-XYZ matrix"),
+                ColorSpaceDescriptor(id: .smpte240M, aliases: ["SMPTE 240M"],
+                    source: "ITU-R BT.2380-0 section 2.3, SMPTE 240M chromaticities",
+                    validationScope: "published SMPTE 240M D65 primaries and analytic Double RGB-to-XYZ matrix"),
             ],
             presets: [
                 PresetDescriptor(id:"blackmagic.film-gen5-to-linear-ap0-published.v1",settings:TransformSettings(
@@ -530,6 +570,11 @@ public struct AlgorithmCatalog: Sendable {
                 )),
                 PresetDescriptor(id: "rec2020.10bit-exposure-one.v1", settings: TransformSettings(
                     inputTransfer: .rec2020TenBit, outputTransfer: .rec2020TenBit,
+                    inputSpace: .rec2020, outputSpace: .rec2020,
+                    inputRange: .data, outputRange: .data, exposureStops: 1
+                )),
+                PresetDescriptor(id: "rec2020.continuous-exposure-one.v1", settings: TransformSettings(
+                    inputTransfer: .rec2020Continuous, outputTransfer: .rec2020Continuous,
                     inputSpace: .rec2020, outputSpace: .rec2020,
                     inputRange: .data, outputRange: .data, exposureStops: 1
                 )),

@@ -39,4 +39,22 @@ final class CanonCLogContractsTests: XCTestCase {
             XCTAssertEqual(try CanonCLogTransfer.decodeDataToLegacy(point.input), try XCTUnwrap(Double(point.output)), accuracy: 2e-12)
         }
     }
+
+    func testLegacyPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        func plan(input: TransferID, output: TransferID,
+                  inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> TransformPlan {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: input, outputTransfer: output,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0))
+        }
+        let decode = try plan(input: .canonCLogLUTCalcLegacy, output: .linearScene,
+                              inputSpace: .canonCinemaGamut, outputSpace: .srgb)
+        let encode = try plan(input: .linearScene, output: .canonCLogLUTCalcLegacy,
+                              inputSpace: .srgb, outputSpace: .canonCinemaGamut)
+        let alternate = try plan(input: .canonCLogLUTCalcLegacy, output: .linearScene,
+                                 inputSpace: .displayP3, outputSpace: .srgb)
+        XCTAssertNotEqual(decode.planVersion, encode.planVersion)
+        XCTAssertNotEqual(decode.planVersion, alternate.planVersion)
+    }
 }

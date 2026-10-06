@@ -18,6 +18,9 @@ public struct Trilinear3DInverseReport: Equatable, Sendable {
     public let status: Trilinear3DInverseStatus
     public let solutions: [Trilinear3DInverseSolution]
     public let unresolvedBoxCount: Int
+    public let enumeratedBoxCount: Int
+    public let candidateBoxCount: Int
+    public let isGloballyComplete: Bool
 }
 
 public enum Trilinear3DInverseError: Error, Equatable, Sendable {
@@ -33,23 +36,62 @@ public enum Trilinear3DInverse {
     public static func analyze(_ output: RGB64, in volume: LUTVolume3D,
                                tolerance: Double = 2e-12,
                                maxBoxes: Int = 100_000) throws -> Trilinear3DInverseReport {
+        try Task.checkCancellation()
         guard tolerance.isFinite, tolerance >= 0 else { throw Trilinear3DInverseError.invalidTolerance }
         guard maxBoxes > 0 else { throw Trilinear3DInverseError.invalidMaxBoxes }
         guard output.r.isFinite, output.g.isFinite, output.b.isFinite else {
-            return Trilinear3DInverseReport(status: .nonFinite, solutions: [], unresolvedBoxCount: 0)
+            return Trilinear3DInverseReport(status: .nonFinite, solutions: [], unresolvedBoxCount: 0,
+                                            enumeratedBoxCount: 0, candidateBoxCount: 0,
+                                            isGloballyComplete: false)
         }
         let n = volume.size
-        let boxCount = (n - 1) * (n - 1) * (n - 1)
-        guard boxCount <= maxBoxes else { throw Trilinear3DInverseError.invalidMaxBoxes }
+        let boxesPerAxis = n - 1
+        let (square, squareOverflow) = boxesPerAxis.multipliedReportingOverflow(by: boxesPerAxis)
+        let (boxCount, cubeOverflow) = square.multipliedReportingOverflow(by: boxesPerAxis)
+        guard !squareOverflow, !cubeOverflow, boxCount <= maxBoxes else {
+            throw Trilinear3DInverseError.invalidMaxBoxes
+        }
         var solutions: [Trilinear3DInverseSolution] = []
         var unresolved = 0
+        var candidates = 0
         for bz in 0..<(n - 1) {
+            try Task.checkCancellation()
             for by in 0..<(n - 1) {
+                try Task.checkCancellation()
                 for bx in 0..<(n - 1) {
+                    try Task.checkCancellation()
                     let corners = corners(of: volume, x: bx, y: by, z: bz)
                     guard contains(output, in: corners, tolerance: tolerance) else { continue }
-                    let singular = singularAtCenter(corners: corners)
-                    var acceptedInBox = false
+                    candidates += 1
+                    if let affine = affineCellResult(output: output, corners: corners,
+                                                     tolerance: tolerance) {
+                        switch affine {
+                        case .singular:
+                            // A singular affine cell may contain a line or
+                            // plane of roots. It is intentionally unresolved.
+                            unresolved += 1
+                        case .noSolution:
+                            // For a nonsingular affine map, an inverse outside
+                            // the unit cell is a proof that this cell has no root.
+                            break
+                        case .solution(let q):
+                            let p = input(q, cell: [bx, by, bz], volume: volume)
+                            guard let replay = try? volume.sample(p, interpolation: .trilinear,
+                                                                  outside: .reject) else {
+                                unresolved += 1
+                                continue
+                            }
+                            let residual = replayResidual(replay, target: output)
+                            let scale = max(1, abs(output.r), abs(output.g), abs(output.b))
+                            guard residual.isFinite, residual <= tolerance * scale else {
+                                unresolved += 1
+                                continue
+                            }
+                            upsert(solution: Trilinear3DInverseSolution(input: p, residual: residual),
+                                   into: &solutions)
+                        }
+                        continue
+                    }
                     for seed in seeds {
                         if let candidate = try solve(output: output, corners: corners,
                                                      seed: seed, tolerance: tolerance),
@@ -62,17 +104,16 @@ public enum Trilinear3DInverse {
                             let residual = replayResidual(replay, target: output)
                             let scale = max(1, abs(output.r), abs(output.g), abs(output.b))
                             guard residual <= tolerance * scale else { continue }
-                            acceptedInBox = true
-                            if !solutions.contains(where: { sameInput($0.input, p) }) {
-                                solutions.append(Trilinear3DInverseSolution(input: p, residual: residual))
-                            }
+                            upsert(solution: Trilinear3DInverseSolution(input: p, residual: residual),
+                                   into: &solutions)
                         }
                     }
-                    // A box whose output bounds contain the target but yielded no
-                    // replay-validated root is not evidence of no solution: the
-                    // finite Newton seed set may have missed a root. Keep the
-                    // result conservative until a complete interval solver exists.
-                    if singular || !acceptedInBox { unresolved += 1 }
+                    // A non-affine trilinear cell has mixed terms. Newton
+                    // roots are useful diagnostics, but finite seeds do not
+                    // prove that every root was found. Keep all validated
+                    // roots while marking the cell unresolved even when a
+                    // candidate was accepted.
+                    unresolved += 1
                 }
             }
         }
@@ -87,7 +128,10 @@ public enum Trilinear3DInverse {
         else if solutions.count == 1 { status = .unique }
         else { status = .noSolution }
         return Trilinear3DInverseReport(status: status, solutions: solutions,
-                                        unresolvedBoxCount: unresolved)
+                                        unresolvedBoxCount: unresolved,
+                                        enumeratedBoxCount: boxCount,
+                                        candidateBoxCount: candidates,
+                                        isGloballyComplete: unresolved == 0)
     }
 
     public static func analyze(_ output: RGB64, in lut: CubeLUT,
@@ -126,16 +170,23 @@ public enum Trilinear3DInverse {
     }
 
     private static func jacobian(_ q: [Double], _ c: [RGB64]) -> Matrix3x3? {
-        let h = 1e-6
-        let a = q.map { max(0, $0 - h) }, b = q.map { min(1, $0 + h) }
+        guard q.count == 3 else { return nil }
+        let x = q[0], y = q[1], z = q[2]
+        let wx = [1 - x, x], wy = [1 - y, y], wz = [1 - z, z]
         var rows = [Double]()
+        rows.reserveCapacity(9)
         for channel in 0..<3 {
-            for axis in 0..<3 {
-                let denominator = b[axis] - a[axis]
-                if denominator == 0 { return nil }
-                var low = q, high = q; low[axis] = a[axis]; high[axis] = b[axis]
-                rows.append((evaluate(high, c)[channel] - evaluate(low, c)[channel]) / denominator)
+            var dx = 0.0, dy = 0.0, dz = 0.0
+            for i in 0..<8 {
+                let sx = (i & 1) == 0 ? -1.0 : 1.0
+                let sy = ((i >> 1) & 1) == 0 ? -1.0 : 1.0
+                let sz = ((i >> 2) & 1) == 0 ? -1.0 : 1.0
+                let value = c[i][channel]
+                dx += value * sx * wy[(i >> 1) & 1] * wz[(i >> 2) & 1]
+                dy += value * sy * wx[i & 1] * wz[(i >> 2) & 1]
+                dz += value * sz * wx[i & 1] * wy[(i >> 1) & 1]
             }
+            rows.append(contentsOf: [dx, dy, dz])
         }
         return try? Matrix3x3(rowMajor: rows)
     }
@@ -155,9 +206,67 @@ public enum Trilinear3DInverse {
         return nil
     }
 
-    private static func singularAtCenter(corners: [RGB64]) -> Bool {
-        guard let matrix = jacobian([0.5, 0.5, 0.5], corners) else { return true }
-        return (try? matrix.inverted()) == nil
+    private enum AffineCellResult {
+        case singular
+        case noSolution
+        case solution([Double])
+    }
+
+    /// Returns nil when the trilinear cell has a genuine mixed term. When all
+    /// mixed terms vanish within the requested numeric tolerance, the cell is
+    /// certified as affine and can be classified exhaustively by one matrix
+    /// solve. A singular affine map remains unresolved because its root set
+    /// can be a line, plane, or the full cell.
+    private static func affineCellResult(output: RGB64, corners c: [RGB64],
+                                         tolerance: Double) -> AffineCellResult? {
+        let mixed: [RGB64] = [
+            try! RGB64(c[3].r - c[2].r - c[1].r + c[0].r,
+                       c[3].g - c[2].g - c[1].g + c[0].g,
+                       c[3].b - c[2].b - c[1].b + c[0].b),
+            try! RGB64(c[5].r - c[4].r - c[1].r + c[0].r,
+                       c[5].g - c[4].g - c[1].g + c[0].g,
+                       c[5].b - c[4].b - c[1].b + c[0].b),
+            try! RGB64(c[6].r - c[4].r - c[2].r + c[0].r,
+                       c[6].g - c[4].g - c[2].g + c[0].g,
+                       c[6].b - c[4].b - c[2].b + c[0].b),
+            try! RGB64(c[7].r - c[6].r - c[5].r - c[3].r + c[4].r + c[2].r + c[1].r - c[0].r,
+                       c[7].g - c[6].g - c[5].g - c[3].g + c[4].g + c[2].g + c[1].g - c[0].g,
+                       c[7].b - c[6].b - c[5].b - c[3].b + c[4].b + c[2].b + c[1].b - c[0].b)
+        ]
+        // An approximate affine classification cannot certify no-solution:
+        // even a sub-tolerance mixed term may create a boundary root outside
+        // the affine approximation's unit parallelepiped. Only exact zero
+        // mixed terms permit exhaustive affine classification; other cells
+        // remain on the conservative Newton/unresolved path.
+        guard mixed.allSatisfy({ $0.r == 0 && $0.g == 0 && $0.b == 0 }) else {
+            return nil
+        }
+        let base = c[0]
+        let x = subtract(c[1], base)
+        let y = subtract(c[2], base)
+        let z = subtract(c[4], base)
+        let matrix: Matrix3x3
+        let rhs: RGB64
+        do {
+            matrix = try Matrix3x3(rowMajor: [x.r, y.r, z.r,
+                                               x.g, y.g, z.g,
+                                               x.b, y.b, z.b])
+            _ = try matrix.inverted()
+            rhs = try RGB64(output.r - base.r, output.g - base.g, output.b - base.b)
+            let q = try matrix.solving(rhs)
+            let values = [q.r, q.g, q.b]
+            guard values.allSatisfy(
+                { $0.isFinite && $0 >= -tolerance && $0 <= 1 + tolerance }) else {
+                return .noSolution
+            }
+            return .solution(values.map { min(1, max(0, $0)) })
+        } catch {
+            return .singular
+        }
+    }
+
+    private static func subtract(_ a: RGB64, _ b: RGB64) -> RGB64 {
+        try! RGB64(a.r - b.r, a.g - b.g, a.b - b.b)
     }
 
     private static func input(_ q: [Double], cell: [Int], volume: LUTVolume3D) -> RGB64 {
@@ -182,6 +291,15 @@ public enum Trilinear3DInverse {
         let scale = max(1, abs(a.r), abs(a.g), abs(a.b), abs(b.r), abs(b.g), abs(b.b))
         let e = 64 * Double.ulpOfOne * scale
         return abs(a.r - b.r) <= e && abs(a.g - b.g) <= e && abs(a.b - b.b) <= e
+    }
+
+    private static func upsert(solution: Trilinear3DInverseSolution,
+                               into solutions: inout [Trilinear3DInverseSolution]) {
+        if let index = solutions.firstIndex(where: { sameInput($0.input, solution.input) }) {
+            if solution.residual < solutions[index].residual { solutions[index] = solution }
+        } else {
+            solutions.append(solution)
+        }
     }
 
     private static func replayResidual(_ value: RGB64, target: RGB64) -> Double {

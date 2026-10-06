@@ -47,4 +47,17 @@ final class BMDLegacyFilmContractsTests: XCTestCase {
         XCTAssertEqual(catalog.preset(named: "blackmagic.film4k-legacy-exposure-one.v1")?.settings.inputTransfer, .blackmagicFilm4kLUTCalcLegacy)
         XCTAssertTrue(TransferID.blackmagicFilm46kLUTCalcLegacy.hasNormalizedDataEncoding)
     }
+
+    func testLegacyPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        let decode = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .blackmagicFilmLUTCalcLegacy, outputTransfer: .linearScene,
+            inputSpace: .rec2020, outputSpace: .srgb,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        let alternate = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .blackmagicFilmLUTCalcLegacy, outputTransfer: .linearScene,
+            inputSpace: .displayP3, outputSpace: .srgb,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        XCTAssertNotEqual(decode.planVersion, alternate.planVersion)
+        XCTAssertTrue(decode.planVersion.contains(":inSpace:"))
+    }
 }

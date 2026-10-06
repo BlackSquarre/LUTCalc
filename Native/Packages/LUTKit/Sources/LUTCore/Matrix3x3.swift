@@ -343,6 +343,36 @@ public struct ColorPrimaries: Equatable, Sendable {
         )
     }
 
+    /// SMPTE-C primaries used by BT.601 525-line systems, D65 white.
+    public static var bt601SMPTEC: ColorPrimaries {
+        try! ColorPrimaries(
+            red: Chromaticity(x: 0.630, y: 0.340),
+            green: Chromaticity(x: 0.310, y: 0.595),
+            blue: Chromaticity(x: 0.155, y: 0.070),
+            white: Chromaticity(x: 0.3127, y: 0.3290)
+        )
+    }
+
+    /// EBU 3213 primaries used by BT.601 625-line systems, D65 white.
+    public static var bt601EBU: ColorPrimaries {
+        try! ColorPrimaries(
+            red: Chromaticity(x: 0.640, y: 0.330),
+            green: Chromaticity(x: 0.290, y: 0.600),
+            blue: Chromaticity(x: 0.150, y: 0.060),
+            white: Chromaticity(x: 0.3127, y: 0.3290)
+        )
+    }
+
+    /// SMPTE 240M reference primaries, D65 white.
+    public static var smpte240M: ColorPrimaries {
+        try! ColorPrimaries(
+            red: Chromaticity(x: 0.670, y: 0.330),
+            green: Chromaticity(x: 0.210, y: 0.710),
+            blue: Chromaticity(x: 0.140, y: 0.080),
+            white: Chromaticity(x: 0.3127, y: 0.3290)
+        )
+    }
+
     public static var srgb: ColorPrimaries {
         try! ColorPrimaries(
             red: Chromaticity(x: 0.640, y: 0.330),
@@ -387,6 +417,13 @@ public struct ColorPrimaries: Equatable, Sendable {
 public enum ChromaticAdaptation: String, Codable, Sendable {
     case cieCAT02
     case bradford
+    case cieCAT97s
+    case vonKries
+    case sharp
+    case cmccat2000
+    case biancoBS
+    case biancoBSPC
+    case xyzScaling
 
     public func matrix(from source: Chromaticity, to destination: Chromaticity) throws -> Matrix3x3 {
         if source == destination { return .identity }
@@ -404,6 +441,44 @@ public enum ChromaticAdaptation: String, Codable, Sendable {
                 -0.7502, 1.7135, 0.0367,
                 0.0389, -0.0685, 1.0296,
             ])
+        case .cieCAT97s:
+            a = try Matrix3x3(rowMajor: [
+                0.8562, 0.3372, -0.1934,
+                -0.8360, 1.8327, 0.0033,
+                0.0357, -0.0469, 1.0112,
+            ])
+        case .vonKries:
+            a = try Matrix3x3(rowMajor: [
+                0.40024, 0.7076, -0.08081,
+                -0.2263, 1.16532, 0.0457,
+                0.0, 0.0, 0.91822,
+            ])
+        case .sharp:
+            a = try Matrix3x3(rowMajor: [
+                1.2694, -0.0988, -0.1706,
+                -0.8364, 1.8006, 0.0357,
+                0.0297, -0.0315, 1.0018,
+            ])
+        case .cmccat2000:
+            a = try Matrix3x3(rowMajor: [
+                0.7982, 0.3389, -0.1371,
+                -0.5918, 1.5512, 0.0406,
+                0.0008, 0.0239, 0.9753,
+            ])
+        case .biancoBS:
+            a = try Matrix3x3(rowMajor: [
+                0.8752, 0.2787, -0.1539,
+                -0.8904, 1.8709, 0.0195,
+                -0.0061, 0.0162, 0.9899,
+            ])
+        case .biancoBSPC:
+            a = try Matrix3x3(rowMajor: [
+                0.6489, 0.3915, -0.0404,
+                -0.3775, 1.3055, 0.0720,
+                -0.0271, 0.0888, 0.9383,
+            ])
+        case .xyzScaling:
+            a = .identity
         }
         let src = try a.applying(to: source.xyz())
         let dst = try a.applying(to: destination.xyz())

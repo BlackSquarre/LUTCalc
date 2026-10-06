@@ -162,6 +162,7 @@ public struct HLGOOTF: Sendable, Equatable {
 public struct HLGOOTFSettings: Sendable, Equatable, Codable {
     public enum Algorithm: String, Sendable, Codable {
         case lutcalcHLGOOTFV1 = "lutcalc.hlg-ootf-display.v1"
+        case bt2100HLGReferenceV1 = "bt2100.hlg-reference-ootf.v1"
     }
 
     public let algorithm: Algorithm
@@ -173,6 +174,9 @@ public struct HLGOOTFSettings: Sendable, Equatable, Codable {
     public let scale: HLGOOTF.Scale
     public let bbcInput: Bool
     public let bbcOutput: Bool
+    /// The BT.2100 Note 5f gamma policy. It is absent for the historical
+    /// LUTCalc algorithm and therefore cannot silently change its semantics.
+    public let referenceGammaMode: BT2100HLGReferenceOOTF.GammaMode?
 
     public init(enabled: Bool = true,
                 inputPeakNits: Double = 1000,
@@ -182,6 +186,7 @@ public struct HLGOOTFSettings: Sendable, Equatable, Codable {
                 scale: HLGOOTF.Scale = .normalizedBy1000,
                 bbcInput: Bool = false,
                 bbcOutput: Bool = false,
+                referenceGammaMode: BT2100HLGReferenceOOTF.GammaMode? = nil,
                 algorithm: Algorithm = .lutcalcHLGOOTFV1) {
         self.algorithm = algorithm
         self.enabled = enabled
@@ -192,15 +197,37 @@ public struct HLGOOTFSettings: Sendable, Equatable, Codable {
         self.scale = scale
         self.bbcInput = bbcInput
         self.bbcOutput = bbcOutput
+        self.referenceGammaMode = referenceGammaMode
     }
 
     public func makeKernel() throws -> HLGOOTF {
-        try HLGOOTF(inputPeakNits: inputPeakNits,
-                    outputPeakNits: outputPeakNits,
-                    inputBlackNits: inputBlackNits,
-                    outputBlackNits: outputBlackNits,
-                    scale: scale,
-                    bbcInput: bbcInput,
-                    bbcOutput: bbcOutput)
+        guard algorithm == .lutcalcHLGOOTFV1, referenceGammaMode == nil else {
+            throw NumericError.invalidDomain
+        }
+        return try HLGOOTF(inputPeakNits: inputPeakNits,
+                           outputPeakNits: outputPeakNits,
+                           inputBlackNits: inputBlackNits,
+                           outputBlackNits: outputBlackNits,
+                           scale: scale,
+                           bbcInput: bbcInput,
+                           bbcOutput: bbcOutput)
+    }
+
+    /// Creates the standards reference kernel without applying the historical
+    /// black-level or BBC parameters. Those parameters are rejected instead of
+    /// being silently interpreted by the reference formula.
+    public func makeReferenceKernel() throws -> BT2100HLGReferenceOOTF {
+        guard algorithm == .bt2100HLGReferenceV1,
+              scale == .nits,
+              inputPeakNits == outputPeakNits,
+              inputBlackNits == 0,
+              outputBlackNits == 0,
+              !bbcInput,
+              !bbcOutput else {
+            throw NumericError.invalidDomain
+        }
+        return try BT2100HLGReferenceOOTF(
+            peakLuminanceNits: outputPeakNits,
+            gammaMode: referenceGammaMode ?? .usualProductionRange)
     }
 }

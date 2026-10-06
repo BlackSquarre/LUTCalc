@@ -13,11 +13,8 @@ public enum ICCMABLabError: Error, Equatable, Sendable {
 
 /// Bounded RGB↔PCS Lab adapters for user supplied ICC `mAB`/`mBA` tags.
 ///
-/// The underlying LUT pipeline remains the existing three-channel CPU parser;
-/// this adapter only interprets its continuous unsigned PCS values according
-/// to ICC.1:2022-05 and converts them through the D50 CIELAB implementation.
-/// It accepts only RGB profiles whose PCS signature is `Lab ` and only the
-/// explicit A2B/B2A directions.
+/// This adapter interprets continuous unsigned PCS values according to
+/// ICC.1:2022-05 and converts them through the D50 CIELAB implementation.
 public struct ICCMABLabTransform: Sendable {
     private enum Direction: Sendable { case aToB, bToA }
 
@@ -25,7 +22,7 @@ public struct ICCMABLabTransform: Sendable {
     private let direction: Direction
 
     public init(profileData: Data, tag: String) throws {
-        guard ["A2B0", "A2B1", "B2A0", "B2A1"].contains(tag) else {
+        guard ["A2B0", "A2B1", "A2B2", "A2B3", "B2A0", "B2A1", "B2A2", "B2A3"].contains(tag) else {
             throw ICCMABLabError.unsupportedDirection
         }
         let profile: ICCProfileValidation
@@ -34,7 +31,8 @@ public struct ICCMABLabTransform: Sendable {
         } catch {
             throw ICCMABLabError.invalidProfile
         }
-        guard profile.colorSpaceSignature == "RGB " else {
+        guard let deviceChannels = profile.colorChannelCount,
+              (1...15).contains(deviceChannels) else {
             throw ICCMABLabError.unsupportedColorSpace
         }
         guard profile.pcsSignature == "Lab " else {
@@ -42,6 +40,12 @@ public struct ICCMABLabTransform: Sendable {
         }
         do {
             transform = try ICCMABTransform(profileData: profileData, tag: tag)
+            let expectedInput = tag.hasPrefix("A2B") ? deviceChannels : 3
+            let expectedOutput = tag.hasPrefix("A2B") ? 3 : deviceChannels
+            guard transform.inputChannels == expectedInput,
+                  transform.outputChannels == expectedOutput else {
+                throw ICCMABError.unsupportedChannels
+            }
         } catch let error as ICCMABError {
             throw ICCMABLabError.transform(error)
         } catch {
@@ -52,16 +56,22 @@ public struct ICCMABLabTransform: Sendable {
 
     public func rgbToLab(_ rgb: RGB64) throws -> CIELABColor {
         guard direction == .aToB else { throw ICCMABLabError.unsupportedDirection }
-        let encoded: RGB64
+        return try deviceToLab([rgb.r, rgb.g, rgb.b])
+    }
+
+    /// Converts an arbitrary-channel device sample to PCS Lab.
+    public func deviceToLab(_ device: [Double]) throws -> CIELABColor {
+        guard direction == .aToB else { throw ICCMABLabError.unsupportedDirection }
+        let encoded: [Double]
         do {
-            encoded = try transform.sample(rgb)
+            encoded = try transform.sample(device)
         } catch let error as ICCMABError {
             throw ICCMABLabError.transform(error)
         } catch {
             throw ICCMABLabError.invalidProfile
         }
         do {
-            return try ICCLabPCS.decodeNormalized([encoded.r, encoded.g, encoded.b])
+            return try ICCLabPCS.decodeNormalized(encoded)
         } catch let error as ICCLabPCS.Error {
             switch error {
             case .nonFinite: throw ICCMABLabError.nonFinite
@@ -71,6 +81,13 @@ public struct ICCMABLabTransform: Sendable {
     }
 
     public func labToRGB(_ lab: CIELABColor) throws -> RGB64 {
+        guard direction == .bToA else { throw ICCMABLabError.unsupportedDirection }
+        let values = try labToDevice(lab)
+        return try RGB64(values[0], values[1], values[2])
+    }
+
+    /// Converts PCS Lab to an arbitrary-channel device sample.
+    public func labToDevice(_ lab: CIELABColor) throws -> [Double] {
         guard direction == .bToA else { throw ICCMABLabError.unsupportedDirection }
         let values: [Double]
         do {
@@ -82,11 +99,23 @@ public struct ICCMABLabTransform: Sendable {
             }
         }
         do {
-            return try transform.sample(try RGB64(values[0], values[1], values[2]))
+            return try transform.sample(values)
         } catch let error as ICCMABError {
             throw ICCMABLabError.transform(error)
         } catch {
             throw ICCMABLabError.invalidProfile
         }
+    }
+
+    /// Converts a media-relative PCS Lab result to the normalized PCS XYZ
+    /// representation used by ICC absolute colorimetric scaling.
+    public func rgbToRelativePCSXYZ(_ rgb: RGB64) throws -> XYZ64 {
+        try deviceToLab([rgb.r, rgb.g, rgb.b]).toXYZ(white: .d50)
+    }
+
+    /// Converts a media-relative PCS XYZ value through this profile's Lab
+    /// encoding back to device RGB.
+    public func relativePCSXYZToRGB(_ xyz: XYZ64) throws -> RGB64 {
+        try labToRGB(CIELABColorSpace.fromXYZ(xyz, white: .d50))
     }
 }

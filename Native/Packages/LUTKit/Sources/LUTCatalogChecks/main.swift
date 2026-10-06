@@ -6,7 +6,7 @@ private enum Failure: Error { case mismatch(String) }
 
 do {
     let catalog = try AlgorithmCatalog.builtIn()
-    guard catalog.transfers.count == 76, catalog.colorSpaces.count == 20, catalog.presets.count == 72,
+    guard catalog.transfers.count == 82, catalog.colorSpaces.count == 23, catalog.presets.count == 76,
           CameraCatalog.profiles.count == 66, Set(CameraCatalog.profiles.map(\.id)).count == 66 else {
         throw Failure.mismatch("built-in counts")
     }

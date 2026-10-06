@@ -93,6 +93,25 @@ final class CameraTransferIndependentContractsTests: XCTestCase {
         XCTAssertTrue(try CineonTransfer.encodeLegacyToData(-0.1).isFinite)
     }
 
+    func testCameraTransferPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        for id in ids {
+            let decode = try TransformPlan(settings: TransformSettings(
+                inputTransfer: id, outputTransfer: .linearScene,
+                inputSpace: .rec2020, outputSpace: .srgb,
+                inputRange: .data, outputRange: .data, exposureStops: 0))
+            let encode = try TransformPlan(settings: TransformSettings(
+                inputTransfer: .linearScene, outputTransfer: id,
+                inputSpace: .srgb, outputSpace: .rec2020,
+                inputRange: .data, outputRange: .data, exposureStops: 0))
+            let alternate = try TransformPlan(settings: TransformSettings(
+                inputTransfer: id, outputTransfer: .linearScene,
+                inputSpace: .displayP3, outputSpace: .srgb,
+                inputRange: .data, outputRange: .data, exposureStops: 0))
+            XCTAssertNotEqual(decode.planVersion, encode.planVersion, id.rawValue)
+            XCTAssertNotEqual(decode.planVersion, alternate.planVersion, id.rawValue)
+        }
+    }
+
     func testLegacyMethodsAgainstActualFrozenJavaScriptExecution() throws {
         var root = URL(fileURLWithPath: #filePath)
         for _ in 0..<6 { root.deleteLastPathComponent() }

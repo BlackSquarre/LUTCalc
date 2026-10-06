@@ -37,6 +37,33 @@ final class OLUTContractsTests: XCTestCase {
         XCTAssertEqual(reread.samples[4_095], samples[4_095])
     }
 
+    func testWriterMatchesIndependentHalfUpIntegerReference() throws {
+        let codes = [0, 1, 2, 2_047, 2_048, 4_094, 4_095]
+        var samples: [RGB64] = []
+        samples.reserveCapacity(OLUTParser.size)
+        for index in 0..<OLUTParser.size {
+            let code = codes[index % codes.count]
+            let value = Double(code) / Double(OLUTParser.codeMax)
+            samples.append(try RGB64(value, value, value))
+        }
+        let lut = try CubeLUT(dimension: .one, size: OLUTParser.size, domain: .unit, samples: samples)
+        let rows = try OLUTWriter.serialize(lut).split(separator: "\n")
+        for (index, row) in rows.enumerated() {
+            let expected = codes[index % codes.count]
+            XCTAssertEqual(String(row), "\(expected),\(expected),\(expected),\(expected),\(expected),\(expected)", "row \(index)")
+        }
+    }
+
+    func testParserAcceptsCommentsAndCRLFWithoutChangingIntegerReference() throws {
+        var text = "# public OLUT comment\r\n"
+        text += "0,4095,2048,0,4095,2048\r\n"
+        for _ in 1..<4_095 { text += "2048,2048,2048,2048,2048,2048\r\n" }
+        text += "4095,0,0,4095,0,0\r\n"
+        let lut = try OLUTParser.parse(Data(text.utf8))
+        XCTAssertEqual(lut.samples.first, try RGB64(0, 1, 2048.0 / 4095))
+        XCTAssertEqual(lut.samples.last, try RGB64(1, 0, 0))
+    }
+
     func testRejectsMalformedCodesAndRowCounts() throws {
         let cases: [(String, OLUTFailureCategory)] = [
             ("0,0,0,0,0,0\n", .rowCountMismatch),

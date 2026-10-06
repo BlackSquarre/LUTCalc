@@ -47,4 +47,15 @@ final class BBCWHP283ContractsTests: XCTestCase {
         XCTAssertThrowsError(try BBCWHP283Transfer.percent400.encodeLinearToLegal(.nan))
         XCTAssertThrowsError(try BBCWHP283Transfer.percent800.decodeDataToLegacy(.infinity))
     }
+
+    func testPlanIdentityIncludesDirectionalColorSpaces() throws {
+        let base = TransformSettings(inputTransfer: .bbcWHP283400, outputTransfer: .linearScene,
+                                     inputSpace: .rec2020, outputSpace: .rec2020,
+                                     inputRange: .data, outputRange: .data, exposureStops: 0)
+        let baseline = try TransformPlan(settings: base).planVersion
+        XCTAssertNotEqual(baseline, try TransformPlan(settings: base.withInput(transfer: .bbcWHP283400, space: .srgb)).planVersion)
+        XCTAssertNotEqual(baseline, try TransformPlan(settings: base.withOutput(transfer: .linearScene, space: .srgb)).planVersion)
+        XCTAssertTrue(baseline.contains(":inSpace:" + ColorSpaceID.rec2020.rawValue))
+        XCTAssertTrue(baseline.contains(":outSpace:" + ColorSpaceID.rec2020.rawValue))
+    }
 }

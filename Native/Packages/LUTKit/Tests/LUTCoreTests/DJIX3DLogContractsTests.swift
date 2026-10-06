@@ -9,4 +9,15 @@ final class DJIX3DLogContractsTests: XCTestCase {
     func testFormulaMatchesJavaScript() throws { let r=try reference(); XCTAssertEqual(r.precision,64); for p in r.encode { XCTAssertEqual(try DJIX3DLogTransfer.encodeLegacyToData(p.input),try XCTUnwrap(Double(p.output)),accuracy:3e-14) }; for p in r.decode { XCTAssertEqual(try DJIX3DLogTransfer.decodeDataToLegacy(p.input),try XCTUnwrap(Double(p.output)),accuracy:3e-13) } }
     func testBoundariesAndPlan() throws { for x in [Double.nan,Double.infinity,-Double.infinity] { XCTAssertThrowsError(try DJIX3DLogTransfer.encodeLegacyToData(x)); XCTAssertThrowsError(try DJIX3DLogTransfer.decodeDataToLegacy(x)) }; let e=try DJIX3DLogTransfer.encodeLegacyToData(0.2/0.9); let s=TransformSettings(inputTransfer:.djiX3DLogLUTCalcLegacy,outputTransfer:.linearScene,inputSpace:.srgb,outputSpace:.srgb,inputRange:.data,outputRange:.data,exposureStops:0); XCTAssertEqual(try TransformPlan(settings:s).evaluate(RGB64(e,e,e)).r,0.2,accuracy:3e-13) }
     func testCatalogIdentity() throws { let c=try AlgorithmCatalog.builtIn(); XCTAssertEqual(c.transfer(named:"DJI X3 DLog (LUTCalc legacy)")?.id,.djiX3DLogLUTCalcLegacy); XCTAssertTrue(TransferID.djiX3DLogLUTCalcLegacy.hasNormalizedDataEncoding) }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        let base = TransformSettings(inputTransfer: .djiX3DLogLUTCalcLegacy,
+                                     outputTransfer: .linearScene, inputSpace: .rec2020,
+                                     outputSpace: .srgb, inputRange: .data, outputRange: .data,
+                                     exposureStops: 0)
+        XCTAssertNotEqual(try TransformPlan(settings: base).planVersion,
+                          try TransformPlan(settings: base.withInput(transfer: .djiX3DLogLUTCalcLegacy, space: .displayP3)).planVersion)
+        XCTAssertNotEqual(try TransformPlan(settings: base).planVersion,
+                          try TransformPlan(settings: base.withOutput(transfer: .linearScene, space: .displayP3)).planVersion)
+    }
 }

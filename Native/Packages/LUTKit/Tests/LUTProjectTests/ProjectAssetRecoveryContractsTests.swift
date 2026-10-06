@@ -62,6 +62,21 @@ final class ProjectAssetRecoveryContractsTests: XCTestCase {
         }
     }
 
+    func testRevokedBookmarkWithoutReauthorizationFailsClosed() throws {
+        let identity = try ProjectAssetSourceIdentity(
+            assetPath: "Resources/provider.cube",
+            originalFilename: "provider.cube",
+            sha256: String(repeating: "b", count: 64))
+        let revoked = ProjectAssetSecurityBookmark(rawBookmarkData: Data([0xde, 0xad, 0xbe, 0xef]))
+
+        XCTAssertThrowsError(try ProjectAssetRecovery.resolve(identity: identity,
+                                                              bookmark: revoked,
+                                                              authorizedRoots: [])) { error in
+            XCTAssertEqual(error as? ProjectAssetRecoveryError,
+                           .noAuthorizedSource(identity.assetPath))
+        }
+    }
+
     func testResolvedBookmarkUnreadableDoesNotFallBackToAnotherAuthorizedFile() throws {
         let sourceRoot = try makeDirectory("unreadable-bookmark-source")
         let authorizedRoot = try makeDirectory("unreadable-bookmark-authorized")

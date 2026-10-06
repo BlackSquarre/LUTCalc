@@ -64,6 +64,27 @@ public enum ICCLabPCS {
         return [lab.lStar, (lab.aStar + 128.0) / 255.0, (lab.bStar + 128.0) / 255.0]
     }
 
+    /// Decodes the float32 PCS Lab form used by ICC DToBx/BToDx tags.
+    /// Unlike the unsigned normalized form, these values are direct L* (0...100),
+    /// a* and b* values and are not clipped at the PCS boundary.
+    public static func decodeFloat(_ values: [Double]) throws -> CIELABColor {
+        guard values.count == 3, values.allSatisfy(\.isFinite) else {
+            throw Error.nonFinite
+        }
+        return try CIELABColor(lStar: values[0] / 100.0,
+                               aStar: values[1], bStar: values[2])
+    }
+
+    /// Encodes a Lab value for the direct float32 PCS representation.
+    /// The result is not clipped; the caller is responsible for the element's
+    /// float32 range checks.
+    public static func encodeFloat(_ lab: CIELABColor) throws -> [Double] {
+        guard lab.lStar.isFinite, lab.aStar.isFinite, lab.bStar.isFinite else {
+            throw Error.nonFinite
+        }
+        return [lab.lStar * 100.0, lab.aStar, lab.bStar]
+    }
+
     public static func encode16(_ lab: CIELABColor) throws -> [UInt16] {
         try validate(lab)
         let l = try quantize(lab.lStar * 65535.0, lower: 0, upper: 65535)

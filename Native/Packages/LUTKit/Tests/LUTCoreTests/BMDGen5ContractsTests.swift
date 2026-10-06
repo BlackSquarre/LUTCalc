@@ -70,4 +70,18 @@ final class BMDGen5ContractsTests:XCTestCase {
         let scene=try RGB64(0.18,0.3,-0.1),result=try published.evaluate(scene)
         XCTAssertEqual(result.r,(try BMDGen5Transfer.encodeSceneToData(scene.r)-64.0/1023)/(876.0/1023),accuracy:2e-12)
     }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        let decode = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .blackmagicFilmGen5, outputTransfer: .linearScene,
+            inputSpace: .blackmagicWideGamutGen5, outputSpace: .srgb,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        let alternate = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .blackmagicFilmGen5, outputTransfer: .linearScene,
+            inputSpace: .blackmagicWideGamutGen5, outputSpace: .displayP3,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        XCTAssertNotEqual(decode.planVersion, alternate.planVersion)
+        XCTAssertTrue(decode.planVersion.contains(":inSpace:"))
+        XCTAssertTrue(decode.planVersion.contains(ColorSpaceID.blackmagicWideGamutGen5.rawValue))
+    }
 }

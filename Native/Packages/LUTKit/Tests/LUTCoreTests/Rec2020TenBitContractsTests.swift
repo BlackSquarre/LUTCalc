@@ -38,7 +38,8 @@ final class Rec2020TenBitContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 0
         )
         let plan = try TransformPlan(settings: settings)
-        XCTAssertEqual(plan.planVersion, "minimal-rec2020-10bit-v1")
+        XCTAssertEqual(plan.planVersion,
+                       "minimal-rec2020-10bit-v1:rec2020.bt2020-10bit.v1:rec2020.bt2020-10bit.v1:inSpace:rec2020.d65.v1:outSpace:rec2020.d65.v1")
         let encoded = try Rec2020TenBitTransfer.encodeSceneToData(0.18)
         let result = try plan.evaluate(RGB64(encoded, encoded, encoded))
         XCTAssertEqual(result.r, encoded, accuracy: tolerance)

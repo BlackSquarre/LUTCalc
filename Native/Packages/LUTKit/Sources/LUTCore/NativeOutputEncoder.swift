@@ -44,6 +44,8 @@ struct NativeOutputEncoder:Sendable {
         case .rec709LUTCalcLegacy: try Rec709Transfer.encodeLegacy(
             LinearScale.sceneToLegacy(value))
         case .rec2020TenBit: try Rec2020TenBitTransfer.encodeSceneToData(value)
+        case .rec2020Continuous: try Rec2020ContinuousTransfer.encodeSceneToData(value)
+        case .smpte240M: try SMPTE240MTransfer.encodeSceneToData(value)
         case .rec2020TwelveBit: try Rec2020TwelveBitTransfer.encodeLegacyToData(LinearScale.sceneToLegacy(value))
         case .cineon: try CineonTransfer.encodeSceneToData(value)
         case .cineonLUTCalcLegacy: try CineonTransfer.encodeLegacyToData(try LinearScale.sceneToLegacy(value))
@@ -102,6 +104,7 @@ struct NativeOutputEncoder:Sendable {
         case .xiaomiMiLog: try MiLogTransfer.encodeSceneToData(value)
         case .leicaLLog: try LeicaLLogTransfer.encodeSceneToData(value)
         case .kineLog3: try KineLog3Transfer.encodeSceneToData(value)
+        case .gpLog2: try GPLog2Transfer.encodeSceneToData(value)
         case .appleLogOriginal, .appleLog2: try AppleLogTransfer.encodeSceneToData(value)
         case .rec2100HLG: try HLGTransfer.encodeSceneToData(value)
         case .rec2100PQ: try PQTransfer.encodeNormalizedLuminanceToData(value)

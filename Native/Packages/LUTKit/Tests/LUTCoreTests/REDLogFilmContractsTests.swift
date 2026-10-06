@@ -26,4 +26,21 @@ final class REDLogFilmContractsTests: XCTestCase {
                                                try REDLogFilmTransfer.encodeSceneToData(0.18))).r,
                        0.18, accuracy: 2e-14)
     }
+
+    func testPlanIdentityIncludesBothColorSpaces() throws {
+        for transfer in [TransferID.redLogFilm, .redLogFilmLUTCalcLegacy] {
+            func version(input: ColorSpaceID, output: ColorSpaceID) throws -> String {
+                try TransformPlan(settings: TransformSettings(
+                    inputTransfer: transfer, outputTransfer: .linearScene,
+                    inputSpace: input, outputSpace: output,
+                    inputRange: .data, outputRange: .data, exposureStops: 0
+                )).planVersion
+            }
+            let baseline = try version(input: .redWideGamutRGB, output: .redWideGamutRGB)
+            XCTAssertNotEqual(baseline, try version(input: .rec2020, output: .redWideGamutRGB))
+            XCTAssertNotEqual(baseline, try version(input: .redWideGamutRGB, output: .displayP3))
+            XCTAssertTrue(baseline.contains("inSpace:red.wide-gamut-rgb.v1"))
+            XCTAssertTrue(baseline.contains("outSpace:red.wide-gamut-rgb.v1"))
+        }
+    }
 }

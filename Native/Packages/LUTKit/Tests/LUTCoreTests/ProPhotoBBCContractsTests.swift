@@ -66,4 +66,15 @@ final class ProPhotoBBCContractsTests: XCTestCase {
         }
     }
 
+    func testBBCPlanIdentityIncludesDirectionalColorSpaces() throws {
+        let base = TransformSettings(inputTransfer: .bbc04, outputTransfer: .linearScene,
+                                     inputSpace: .rec2020, outputSpace: .rec2020,
+                                     inputRange: .data, outputRange: .data, exposureStops: 0)
+        let baseline = try TransformPlan(settings: base).planVersion
+        XCTAssertNotEqual(baseline, try TransformPlan(settings: base.withInput(transfer: .bbc04, space: .srgb)).planVersion)
+        XCTAssertNotEqual(baseline, try TransformPlan(settings: base.withOutput(transfer: .linearScene, space: .srgb)).planVersion)
+        XCTAssertTrue(baseline.contains(":inSpace:" + ColorSpaceID.rec2020.rawValue))
+        XCTAssertTrue(baseline.contains(":outSpace:" + ColorSpaceID.rec2020.rawValue))
+    }
+
 }

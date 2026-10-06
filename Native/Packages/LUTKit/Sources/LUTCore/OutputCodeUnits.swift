@@ -26,9 +26,9 @@ extension TransferID {
              .bolexLogLUTCalcLegacy,.panalogLUTCalcLegacy,.djiX5LogLUTCalcLegacy,.goProProtuneLUTCalcLegacy,.djiX3DLogLUTCalcLegacy,
              .daVinciIntermediateLUTCalcLegacy,
              .canonCLog2,.canonCLog2LUTCalcLegacy,
-             .canonCLog3,.canonCLogLUTCalcLegacy,.blackmagicPocketFilmLUTCalcLegacy,.rec2020TenBit,.rec2020TwelveBit,
+             .canonCLog3,.canonCLogLUTCalcLegacy,.blackmagicPocketFilmLUTCalcLegacy,.rec2020TenBit,.rec2020Continuous,.rec2020TwelveBit,
              .fujifilmFLog2,.fujifilmFLog2LUTCalcLegacy,.insta360ILog,.xiaomiMiLog,.leicaLLog,
-             .fujifilmFLogLUTCalcLegacy,.kineLog3,.appleLogOriginal,.appleLog2,.acesProxy10,.acesProxy12:return true
+             .fujifilmFLogLUTCalcLegacy,.kineLog3,.gpLog2,.appleLogOriginal,.appleLog2,.acesProxy10,.acesProxy12:return true
         default:return false
         }
     }

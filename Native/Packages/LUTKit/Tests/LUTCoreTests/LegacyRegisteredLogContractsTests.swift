@@ -19,4 +19,19 @@ final class LegacyRegisteredLogContractsTests: XCTestCase {
         XCTAssertEqual(try TransformPlan(settings:settings).evaluate(RGB64(encoded,encoded,encoded)).r,0.2,accuracy:3e-14)
     }
     func testCatalogIdentities() throws { let c=try AlgorithmCatalog.builtIn(); XCTAssertEqual(c.transfer(named:"Bolex Log (LUTCalc legacy)")?.id,.bolexLogLUTCalcLegacy); XCTAssertEqual(c.transfer(named:"Panalog (LUTCalc legacy)")?.id,.panalogLUTCalcLegacy); XCTAssertEqual(c.transfer(named:"DJI X5/X7/X9 DLog (LUTCalc legacy)")?.id,.djiX5LogLUTCalcLegacy); XCTAssertEqual(c.transfer(named:"GoPro Protune (LUTCalc legacy)")?.id,.goProProtuneLUTCalcLegacy); XCTAssertTrue(TransferID.panalogLUTCalcLegacy.hasNormalizedDataEncoding); XCTAssertTrue(TransferID.goProProtuneLUTCalcLegacy.hasNormalizedDataEncoding) }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        for id in [TransferID.bolexLogLUTCalcLegacy, .panalogLUTCalcLegacy,
+                   .djiX5LogLUTCalcLegacy, .goProProtuneLUTCalcLegacy] {
+            let base = TransformSettings(inputTransfer: id, outputTransfer: .linearScene,
+                                         inputSpace: .rec2020, outputSpace: .srgb,
+                                         inputRange: .data, outputRange: .data, exposureStops: 0)
+            let alternateInput = base.withInput(transfer: id, space: .displayP3)
+            let alternateOutput = base.withOutput(transfer: .linearScene, space: .displayP3)
+            XCTAssertNotEqual(try TransformPlan(settings: base).planVersion,
+                              try TransformPlan(settings: alternateInput).planVersion, id.rawValue)
+            XCTAssertNotEqual(try TransformPlan(settings: base).planVersion,
+                              try TransformPlan(settings: alternateOutput).planVersion, id.rawValue)
+        }
+    }
 }

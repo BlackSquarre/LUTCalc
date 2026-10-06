@@ -39,15 +39,51 @@ final class NullTransferContractsTests: XCTestCase {
             inputTransfer: .nullLUTCalcLegacy, outputTransfer: .linearScene,
             inputSpace: .srgb, outputSpace: .srgb,
             inputRange: .data, outputRange: .data, exposureStops: 0)).planVersion
-        XCTAssertEqual(dlog2, "minimal-dlog2-v1")
-        XCTAssertEqual(null, "analytic-null-legacy-v1+" + OutputCodeUnitPolicy.completeV2.rawValue)
-        XCTAssertEqual(linear, "minimal-linear-scene-v1")
+        XCTAssertEqual(dlog2,
+                       "minimal-dlog2-v1:dji.dlog2.v1:dji.dlog2.v1:inSpace:srgb.d65.v1:outSpace:srgb.d65.v1")
+        XCTAssertEqual(null, "analytic-null-legacy-v1:null.lutcalc-legacy.v1:null.lutcalc-legacy.v1:inSpace:srgb.d65.v1:outSpace:srgb.d65.v1+" + OutputCodeUnitPolicy.completeV2.rawValue)
+        XCTAssertEqual(linear,
+                       "minimal-linear-scene-v1:linear.scene.v1:linear.scene.v1:inSpace:srgb.d65.v1:outSpace:srgb.d65.v1")
         XCTAssertNotEqual(dlog2, null)
         XCTAssertNotEqual(dlog2, linear)
         XCTAssertNotEqual(null, linear)
         XCTAssertTrue(nullToLinear.contains(TransferID.nullLUTCalcLegacy.rawValue))
         XCTAssertNotEqual(nullToLinear, dlog2)
         XCTAssertNotEqual(nullToLinear, linear)
+    }
+
+    func testNullLegacyPlanIdentityIncludesBothColorSpaces() throws {
+        func plan(_ inputSpace: ColorSpaceID, _ outputSpace: ColorSpaceID) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: .nullLUTCalcLegacy, outputTransfer: .linearScene,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            )).planVersion
+        }
+        let baseline = try plan(.srgb, .rec2020)
+        XCTAssertNotEqual(baseline, try plan(.djiDGamut2, .rec2020))
+        XCTAssertNotEqual(baseline, try plan(.srgb, .displayP3))
+    }
+
+    func testDLog2PlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        func plan(_ input: TransferID, _ output: TransferID,
+                  _ inputSpace: ColorSpaceID, _ outputSpace: ColorSpaceID) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: input, outputTransfer: output,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            )).planVersion
+        }
+        let identity = try plan(.djiDLog2, .djiDLog2, .djiDGamut2, .djiDGamut2)
+        let decode = try plan(.djiDLog2, .linearScene, .djiDGamut2, .rec2020)
+        let encode = try plan(.linearScene, .djiDLog2, .rec2020, .djiDGamut2)
+        let alternateInput = try plan(.djiDLog2, .djiDLog2, .srgb, .djiDGamut2)
+        let alternateOutput = try plan(.djiDLog2, .djiDLog2, .djiDGamut2, .srgb)
+        XCTAssertNotEqual(identity, decode)
+        XCTAssertNotEqual(decode, encode)
+        XCTAssertNotEqual(identity, alternateInput)
+        XCTAssertNotEqual(identity, alternateOutput)
+        XCTAssertTrue(decode.contains(":dji.dlog2.v1:linear.scene.v1:inSpace:dji.dgamut2.v1:outSpace:rec2020.d65.v1"))
     }
 
     func testCatalogIdentity() throws {

@@ -4,6 +4,21 @@ import LUTFormats
 import LUTAnalysis
 
 final class TetrahedralInverseContractsTests: XCTestCase {
+    func testCancellationIsPropagatedBeforeScanningTetrahedra() async throws {
+        let volume = try makeVolume(size: 3) { r, g, b in try RGB64(r, g, b) }
+        let task = Task { () throws -> Tetrahedral3DInverseReport in
+            try Tetrahedral3DInverse.analyze(try RGB64(0.25, 0.5, 0.75), in: volume)
+        }
+        task.cancel()
+
+        do {
+            _ = try await task.value
+            XCTFail("cancelled tetrahedral inverse must not report a result")
+        } catch is CancellationError {
+            // Standard Swift cancellation is part of the inverse contract.
+        }
+    }
+
     func testIdentityGridHasOneGloballyEnumeratedSolution() throws {
         let volume = try makeVolume(size: 4) { r, g, b in try RGB64(r, g, b) }
         let target = try RGB64(0.21, 0.56, 0.83)
@@ -16,6 +31,9 @@ final class TetrahedralInverseContractsTests: XCTestCase {
         XCTAssertEqual(report.solutions[0].input.g, target.g, accuracy: 2e-12)
         XCTAssertEqual(report.solutions[0].input.b, target.b, accuracy: 2e-12)
         XCTAssertEqual(report.unresolvedTetrahedronCount, 0)
+        XCTAssertEqual(report.enumeratedTetrahedronCount, 3 * 3 * 3 * 6)
+        XCTAssertEqual(report.candidateTetrahedronCount, 6)
+        XCTAssertTrue(report.isGloballyComplete)
         let replay = try volume.sample(report.solutions[0].input,
                                        interpolation: .tetrahedral, outside: .reject)
         XCTAssertEqual(replay.r, target.r, accuracy: 2e-12)
@@ -34,6 +52,8 @@ final class TetrahedralInverseContractsTests: XCTestCase {
         XCTAssertEqual(report.solutions[0].input.r, 0.25, accuracy: 2e-12)
         XCTAssertEqual(report.solutions[1].input.r, 0.75, accuracy: 2e-12)
         XCTAssertTrue(report.solutions.allSatisfy { $0.residual <= 2e-12 })
+        XCTAssertEqual(report.enumeratedTetrahedronCount, 2 * 2 * 2 * 6)
+        XCTAssertTrue(report.isGloballyComplete)
     }
 
     func testOutsideTargetHasNoSolution() throws {
@@ -42,6 +62,27 @@ final class TetrahedralInverseContractsTests: XCTestCase {
 
         XCTAssertEqual(report.status, .noSolution)
         XCTAssertTrue(report.solutions.isEmpty)
+        XCTAssertEqual(report.enumeratedTetrahedronCount, 2 * 2 * 2 * 6)
+        XCTAssertEqual(report.candidateTetrahedronCount, 0)
+        XCTAssertTrue(report.isGloballyComplete)
+    }
+
+
+    func testStrictAffineTetrahedraCertifyNoSolutionOutsideSimplexWithinOutputBounds() throws {
+        // The target is inside the component-wise output bounds [0, 1.5],
+        // but its exact affine inverse is (1.2, -0.1, 0.5), outside the
+        // input cube and therefore outside every tetrahedral simplex.
+        let volume = try makeVolume(size: 2) { r, g, b in
+            try RGB64(r + 0.5 * g, g + 0.5 * b, b + 0.5 * r)
+        }
+        let target = try RGB64(1.15, 0.15, 1.1)
+
+        let report = try Tetrahedral3DInverse.analyze(target, in: volume)
+
+        XCTAssertEqual(report.status, .noSolution)
+        XCTAssertTrue(report.solutions.isEmpty)
+        XCTAssertEqual(report.unresolvedTetrahedronCount, 0)
+        XCTAssertTrue(report.isGloballyComplete)
     }
 
     func testCollapsedMappingIsReportedAsUnresolvedNotUnique() throws {
@@ -50,6 +91,7 @@ final class TetrahedralInverseContractsTests: XCTestCase {
 
         XCTAssertEqual(report.status, .unresolved)
         XCTAssertGreaterThan(report.unresolvedTetrahedronCount, 0)
+        XCTAssertFalse(report.isGloballyComplete)
     }
 
     func testImportedAnalysisRejectsImplicitShaperInversion() throws {
@@ -79,6 +121,10 @@ final class TetrahedralInverseContractsTests: XCTestCase {
         XCTAssertThrowsError(try Tetrahedral3DInverse.analyze(
             RGB64(0.5, 0.5, 0.5), in: volume, maxCondition: 0)) {
                 XCTAssertEqual($0 as? Tetrahedral3DInverseError, .invalidConditionLimit)
+            }
+        XCTAssertThrowsError(try Tetrahedral3DInverse.analyze(
+            RGB64(0.5, 0.5, 0.5), in: volume, maxTetrahedra: 1)) {
+                XCTAssertEqual($0 as? Tetrahedral3DInverseError, .invalidMaxTetrahedra)
             }
         let samples = try (0..<2).flatMap { b in
             try (0..<2).flatMap { g in
@@ -111,6 +157,52 @@ final class TetrahedralInverseContractsTests: XCTestCase {
         XCTAssertEqual(report.solutions[0].input.r, expected.r, accuracy: 2e-12)
         XCTAssertEqual(report.solutions[0].input.g, expected.g, accuracy: 2e-12)
         XCTAssertEqual(report.solutions[0].input.b, expected.b, accuracy: 2e-12)
+    }
+
+    func testBoundaryRootIsDeduplicatedAcrossAdjacentTetrahedra() throws {
+        let volume = try makeVolume(size: 3) { r, g, b in try RGB64(r, g, b) }
+        let target = try RGB64(0.5, 0.25, 0.75)
+        let report = try Tetrahedral3DInverse.analyze(target, in: volume)
+
+        XCTAssertEqual(report.status, .unique)
+        XCTAssertEqual(report.solutions.count, 1)
+        XCTAssertEqual(report.solutions[0].input.r, target.r, accuracy: 2e-12)
+        XCTAssertEqual(report.solutions[0].input.g, target.g, accuracy: 2e-12)
+        XCTAssertEqual(report.solutions[0].input.b, target.b, accuracy: 2e-12)
+        XCTAssertEqual(report.unresolvedTetrahedronCount, 0)
+    }
+
+    func testDomainMaximumBoundaryRootIsUnique() throws {
+        let volume = try makeVolume(size: 3) { r, g, b in try RGB64(r, g, b) }
+        let report = try Tetrahedral3DInverse.analyze(try RGB64(1, 1, 1), in: volume)
+        XCTAssertEqual(report.status, .unique)
+        XCTAssertEqual(report.solutions.count, 1)
+        XCTAssertEqual(report.solutions[0].input, try RGB64(1, 1, 1))
+        XCTAssertEqual(report.unresolvedTetrahedronCount, 0)
+    }
+
+    func testNonUnitDomainMapsInverseCoordinatesBackToDomain() throws {
+        let domain = try LUTDomain(min: RGB64(-2, 10, 100), max: RGB64(4, 22, 160))
+        var samples: [RGB64] = []
+        for b in 0..<3 {
+            for g in 0..<3 {
+                for r in 0..<3 {
+                    samples.append(try RGB64(Double(r) / 2,
+                                             Double(g) / 2,
+                                             Double(b) / 2))
+                }
+            }
+        }
+        let volume = try LUTVolume3D(size: 3, domain: domain, samples: samples)
+        let target = try RGB64(0.2, 0.6, 0.8)
+        let report = try Tetrahedral3DInverse.analyze(target, in: volume)
+
+        XCTAssertEqual(report.status, .unique)
+        XCTAssertEqual(report.solutions.count, 1)
+        let actual = report.solutions[0].input
+        XCTAssertEqual(actual.r, -0.8, accuracy: 2e-12)
+        XCTAssertEqual(actual.g, 17.2, accuracy: 2e-12)
+        XCTAssertEqual(actual.b, 148, accuracy: 2e-12)
     }
 
     private func makeVolume(size: Int,

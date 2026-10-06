@@ -21,11 +21,28 @@ public struct Tetrahedral3DInverseReport: Equatable, Sendable {
     public let status: Tetrahedral3DInverseStatus
     public let solutions: [Tetrahedral3DInverseSolution]
     public let unresolvedTetrahedronCount: Int
+    /// Number of tetrahedra visited in the complete `(size - 1)^3 * 6`
+    /// partition. This is evidence about enumeration, not a sampling
+    /// approximation.
+    public let enumeratedTetrahedronCount: Int
+    /// Number of tetrahedra whose component output bounds contain the target
+    /// and therefore required an affine inverse or a singularity decision.
+    public let candidateTetrahedronCount: Int
+
+    /// True only for the piecewise-affine tetrahedral subset: every
+    /// tetrahedron was enumerated and every candidate had a certified affine
+    /// decision. A false value must never be interpreted as a proof of no
+    /// solution.
+    public var isGloballyComplete: Bool {
+        unresolvedTetrahedronCount == 0
+            && enumeratedTetrahedronCount > 0
+    }
 }
 
 public enum Tetrahedral3DInverseError: Error, Equatable, Sendable {
     case invalidTolerance
     case invalidConditionLimit
+    case invalidMaxTetrahedra
     case unsupportedLUT
 }
 
@@ -37,31 +54,54 @@ public enum Tetrahedral3DInverse {
 
     public static func analyze(_ output: RGB64, in volume: LUTVolume3D,
                                tolerance: Double = 2e-12,
-                               maxCondition: Double = 1e8) throws -> Tetrahedral3DInverseReport {
+                               maxCondition: Double = 1e8,
+                               maxTetrahedra: Int = 100_000) throws -> Tetrahedral3DInverseReport {
+        try Task.checkCancellation()
         guard tolerance.isFinite, tolerance >= 0 else {
             throw Tetrahedral3DInverseError.invalidTolerance
         }
         guard maxCondition.isFinite, maxCondition > 0 else {
             throw Tetrahedral3DInverseError.invalidConditionLimit
         }
+        guard maxTetrahedra > 0 else {
+            throw Tetrahedral3DInverseError.invalidMaxTetrahedra
+        }
         guard output.r.isFinite, output.g.isFinite, output.b.isFinite else {
             return Tetrahedral3DInverseReport(status: .nonFinite, solutions: [],
-                                               unresolvedTetrahedronCount: 0)
+                                               unresolvedTetrahedronCount: 0,
+                                               enumeratedTetrahedronCount: 0,
+                                               candidateTetrahedronCount: 0)
         }
 
         var solutions: [Tetrahedral3DInverseSolution] = []
         var unresolved = 0
+        var enumerated = 0
+        var candidates = 0
         let n = volume.size
+        let cellsPerAxis = n - 1
+        let (square, squareOverflow) = cellsPerAxis.multipliedReportingOverflow(by: cellsPerAxis)
+        let (cellCount, cubeOverflow) = square.multipliedReportingOverflow(by: cellsPerAxis)
+        let (tetrahedronCount, tetrahedronOverflow) = cellCount.multipliedReportingOverflow(by: axisOrders.count)
+        guard !squareOverflow, !cubeOverflow, !tetrahedronOverflow,
+              tetrahedronCount <= maxTetrahedra else {
+            throw Tetrahedral3DInverseError.invalidMaxTetrahedra
+        }
         for b in 0..<(n - 1) {
+            try Task.checkCancellation()
             for g in 0..<(n - 1) {
+                try Task.checkCancellation()
                 for r in 0..<(n - 1) {
+                    try Task.checkCancellation()
                     for order in axisOrders {
+                        try Task.checkCancellation()
+                        enumerated += 1
                         let offsets = tetrahedronOffsets(order)
                         let indices = offsets.map { offset in
                             (r + offset[0]) + n * ((g + offset[1]) + n * (b + offset[2]))
                         }
                         let outputs = indices.map { volume.samples[$0] }
                         guard contains(output, in: outputs, tolerance: tolerance) else { continue }
+                        candidates += 1
 
                         let edges = (1..<4).map { subtract(outputs[$0], outputs[0]) }
                         let matrix: Matrix3x3
@@ -110,11 +150,28 @@ public enum Tetrahedral3DInverse {
                             unresolved += 1
                             continue
                         }
-                        let residual = max(abs(reconstructedValues[0] - output.r),
-                                           abs(reconstructedValues[1] - output.g),
-                                           abs(reconstructedValues[2] - output.b))
+                        let reconstructedResidual = max(abs(reconstructedValues[0] - output.r),
+                                                       abs(reconstructedValues[1] - output.g),
+                                                       abs(reconstructedValues[2] - output.b))
                         let scale = max(1, abs(output.r), abs(output.g), abs(output.b))
-                        guard residual.isFinite, residual <= tolerance * scale else { continue }
+                        guard reconstructedResidual.isFinite,
+                              reconstructedResidual <= tolerance * scale else { continue }
+
+                        // The affine reconstruction is only a candidate generator. Accept
+                        // roots only after replaying the exact production tetrahedral sampler.
+                        guard let replay = try? volume.sample(input,
+                                                               interpolation: .tetrahedral,
+                                                               outside: .reject) else {
+                            unresolved += 1
+                            continue
+                        }
+                        let residual = max(abs(replay.r - output.r),
+                                           abs(replay.g - output.g),
+                                           abs(replay.b - output.b))
+                        guard residual.isFinite, residual <= tolerance * scale else {
+                            unresolved += 1
+                            continue
+                        }
                         if let existing = solutions.firstIndex(where: {
                             sameInput($0.input, input)
                         }) {
@@ -141,18 +198,22 @@ public enum Tetrahedral3DInverse {
         else if solutions.count == 1 { status = .unique }
         else { status = .noSolution }
         return Tetrahedral3DInverseReport(status: status, solutions: solutions,
-                                           unresolvedTetrahedronCount: unresolved)
+                                           unresolvedTetrahedronCount: unresolved,
+                                           enumeratedTetrahedronCount: enumerated,
+                                           candidateTetrahedronCount: candidates)
     }
 
     public static func analyze(_ output: RGB64, in lut: CubeLUT,
                                tolerance: Double = 2e-12,
-                               maxCondition: Double = 1e8) throws -> Tetrahedral3DInverseReport {
+                               maxCondition: Double = 1e8,
+                               maxTetrahedra: Int = 100_000) throws -> Tetrahedral3DInverseReport {
         guard lut.dimension == .three, lut.shaper == nil else {
             throw Tetrahedral3DInverseError.unsupportedLUT
         }
         let volume = try LUTVolume3D(size: lut.size, domain: lut.domain, samples: lut.samples)
         return try analyze(output, in: volume, tolerance: tolerance,
-                           maxCondition: maxCondition)
+                           maxCondition: maxCondition,
+                           maxTetrahedra: maxTetrahedra)
     }
 
     private static func tetrahedronOffsets(_ order: [Int]) -> [[Int]] {

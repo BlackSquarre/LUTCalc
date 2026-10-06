@@ -26,11 +26,14 @@ public struct ICCMFTTransform: Sendable {
     private let inputTables: [[Double]]
     private let outputTables: [[Double]]
     private let clut: [Double]
-    private let matrix: Matrix3x3
+    /// The tag always stores a 3x3 matrix. ICC permits it to be non-identity
+    /// only when the input side is PCSXYZ; arbitrary device channels therefore
+    /// require an identity matrix and never receive an invented 4D matrix.
+    private let matrix: Matrix3x3?
 
     public init(profileData: Data, tag: String) throws {
         guard tag.utf8.count == 4 else { throw ICCMFTError.invalidTag }
-        _ = try ICCProfileValidator.validate(profileData)
+        let profile = try ICCProfileValidator.validate(profileData)
         let payload = try ICCProfileValidator.payload(forTag: tag, in: profileData)
         let bytes = [UInt8](payload)
         guard bytes.count >= 4 else { throw ICCMFTError.invalidTag }
@@ -40,8 +43,25 @@ public struct ICCMFTTransform: Sendable {
         let input = Int(bytes[8])
         let output = Int(bytes[9])
         let grid = Int(bytes[10])
-        guard input == 3, output == 3 else { throw ICCMFTError.unsupportedChannels }
-        guard (2...64).contains(grid) else { throw ICCMFTError.unsupportedGrid }
+        guard (1...15).contains(input), (1...15).contains(output) else {
+            throw ICCMFTError.unsupportedChannels
+        }
+        let deviceChannels: Int?
+        if tag.hasPrefix("A2B") {
+            deviceChannels = input
+        } else if tag.hasPrefix("B2A") {
+            deviceChannels = output
+        } else {
+            deviceChannels = nil
+        }
+        if let expected = profile.colorChannelCount,
+           let deviceChannels,
+           expected != deviceChannels {
+            throw ICCMFTError.malformedTable
+        }
+        // ICC.1 stores grid points in one u8 field and permits 2...255.
+        // Resource limits remain enforced by checkedPower/product/sum below.
+        guard (2...255).contains(grid) else { throw ICCMFTError.unsupportedGrid }
         let entries = type == "mft1" ? 256 : try Self.readUInt16(bytes, at: 48)
         let outputEntries = type == "mft1" ? 256 : try Self.readUInt16(bytes, at: 50)
         guard entries >= 2, entries <= 65535, outputEntries >= 2, outputEntries <= 65535 else {
@@ -56,14 +76,25 @@ public struct ICCMFTTransform: Sendable {
         let matrixValues = try stride(from: 12, to: 48, by: 4).map {
             Double(try Self.readInt32(bytes, at: $0)) / 65536.0
         }
-        matrix = try Matrix3x3(rowMajor: matrixValues)
-        let clutCount = (try Self.checkedPower(grid, input)) * output
+        let identity = matrixValues.enumerated().allSatisfy { index, value in
+            let row = index / 3
+            let column = index % 3
+            return abs(value - (row == column ? 1.0 : 0.0)) <= 1.0 / 65536.0
+        }
+        // The tag carries only a 3x3 matrix. Non-three-channel device arrays
+        // therefore cannot apply a matrix, even when the profile header names
+        // a PCS; accepting one would silently discard declared coefficients.
+        guard input == 3 || identity else {
+            throw ICCMFTError.malformedTable
+        }
+        matrix = input == 3 ? try Matrix3x3(rowMajor: matrixValues) : nil
+        let clutCount = try Self.checkedProduct(Self.checkedPower(grid, input), output)
         let sampleBytes = type == "mft1" ? 1 : 2
         self.sampleBytes = sampleBytes
-        let inputByteCount = input * entries * sampleBytes
-        let clutByteCount = clutCount * sampleBytes
-        let outputByteCount = output * outputEntries * sampleBytes
-        let expected = header + inputByteCount + clutByteCount + outputByteCount
+        let inputByteCount = try Self.checkedProduct(try Self.checkedProduct(input, entries), sampleBytes)
+        let clutByteCount = try Self.checkedProduct(clutCount, sampleBytes)
+        let outputByteCount = try Self.checkedProduct(try Self.checkedProduct(output, outputEntries), sampleBytes)
+        let expected = try Self.checkedSum(header, inputByteCount, clutByteCount, outputByteCount)
         guard expected == bytes.count else { throw ICCMFTError.malformedTable }
         var cursor = header
         inputTables = try (0..<input).map { _ in
@@ -77,22 +108,39 @@ public struct ICCMFTTransform: Sendable {
     }
 
     public func sample(_ input: RGB64) throws -> RGB64 {
-        guard input.r.isFinite, input.g.isFinite, input.b.isFinite else { throw ICCMFTError.nonFiniteInput }
-        guard [input.r, input.g, input.b].allSatisfy({ (0...1).contains($0) }) else {
+        guard inputChannels == 3, outputChannels == 3 else {
+            throw ICCMFTError.unsupportedChannels
+        }
+        let values = try sample([input.r, input.g, input.b])
+        return try RGB64(values[0], values[1], values[2])
+    }
+
+    /// Executes the complete `mft1`/`mft2` pipeline for the declared channel
+    /// dimensions. The matrix remains a 3x3 ICC boundary; non-three-channel
+    /// device routes use the required identity matrix and the N-dimensional
+    /// CLUT directly.
+    public func sample(_ input: [Double]) throws -> [Double] {
+        guard input.count == inputChannels else { throw ICCMFTError.outsideDomain }
+        guard input.allSatisfy(\.isFinite) else { throw ICCMFTError.nonFiniteInput }
+        guard input.allSatisfy({ (0...1).contains($0) }) else {
             throw ICCMFTError.outsideDomain
         }
-        let transformed = try matrix.applying(to: input)
-        let preCLUT = try RGB64(
-            Self.sample1D(inputTables[0], transformed.r),
-            Self.sample1D(inputTables[1], transformed.g),
-            Self.sample1D(inputTables[2], transformed.b))
-        let clutRGB = try RGB64(
-            Self.sampleCLUT(clut, grid: gridPoints, input: [preCLUT.r, preCLUT.g, preCLUT.b], channel: 0, outputChannels: 3),
-            Self.sampleCLUT(clut, grid: gridPoints, input: [preCLUT.r, preCLUT.g, preCLUT.b], channel: 1, outputChannels: 3),
-            Self.sampleCLUT(clut, grid: gridPoints, input: [preCLUT.r, preCLUT.g, preCLUT.b], channel: 2, outputChannels: 3))
-        return try RGB64(Self.sample1D(outputTables[0], clutRGB.r),
-                         Self.sample1D(outputTables[1], clutRGB.g),
-                         Self.sample1D(outputTables[2], clutRGB.b))
+
+        // ICC mft order is input tables (A), then the optional 3x3 matrix,
+        // then the CLUT. Applying the matrix to encoded input would be a
+        // different transform whenever an input curve is non-linear.
+        var preCLUT = zip(inputTables, input).map { Self.sample1D($0.0, $0.1) }
+        if let matrix {
+            guard preCLUT.count == 3 else { throw ICCMFTError.unsupportedChannels }
+            let curved = try RGB64(preCLUT[0], preCLUT[1], preCLUT[2])
+            let transformed = try matrix.applying(to: curved)
+            preCLUT = [transformed.r, transformed.g, transformed.b]
+        }
+        let clutValues = (0..<outputChannels).map { channel in
+            Self.sampleCLUT(clut, grid: gridPoints, input: preCLUT,
+                            channel: channel, outputChannels: outputChannels)
+        }
+        return zip(outputTables, clutValues).map { Self.sample1D($0.0, $0.1) }
     }
 
     private static func sample1D(_ table: [Double], _ value: Double) -> Double {
@@ -109,10 +157,11 @@ public struct ICCMFTTransform: Sendable {
         let high = low.map { min($0 + 1, grid - 1) }
         let fractions = positions.enumerated().map { $0.1 - Double(low[$0.offset]) }
         var result = 0.0
-        for mask in 0..<8 {
+        let cornerCount = 1 << input.count
+        for mask in 0..<cornerCount {
             var index = 0
             var weight = 1.0
-            for axis in 0..<3 {
+            for axis in 0..<input.count {
                 let coordinate = ((mask >> axis) & 1) == 0 ? low[axis] : high[axis]
                 weight *= ((mask >> axis) & 1) == 0 ? (1 - fractions[axis]) : fractions[axis]
                 index = index * grid + coordinate
@@ -156,5 +205,25 @@ public struct ICCMFTTransform: Sendable {
             value = next
         }
         return value
+    }
+
+    private static func checkedProduct(_ lhs: Int, _ rhs: Int) throws -> Int {
+        let (value, overflow) = lhs.multipliedReportingOverflow(by: rhs)
+        guard !overflow, value <= ICCProfileValidator.maxProfileBytes else {
+            throw ICCMFTError.malformedTable
+        }
+        return value
+    }
+
+    private static func checkedSum(_ values: Int...) throws -> Int {
+        var result = 0
+        for value in values {
+            let (next, overflow) = result.addingReportingOverflow(value)
+            guard !overflow, next <= ICCProfileValidator.maxProfileBytes else {
+                throw ICCMFTError.malformedTable
+            }
+            result = next
+        }
+        return result
     }
 }

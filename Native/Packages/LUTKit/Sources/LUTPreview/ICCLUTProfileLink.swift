@@ -13,11 +13,11 @@ public enum ICCLUTProfileLinkError: Error, Equatable, Sendable {
 
 /// 有界的 ICC LUT profile linking 子集。
 ///
-/// 两个用户提供的 RGB/PCS XYZ profile 通过 D50 PCS XYZ 连接：relative
-/// colorimetric 优先使用 `A2B1`/`B2A1`，缺少或处理元素不受支持时按 ICC
-/// precedence 尝试 `A2B0`/`B2A0`。损坏标签不触发 fallback。当前只接受 16 位 `mft2` 与
-/// 16 位 CLUT 的 `mAB`/`mBA`，不猜测 perceptual、saturation 或 gamut
-/// mapping 语义，也不保留用户 profile 的原始 LUT 字节。
+/// 两个用户提供的 RGB/PCS XYZ profile 通过 D50 PCS XYZ 连接。每个请求的
+/// rendering intent 只选择其对应的 ICC A2B/B2A 标签：perceptual 使用
+/// `A2B0`/`B2A0`，relative 使用 `A2B1`/`B2A1`，saturation 使用
+/// `A2B2`/`B2A2`。relative 仍保留对明确不支持元素的 `A2B0`/`B2A0`
+/// fallback；其他 intent 不猜测语义，也不保留用户 profile 的原始 LUT 字节。
 public struct ICCLUTProfileLink: Sendable {
     private enum SourceTransform: Sendable {
         case mft(ICCMFTXYZTransform)
@@ -46,22 +46,39 @@ public struct ICCLUTProfileLink: Sendable {
     public let intent: ICCMatrixTRCRenderingIntent
     private let source: SourceTransform
     private let target: TargetTransform
+    private let absoluteScale: XYZ64
 
     public init(sourceProfile: Data, targetProfile: Data,
                 intent: ICCMatrixTRCRenderingIntent) throws {
-        guard intent == .relativeColorimetric else {
+        guard intent == .perceptual || intent == .relativeColorimetric || intent == .saturation || intent == .absoluteColorimetric else {
             throw ICCLUTProfileLinkError.unsupportedRenderingIntent(intent)
         }
-        source = try Self.makeSource(profileData: sourceProfile)
-        target = try Self.makeTarget(profileData: targetProfile)
+        let sourceValidation = try Self.validate(sourceProfile)
+        let targetValidation = try Self.validate(targetProfile)
+        source = try Self.makeSource(profileData: sourceProfile, intent: intent)
+        target = try Self.makeTarget(profileData: targetProfile, intent: intent)
+        if intent == .absoluteColorimetric {
+            let sourceWhite = try Self.mediaWhitePoint(sourceValidation)
+            let targetWhite = try Self.mediaWhitePoint(targetValidation)
+            absoluteScale = try XYZ64(sourceWhite.x / targetWhite.x,
+                                      sourceWhite.y / targetWhite.y,
+                                      sourceWhite.z / targetWhite.z)
+        } else {
+            absoluteScale = try XYZ64(1, 1, 1)
+        }
         self.intent = intent
     }
 
     public func convert(_ encodedRGB: RGB64) throws -> RGB64 {
-        try target.fromPCS(source.toPCS(encodedRGB))
+        let sourcePCS = try source.toPCS(encodedRGB)
+        let targetPCS = try XYZ64(sourcePCS.x * absoluteScale.x,
+                                  sourcePCS.y * absoluteScale.y,
+                                  sourcePCS.z * absoluteScale.z)
+        return try target.fromPCS(targetPCS)
     }
 
-    private static func makeSource(profileData: Data) throws -> SourceTransform {
+    private static func makeSource(profileData: Data,
+                                   intent: ICCMatrixTRCRenderingIntent) throws -> SourceTransform {
         let validation = try validate(profileData)
         guard validation.colorSpaceSignature == "RGB " else {
             throw ICCLUTProfileLinkError.unsupportedColorSpace
@@ -69,9 +86,9 @@ public struct ICCLUTProfileLink: Sendable {
         guard validation.pcsSignature == "XYZ " else {
             throw ICCLUTProfileLinkError.unsupportedPCS
         }
-        let candidates = ICCRelativeIntentTransformTags.sourceCandidates(in: validation)
+        let candidates = ICCLUTIntentTransformTags.sourceCandidates(in: validation, intent: intent)
         guard !candidates.isEmpty else {
-            throw ICCLUTProfileLinkError.missingTransformTag("A2B1/A2B0")
+            throw ICCLUTProfileLinkError.missingTransformTag(ICCLUTIntentTransformTags.sourceName(intent))
         }
         var lastUnsupported: ICCLUTProfileLinkError?
         for tag in candidates {
@@ -86,10 +103,11 @@ public struct ICCLUTProfileLink: Sendable {
                 continue
             }
         }
-        throw lastUnsupported ?? ICCLUTProfileLinkError.unsupportedTagType("A2B1/A2B0")
+        throw lastUnsupported ?? ICCLUTProfileLinkError.unsupportedTagType(ICCLUTIntentTransformTags.sourceName(intent))
     }
 
-    private static func makeTarget(profileData: Data) throws -> TargetTransform {
+    private static func makeTarget(profileData: Data,
+                                   intent: ICCMatrixTRCRenderingIntent) throws -> TargetTransform {
         let validation = try validate(profileData)
         guard validation.colorSpaceSignature == "RGB " else {
             throw ICCLUTProfileLinkError.unsupportedColorSpace
@@ -97,9 +115,9 @@ public struct ICCLUTProfileLink: Sendable {
         guard validation.pcsSignature == "XYZ " else {
             throw ICCLUTProfileLinkError.unsupportedPCS
         }
-        let candidates = ICCRelativeIntentTransformTags.targetCandidates(in: validation)
+        let candidates = ICCLUTIntentTransformTags.targetCandidates(in: validation, intent: intent)
         guard !candidates.isEmpty else {
-            throw ICCLUTProfileLinkError.missingTransformTag("B2A1/B2A0")
+            throw ICCLUTProfileLinkError.missingTransformTag(ICCLUTIntentTransformTags.targetName(intent))
         }
         var lastUnsupported: ICCLUTProfileLinkError?
         for tag in candidates {
@@ -114,7 +132,7 @@ public struct ICCLUTProfileLink: Sendable {
                 continue
             }
         }
-        throw lastUnsupported ?? ICCLUTProfileLinkError.unsupportedTagType("B2A1/B2A0")
+        throw lastUnsupported ?? ICCLUTProfileLinkError.unsupportedTagType(ICCLUTIntentTransformTags.targetName(intent))
     }
 
     private static func makeTargetTransform(profileData: Data, tag: String) throws -> TargetTransform {
@@ -158,6 +176,15 @@ public struct ICCLUTProfileLink: Sendable {
     private static func payload(_ data: Data, tag: String) throws -> Data {
         do { return try ICCProfileValidator.payload(forTag: tag, in: data) }
         catch { throw ICCLUTProfileLinkError.invalidProfile }
+    }
+
+    private static func mediaWhitePoint(_ profile: ICCProfileValidation) throws -> XYZ64 {
+        guard let tag = profile.tags.first(where: { $0.signature == "wtpt" }),
+              tag.typeSignature == "XYZ ", let values = tag.fixedPointValues,
+              values.count == 3, values.allSatisfy({ $0.isFinite && $0 > 0 }) else {
+            throw ICCLUTProfileLinkError.invalidProfile
+        }
+        return try XYZ64(values[0], values[1], values[2])
     }
 
     private static func map(_ error: ICCMFTXYZError) -> ICCLUTProfileLinkError {

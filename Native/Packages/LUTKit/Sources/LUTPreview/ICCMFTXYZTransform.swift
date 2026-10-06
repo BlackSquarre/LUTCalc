@@ -12,7 +12,7 @@ public enum ICCMFTXYZError: Error, Equatable, Sendable {
     case nonFinite
 }
 
-/// Bounded RGB↔PCS XYZ adapters for user supplied ICC `mft2` tags.
+/// Bounded device↔PCS XYZ adapters for user supplied ICC `mft2` tags.
 /// ICC defines no 8-bit PCSXYZ encoding, so `mft1` is rejected explicitly.
 public struct ICCMFTXYZTransform: Sendable {
     private enum Direction: Sendable { case aToB, bToA }
@@ -21,13 +21,14 @@ public struct ICCMFTXYZTransform: Sendable {
     private let direction: Direction
 
     public init(profileData: Data, tag: String) throws {
-        guard ["A2B0", "A2B1", "B2A0", "B2A1"].contains(tag) else {
+        guard ["A2B0", "A2B1", "A2B2", "A2B3", "B2A0", "B2A1", "B2A2", "B2A3"].contains(tag) else {
             throw ICCMFTXYZError.unsupportedDirection
         }
         let profile: ICCProfileValidation
         do { profile = try ICCProfileValidator.validate(profileData) }
         catch { throw ICCMFTXYZError.invalidProfile }
-        guard profile.colorSpaceSignature == "RGB " else {
+        guard let deviceChannels = profile.colorChannelCount,
+              (1...15).contains(deviceChannels) else {
             throw ICCMFTXYZError.unsupportedColorSpace
         }
         guard profile.pcsSignature == "XYZ " else {
@@ -36,6 +37,11 @@ public struct ICCMFTXYZTransform: Sendable {
         do {
             let parsed = try ICCMFTTransform(profileData: profileData, tag: tag)
             guard parsed.sampleBytes == 2 else { throw ICCMFTXYZError.unsupportedEncoding }
+            let expectedInput = tag.hasPrefix("A2B") ? deviceChannels : 3
+            let expectedOutput = tag.hasPrefix("A2B") ? 3 : deviceChannels
+            guard parsed.inputChannels == expectedInput, parsed.outputChannels == expectedOutput else {
+                throw ICCMFTXYZError.unsupportedColorSpace
+            }
             transform = parsed
         } catch let error as ICCMFTXYZError {
             throw error
@@ -49,9 +55,16 @@ public struct ICCMFTXYZTransform: Sendable {
 
     public func rgbToXYZ(_ rgb: RGB64) throws -> XYZ64 {
         guard direction == .aToB else { throw ICCMFTXYZError.unsupportedDirection }
+        let values = try deviceToXYZ([rgb.r, rgb.g, rgb.b])
+        return values
+    }
+
+    /// Converts an arbitrary-channel device sample to PCS XYZ.
+    public func deviceToXYZ(_ device: [Double]) throws -> XYZ64 {
+        guard direction == .aToB else { throw ICCMFTXYZError.unsupportedDirection }
         do {
-            let encoded = try transform.sample(rgb)
-            return try ICCXYZPCS.decodeNormalized([encoded.r, encoded.g, encoded.b])
+            let encoded = try transform.sample(device)
+            return try ICCXYZPCS.decodeNormalized(encoded)
         } catch let error as ICCMFTError {
             throw ICCMFTXYZError.transform(error)
         } catch let error as ICCXYZPCS.Error {
@@ -63,9 +76,16 @@ public struct ICCMFTXYZTransform: Sendable {
 
     public func xyzToRGB(_ xyz: XYZ64) throws -> RGB64 {
         guard direction == .bToA else { throw ICCMFTXYZError.unsupportedDirection }
+        let values = try xyzToDevice(xyz)
+        return try RGB64(values[0], values[1], values[2])
+    }
+
+    /// Converts PCS XYZ to an arbitrary-channel device sample.
+    public func xyzToDevice(_ xyz: XYZ64) throws -> [Double] {
+        guard direction == .bToA else { throw ICCMFTXYZError.unsupportedDirection }
         do {
             let values = try ICCXYZPCS.encodeNormalized(xyz)
-            return try transform.sample(try RGB64(values[0], values[1], values[2]))
+            return try transform.sample(values)
         } catch let error as ICCMFTError {
             throw ICCMFTXYZError.transform(error)
         } catch let error as ICCXYZPCS.Error {

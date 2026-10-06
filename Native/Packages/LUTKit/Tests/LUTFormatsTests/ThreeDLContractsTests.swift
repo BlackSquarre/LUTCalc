@@ -64,6 +64,20 @@ final class ThreeDLContractsTests: XCTestCase {
         XCTAssertEqual(parsed.samples[7], try RGB64(1, 8.0 / 15.0, 1))
     }
 
+    func testWriterMatchesIndependentPositiveHalfUpReference() throws {
+        let outputBits = 12
+        let codeMax = (1 << outputBits) - 1
+        let values = [0.0, 0.5 / Double(codeMax), 1.5 / Double(codeMax),
+                      100.25 / Double(codeMax), 2047.5 / Double(codeMax), 1.0,
+                      0.25, 0.75]
+        for (index, value) in values.enumerated() {
+            let row = try ThreeDLWriter.fixedWidthRow(try RGB64(value, value, value), outputBits: outputBits)
+            let actual = Int(row.split(separator: " ")[0])
+            let expected = Int(floor(value * Double(codeMax) + 0.5))
+            XCTAssertEqual(actual, expected, "probe index \(index)")
+        }
+    }
+
     func testRejectsMalformedRowsNonFiniteAndUnsupportedShaper() throws {
         let base = "# NUMBER OF NODES: 2\n# INPUT RANGE: 2\n# OUTPUT RANGE: 2\n"
         let malformed = base + "0 3\n0 0 0\n"

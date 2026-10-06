@@ -40,11 +40,27 @@ final class ACESCCTContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 1
         )
         let plan = try TransformPlan(settings: settings)
-        XCTAssertEqual(plan.planVersion, "minimal-acescct-v1")
+        XCTAssertEqual(plan.planVersion,
+                       "minimal-acescct-v1:aces.cct.v1:linear.scene.v1:inSpace:aces.ap1.v1:outSpace:aces.ap1.v1")
         let encoded = try ACESCCTTransfer.encodeLinearAP1ToCCT(0.18)
         let result = try plan.evaluate(RGB64(encoded, encoded, encoded))
         XCTAssertEqual(result.r, 0.36, accuracy: tolerance)
         XCTAssertEqual(result.g, 0.36, accuracy: tolerance)
         XCTAssertEqual(result.b, 0.36, accuracy: tolerance)
+    }
+
+    func testPlanIdentityIncludesBothColorSpaces() throws {
+        func planVersion(inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: .acesCCT, outputTransfer: .linearScene,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            )).planVersion
+        }
+        let baseline = try planVersion(inputSpace: .acesAP1, outputSpace: .acesAP1)
+        XCTAssertNotEqual(baseline, try planVersion(inputSpace: .rec2020, outputSpace: .acesAP1))
+        XCTAssertNotEqual(baseline, try planVersion(inputSpace: .acesAP1, outputSpace: .displayP3))
+        XCTAssertTrue(baseline.contains("inSpace:aces.ap1.v1"))
+        XCTAssertTrue(baseline.contains("outSpace:aces.ap1.v1"))
     }
 }

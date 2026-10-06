@@ -44,6 +44,23 @@ final class SonyLegacyLogContractsTests: XCTestCase {
         }
     }
 
+    func testSLogAndSLog2PlanIdentitiesIncludeBothColorSpaces() throws {
+        for transfer in [TransferID.sonySLog, .sonySLog2, .sonySLogLUTCalcLegacy, .sonySLog2LUTCalcLegacy] {
+            func version(inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> String {
+                try TransformPlan(settings: TransformSettings(
+                    inputTransfer: transfer, outputTransfer: .linearScene,
+                    inputSpace: inputSpace, outputSpace: outputSpace,
+                    inputRange: .data, outputRange: .data, exposureStops: 0
+                )).planVersion
+            }
+            let baseline = try version(inputSpace: .sonySGamut, outputSpace: .sonySGamut)
+            XCTAssertNotEqual(baseline, try version(inputSpace: .rec2020, outputSpace: .sonySGamut))
+            XCTAssertNotEqual(baseline, try version(inputSpace: .sonySGamut, outputSpace: .displayP3))
+            XCTAssertTrue(baseline.contains("inSpace:sony.sgamut.v1"))
+            XCTAssertTrue(baseline.contains("outSpace:sony.sgamut.v1"))
+        }
+    }
+
     func testLegacyMethodsMatchActualFrozenJavaScriptExecution() throws {
         var root = URL(fileURLWithPath: #filePath)
         for _ in 0..<6 { root.deleteLastPathComponent() }

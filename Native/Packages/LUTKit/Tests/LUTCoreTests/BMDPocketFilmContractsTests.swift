@@ -53,7 +53,7 @@ final class BMDPocketFilmContractsTests: XCTestCase {
         let encodedAgain = try TransformPlan(settings: encodeSettings).evaluate(RGB64(0.18, 0.18, 0.18))
         XCTAssertEqual(encodedAgain.r, encoded, accuracy: 2e-15)
         XCTAssertEqual(try TransformPlan(settings: encodeSettings).planVersion,
-                       "analytic-bmd-pocket-film-legacy-v1:linear.scene.v1:blackmagic.pocket-film.lutcalc-legacy.v1")
+                       "analytic-bmd-pocket-film-legacy-v1:linear.scene.v1:blackmagic.pocket-film.lutcalc-legacy.v1:inSpace:srgb.d65.v1:outSpace:srgb.d65.v1")
     }
 
     func testCatalogIdentityAndNormalizedDataClassification() throws {
@@ -65,5 +65,17 @@ final class BMDPocketFilmContractsTests: XCTestCase {
         XCTAssertTrue(TransferID.blackmagicPocketFilmLUTCalcLegacy.hasNormalizedDataEncoding)
         XCTAssertEqual(TransferID.blackmagicPocketFilmLUTCalcLegacy.outputLegalScale(policy: .completeV2), 876.0 / 1023.0, accuracy: 1e-15)
         XCTAssertEqual(TransferID.blackmagicPocketFilmLUTCalcLegacy.outputLegalOffset(policy: .completeV2), 64.0 / 1023.0, accuracy: 1e-15)
+    }
+
+    func testLegacyPlanIdentityIncludesBothColorSpaces() throws {
+        let baseline = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .blackmagicPocketFilmLUTCalcLegacy, outputTransfer: .linearScene,
+            inputSpace: .rec2020, outputSpace: .srgb,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        let alternate = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .blackmagicPocketFilmLUTCalcLegacy, outputTransfer: .linearScene,
+            inputSpace: .displayP3, outputSpace: .srgb,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        XCTAssertNotEqual(baseline.planVersion, alternate.planVersion)
     }
 }

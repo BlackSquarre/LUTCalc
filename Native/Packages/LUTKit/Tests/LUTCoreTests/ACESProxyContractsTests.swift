@@ -31,8 +31,10 @@ final class ACESProxyContractsTests: XCTestCase {
 
     func testSameSpaceExposurePlansUseTheDeclaredBitDepth() throws {
         let cases: [(TransferID, String, ACESProxyTransfer)] = [
-            (.acesProxy10, "minimal-acesproxy10-v1", .ten),
-            (.acesProxy12, "minimal-acesproxy12-v1", .twelve),
+            (.acesProxy10,
+             "minimal-acesproxy10-v1:aces.proxy10.v1:linear.scene.v1:inSpace:aces.ap1.v1:outSpace:aces.ap1.v1", .ten),
+            (.acesProxy12,
+             "minimal-acesproxy12-v1:aces.proxy12.v1:linear.scene.v1:inSpace:aces.ap1.v1:outSpace:aces.ap1.v1", .twelve),
         ]
         for (id, version, transfer) in cases {
             let settings = TransformSettings(
@@ -44,6 +46,23 @@ final class ACESProxyContractsTests: XCTestCase {
             let encoded = try transfer.encodeLinearAP1ToData(0.18)
             XCTAssertEqual(try plan.evaluate(RGB64(encoded, encoded, encoded)).r, 0.36,
                            accuracy: tolerance)
+        }
+    }
+
+    func testPlanIdentityIncludesBothColorSpaces() throws {
+        for id in [TransferID.acesProxy10, .acesProxy12] {
+            func planVersion(inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> String {
+                try TransformPlan(settings: TransformSettings(
+                    inputTransfer: id, outputTransfer: .linearScene,
+                    inputSpace: inputSpace, outputSpace: outputSpace,
+                    inputRange: .data, outputRange: .data, exposureStops: 0
+                )).planVersion
+            }
+            let baseline = try planVersion(inputSpace: .acesAP1, outputSpace: .acesAP1)
+            XCTAssertNotEqual(baseline, try planVersion(inputSpace: .rec2020, outputSpace: .acesAP1))
+            XCTAssertNotEqual(baseline, try planVersion(inputSpace: .acesAP1, outputSpace: .displayP3))
+            XCTAssertTrue(baseline.contains("inSpace:aces.ap1.v1"))
+            XCTAssertTrue(baseline.contains("outSpace:aces.ap1.v1"))
         }
     }
 

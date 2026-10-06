@@ -3,6 +3,17 @@ public enum LegacyTricubicError: Error, Equatable, Sendable {
     case resourceLimit
 }
 
+public struct LegacyTricubicEvaluation: Sendable {
+    public let value: RGB64
+    /// Rows are output channels and columns are input RGB coordinates.
+    public let jacobian: Matrix3x3
+
+    public init(value: RGB64, jacobian: Matrix3x3) {
+        self.value = value
+        self.jacobian = jacobian
+    }
+}
+
 /// The in-domain cubic and ghost-node rules retained in js/lut.js.
 /// Outside-domain behavior is explicit reject or clamp; the legacy derivative
 /// extrapolation is intentionally a separate, unimplemented contract.
@@ -95,12 +106,156 @@ public struct LegacyTricubicVolume3D: Sendable {
         return try RGB64(output[0], output[1], output[2])
     }
 
+    /// Evaluates the legacy sampler and its analytic input-space Jacobian.
+    /// The derivative follows the same cell selection and ghost-node rules as
+    /// `sample`; it is exposed for diagnostics that must replay production
+    /// values rather than evaluate a second interpolation implementation.
+    public func sampleWithJacobian(_ input: RGB64,
+                                   outside: LUTOutsidePolicy) throws -> LegacyTricubicEvaluation {
+        guard outside != .legacyExtensionV1 else { throw VolumeError.unsupportedOutsidePolicy }
+        var base: [Int] = []
+        var weights: [[Double]] = []
+        var derivatives: [[Double]] = []
+        for axis in 0..<3 {
+            let low = domain.min[axis], high = domain.max[axis]
+            let value = input[axis]
+            if outside == .reject && (value < low || value > high) {
+                throw VolumeError.outsideDomain
+            }
+            let position = (min(max(value, low), high) - low) / (high - low) * Double(size - 1)
+            let index = min(Int(position.rounded(.down)), size - 2)
+            base.append(index)
+            let local = position - Double(index)
+            weights.append(Self.cubicWeights(local))
+            derivatives.append(Self.cubicWeightDerivatives(local).map {
+                $0 * Double(size - 1) / (high - low)
+            })
+        }
+        var output = [Double](repeating: 0, count: 3)
+        var rows = [Double](repeating: 0, count: 9)
+        for channel in 0..<3 {
+            var blueSum = 0.0
+            for b in 0..<4 {
+                var greenSum = 0.0
+                for g in 0..<4 {
+                    var redSum = 0.0
+                    for r in 0..<4 {
+                        let index = base[0] + r + extendedSize *
+                            (base[1] + g + extendedSize * (base[2] + b))
+                        redSum += weights[0][r] * mesh[index][channel]
+                    }
+                    greenSum += redSum * weights[1][g]
+                }
+                blueSum += greenSum * weights[2][b]
+            }
+            output[channel] = blueSum
+
+            for axis in 0..<3 {
+                var axisSum = 0.0
+                for b in 0..<4 {
+                    var greenSum = 0.0
+                    for g in 0..<4 {
+                        var redSum = 0.0
+                        for r in 0..<4 {
+                            let index = base[0] + r + extendedSize *
+                                (base[1] + g + extendedSize * (base[2] + b))
+                            let axisWeight: Double
+                            let otherRedWeight = weights[0][r]
+                            let otherGreenWeight = weights[1][g]
+                            let otherBlueWeight = weights[2][b]
+                            switch axis {
+                            case 0:
+                                axisWeight = derivatives[0][r] * otherGreenWeight * otherBlueWeight
+                            case 1:
+                                axisWeight = otherRedWeight * derivatives[1][g] * otherBlueWeight
+                            default:
+                                axisWeight = otherRedWeight * otherGreenWeight * derivatives[2][b]
+                            }
+                            redSum += axisWeight * mesh[index][channel]
+                        }
+                        greenSum += redSum
+                    }
+                    axisSum += greenSum
+                }
+                rows[channel * 3 + axis] = axisSum
+            }
+        }
+        return LegacyTricubicEvaluation(value: try RGB64(output[0], output[1], output[2]),
+                                        jacobian: try Matrix3x3(rowMajor: rows))
+    }
+
+    /// Returns a conservative output range for one interpolation cell.
+    /// Catmull-Rom weights are converted to the tensor-product Bernstein basis;
+    /// the extrema of those 64 coefficients enclose the complete cubic cell,
+    /// including overshoot between LUT nodes.
+    public func cellOutputBounds(_ cell: [Int]) throws -> [ClosedRange<Double>] {
+        let coefficients = try cellBernsteinCoefficients(cell)
+        var lower = [Double](repeating: .infinity, count: 3)
+        var upper = [Double](repeating: -.infinity, count: 3)
+        for coefficient in coefficients {
+            for channel in 0..<3 {
+                lower[channel] = min(lower[channel], coefficient[channel])
+                upper[channel] = max(upper[channel], coefficient[channel])
+            }
+        }
+        return (0..<3).map { lower[$0]...upper[$0] }
+    }
+
+    /// Returns the 64 tensor-product Bernstein coefficients for one production
+    /// interpolation cell. These coefficients are an audit surface for future
+    /// interval isolation; callers must not treat them as sampled LUT data.
+    public func cellBernsteinCoefficients(_ cell: [Int]) throws -> [RGB64] {
+        guard cell.count == 3,
+              cell.allSatisfy({ $0 >= 0 && $0 < size - 1 }) else {
+            throw VolumeError.outsideDomain
+        }
+        let cardinalToBernstein: [[Double]] = [
+            [0, 1, 0, 0],
+            [-1.0 / 6.0, 1, 1.0 / 6.0, 0],
+            [0, 1.0 / 6.0, 1, -1.0 / 6.0],
+            [0, 0, 1, 0],
+        ]
+        var coefficients: [RGB64] = []
+        coefficients.reserveCapacity(64)
+        for bz in 0..<4 {
+            for by in 0..<4 {
+                for bx in 0..<4 {
+                    var value = [Double](repeating: 0, count: 3)
+                    for z in 0..<4 {
+                        for y in 0..<4 {
+                            for x in 0..<4 {
+                                let index = cell[0] + x + extendedSize *
+                                    (cell[1] + y + extendedSize * (cell[2] + z))
+                                let weight = cardinalToBernstein[bx][x] *
+                                    cardinalToBernstein[by][y] *
+                                    cardinalToBernstein[bz][z]
+                                for channel in 0..<3 {
+                                    value[channel] += weight * mesh[index][channel]
+                                }
+                            }
+                        }
+                    }
+                    coefficients.append(try RGB64(value[0], value[1], value[2]))
+                }
+            }
+        }
+        return coefficients
+    }
+
     private static func cubicWeights(_ t: Double) -> [Double] {
         let square = t * t, cube = square * t
         return [-0.5 * cube + square - 0.5 * t,
                  1.5 * cube - 2.5 * square + 1,
                 -1.5 * cube + 2 * square + 0.5 * t,
                  0.5 * cube - 0.5 * square]
+    }
+
+    private static func cubicWeightDerivatives(_ t: Double) -> [Double] {
+        let square = t * t
+        return [-1.5 * square + 2 * t - 0.5,
+                 4.5 * square - 5 * t,
+                 -4.5 * square + 4 * t + 0.5,
+                 1.5 * square - t]
     }
 
     private static func ghost(far: Double, third: Double, second: Double, near: Double) -> Double {

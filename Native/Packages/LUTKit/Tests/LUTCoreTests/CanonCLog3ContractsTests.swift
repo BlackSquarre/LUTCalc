@@ -63,7 +63,19 @@ final class CanonCLog3ContractsTests: XCTestCase {
         XCTAssertEqual(settings.inputTransfer, .canonCLog3)
         XCTAssertEqual(settings.inputSpace, .canonCinemaGamut)
         XCTAssertEqual(try TransformPlan(settings: settings).planVersion,
-                       "canon-clog3-plan-v1:" + TransferID.canonCLog3.rawValue + ":" + TransferID.linearScene.rawValue + ":gamut:" + ColorSpaceID.canonCinemaGamut.rawValue)
+                       "canon-clog3-plan-v1:" + TransferID.canonCLog3.rawValue + ":" + TransferID.linearScene.rawValue + ":inSpace:" + ColorSpaceID.canonCinemaGamut.rawValue + ":outSpace:" + ColorSpaceID.acesAP0.rawValue + ":gamut:" + ColorSpaceID.canonCinemaGamut.rawValue)
+    }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        let decode = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .canonCLog3, outputTransfer: .linearScene,
+            inputSpace: .canonCinemaGamut, outputSpace: .srgb,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        let alternate = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .canonCLog3, outputTransfer: .linearScene,
+            inputSpace: .canonCinemaGamut, outputSpace: .displayP3,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        XCTAssertNotEqual(decode.planVersion, alternate.planVersion)
     }
 
     func testCanonCinemaGamutAloneDoesNotSelectCLog3Plan() throws {

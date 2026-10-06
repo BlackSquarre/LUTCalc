@@ -90,7 +90,7 @@ import LUTSharedUI
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false)
         try original.write(to: url.appendingPathComponent("manifest.json"))
         let migrated = try ProjectStore.open(at: url, catalog: catalog)
-        XCTAssertEqual(migrated.schemaVersion, 25); XCTAssertNil(migrated.inputShaper)
+        XCTAssertEqual(migrated.schemaVersion, ProjectManifest.currentSchema); XCTAssertNil(migrated.inputShaper)
         XCTAssertEqual(try Data(contentsOf: url.appendingPathComponent("manifest.json")), original)
     }
 

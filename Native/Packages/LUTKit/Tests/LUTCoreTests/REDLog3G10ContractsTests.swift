@@ -61,7 +61,7 @@ final class REDLog3G10ContractsTests: XCTestCase {
         XCTAssertEqual(try TransformPlan(settings: encodeSettings).evaluate(RGB64(0.18, 0.18, 0.18)).r,
                        encoded, accuracy: 3e-15)
         XCTAssertEqual(try TransformPlan(settings: encodeSettings).planVersion,
-                       "analytic-red-log3g10-legacy-v1:linear.scene.v1:red.log3g10.lutcalc-legacy.v1")
+                       "analytic-red-log3g10-legacy-v1:linear.scene.v1:red.log3g10.lutcalc-legacy.v1:inSpace:red.wide-gamut-rgb.v1:outSpace:red.wide-gamut-rgb.v1")
     }
 
     func testCatalogAndDataIdentity() throws {
@@ -75,5 +75,20 @@ final class REDLog3G10ContractsTests: XCTestCase {
                        876.0 / 1023.0, accuracy: 1e-15)
         XCTAssertEqual(TransferID.redLog3G10LUTCalcLegacy.outputLegalOffset(policy: .completeV2),
                        64.0 / 1023.0, accuracy: 1e-15)
+    }
+
+    func testPlanIdentityIncludesBothColorSpaces() throws {
+        func version(input: ColorSpaceID, output: ColorSpaceID) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: .redLog3G10LUTCalcLegacy, outputTransfer: .linearScene,
+                inputSpace: input, outputSpace: output,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            )).planVersion
+        }
+        let baseline = try version(input: .redWideGamutRGB, output: .redWideGamutRGB)
+        XCTAssertNotEqual(baseline, try version(input: .rec2020, output: .redWideGamutRGB))
+        XCTAssertNotEqual(baseline, try version(input: .redWideGamutRGB, output: .displayP3))
+        XCTAssertTrue(baseline.contains("inSpace:red.wide-gamut-rgb.v1"))
+        XCTAssertTrue(baseline.contains("outSpace:red.wide-gamut-rgb.v1"))
     }
 }

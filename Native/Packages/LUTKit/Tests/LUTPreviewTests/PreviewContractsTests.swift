@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import XCTest
 import LUTCore
 @testable import LUTPreview
@@ -141,10 +142,12 @@ final class PreviewContractsTests: XCTestCase {
         bytes[16...19] = ArraySlice("RGB ".utf8)
         bytes[20...23] = ArraySlice("XYZ ".utf8)
         bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[8...11] = [4, 48, 0, 0]
         let profile = try ICCProfileValidator.validate(Data(bytes))
         XCTAssertEqual(profile.byteCount, 132)
         XCTAssertEqual(profile.declaredByteCount, 132)
         XCTAssertEqual(profile.profileSignature, "acsp")
+        XCTAssertEqual(profile.profileVersion, 0x04300000)
         XCTAssertNil(profile.profileClassSignature)
         XCTAssertNil(profile.profileClass)
         XCTAssertEqual(profile.colorChannelCount, 3)
@@ -156,6 +159,120 @@ final class PreviewContractsTests: XCTestCase {
         XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes.dropLast())))
         bytes[36...39] = ArraySlice("nope".utf8)
         XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes)))
+    }
+
+    func testICCProfileVersionRejectsNonZeroReservedLowBits() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        // ICC 8.2.2 version encoding reserves the low 16 bits.
+        bytes[11] = 1
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidProfileVersion)
+        }
+    }
+
+    func testICCProfileRejectsNonZeroHeaderReservedBytes() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[100] = 1
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidTagTable)
+        }
+    }
+
+    func testICCProfileDecodesPlatformAndCreatorSignatures() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[40...43] = ArraySlice("APPL".utf8)
+        bytes[80...83] = ArraySlice("LUTC".utf8)
+        let profile = try ICCProfileValidator.validate(Data(bytes))
+        XCTAssertEqual(profile.platformSignature, "APPL")
+        XCTAssertEqual(profile.creatorSignature, "LUTC")
+    }
+
+    func testICCProfileDecodesManufacturerAndModelSignatures() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[48...51] = ArraySlice("APPL".utf8)
+        bytes[52...55] = ArraySlice("LUTC".utf8)
+        let profile = try ICCProfileValidator.validate(Data(bytes))
+        XCTAssertEqual(profile.manufacturerSignature, "APPL")
+        XCTAssertEqual(profile.modelSignature, "LUTC")
+    }
+
+    func testICCProfileRejectsNonSignatureManufacturerAndModel() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[48...51] = [0x01, 0x02, 0x03, 0x04]
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidManufacturerSignature)
+        }
+        bytes[48...51] = [0, 0, 0, 0]
+        bytes[52...55] = [0x01, 0x02, 0x03, 0x04]
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidModelSignature)
+        }
+    }
+
+    func testICCProfileRejectsNonSignaturePlatformAndCreator() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[40...43] = [0x01, 0x02, 0x03, 0x04]
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidPlatformSignature)
+        }
+        bytes[40...43] = [0, 0, 0, 0]
+        bytes[80...83] = [0x01, 0x02, 0x03, 0x04]
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidCreatorSignature)
+        }
+    }
+
+    func testICCProfileRejectsNonZeroProfileIDWhenDigestDoesNotMatch() throws {
+        var bytes = makeProfile(tags: [])
+        bytes.replaceSubrange(84..<100, with: [UInt8](repeating: 0xA5, count: 16))
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidProfileID)
+        }
+    }
+
+    func testICCProfileAcceptsProfileIDComputedWithIDFieldZeroed() throws {
+        var bytes = makeProfile(tags: [])
+        bytes.replaceSubrange(84..<100, with: [UInt8](repeating: 0, count: 16))
+        let digest = Insecure.MD5.hash(data: Data(bytes))
+        bytes.replaceSubrange(84..<100, with: Array(digest))
+        let profile = try ICCProfileValidator.validate(Data(bytes))
+        XCTAssertEqual(profile.tagCount, 0)
+    }
+
+    func testRealSystemDisplayProfilePassesStructuralValidation() throws {
+        let url = URL(fileURLWithPath: "/Library/ColorSync/Profiles/Displays/XBH-6C4F598C-E1DA-4CA4-82C7-618A66227F93.icc")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw XCTSkip("系统未提供显示器 ICC profile")
+        }
+        let profile = try ICCProfileValidator.validate(try Data(contentsOf: url))
+        XCTAssertEqual(profile.colorSpaceSignature, "RGB ")
+        XCTAssertEqual(profile.pcsSignature, "XYZ ")
+        XCTAssertGreaterThan(profile.tagCount, 0)
+        XCTAssertFalse(profile.sha256.isEmpty)
     }
 
     func testICCProfileClassAndChannelMetadataAreDecodedWithoutChangingPayloadSemantics() throws {
@@ -221,6 +338,43 @@ final class PreviewContractsTests: XCTestCase {
         }
     }
 
+    func testICCProfileHeaderFlagsAndDeviceAttributesKeepDefinedBits() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[47] = 0x03
+        bytes[63] = 0x0F
+        let profile = try ICCProfileValidator.validate(Data(bytes))
+        XCTAssertEqual(profile.profileFlags, 0x03)
+        XCTAssertEqual(profile.deviceAttributes, 0x0F)
+    }
+
+    func testICCProfileHeaderFlagsRejectReservedBits() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[47] = 0x04
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidProfileFlags)
+        }
+    }
+
+    func testICCProfileHeaderDeviceAttributesRejectReservedBits() throws {
+        var bytes = [UInt8](repeating: 0, count: 132)
+        bytes[0...3] = [0, 0, 0, 132]
+        bytes[16...19] = ArraySlice("RGB ".utf8)
+        bytes[20...23] = ArraySlice("XYZ ".utf8)
+        bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[63] = 0x10
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidDeviceAttributes)
+        }
+    }
+
     func testICCProfileTagDirectoryBoundsContract() throws {
         var bytes = makeProfile(tags: [("desc", descPayload("sRGB"))])
         let profile = try ICCProfileValidator.validate(Data(bytes))
@@ -232,6 +386,26 @@ final class PreviewContractsTests: XCTestCase {
         XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes)))
     }
 
+    func testICCProfileAcceptsPrintableASCIITagSignatures() throws {
+        let profile = try ICCProfileValidator.validate(Data(makeProfile(tags: [
+            ("!@#$", textPayload("opaque"))
+        ])))
+        XCTAssertEqual(profile.tagSignatures, ["!@#$"])
+        XCTAssertEqual(profile.tags.first?.typeSignature, "text")
+        XCTAssertEqual(profile.tags.first?.textValue, "opaque")
+    }
+
+    func testICCProfileTagOffsetsMustBeFourByteAligned() throws {
+        var bytes = makeProfile(tags: [("desc", descPayload("sRGB"))])
+        let originalOffset = 144
+        bytes.insert(0, at: originalOffset)
+        bytes.replaceSubrange(0..<4, with: bigEndian(UInt32(bytes.count)))
+        bytes.replaceSubrange(136..<140, with: bigEndian(UInt32(originalOffset + 1)))
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(bytes))) {
+            XCTAssertEqual($0 as? ICCProfileError, .invalidTagRange)
+        }
+    }
+
     func testICCProfileCommonTextPayloadsAreDecoded() throws {
         let a = textPayload("Copyright")
         let b = descPayload("sRGB IEC61966-2.1")
@@ -241,6 +415,15 @@ final class PreviewContractsTests: XCTestCase {
         XCTAssertEqual(profile.tags.map { $0.signature }, ["cprt", "desc", "dmnd"])
         XCTAssertEqual(profile.tags.map { $0.typeSignature }, ["text", "desc", "mluc"])
         XCTAssertEqual(profile.tags.map { $0.textValue }, ["Copyright", "sRGB IEC61966-2.1", "Display manufacturer"])
+    }
+
+    func testICCProfileRejectsNonZeroTagTypeReservedBytes() throws {
+        var payload = textPayload("Copyright")
+        payload[4] = 1
+        XCTAssertThrowsError(try ICCProfileValidator.validate(Data(makeProfile(
+            tags: [("cprt", payload)])))) { error in
+            XCTAssertEqual(error as? ICCProfileError, .invalidTagPayload)
+        }
     }
 
     func testICCProfileMalformedKnownTextPayloadIsRejected() throws {
@@ -308,7 +491,7 @@ final class PreviewContractsTests: XCTestCase {
             ("chrm", chromaticityPayload(channels: 3, colorant: 1,
                                            values: [0.64, 0.33, 0.30, 0.60, 0.15, 0.06])),
             ("para", parametricPayload(functionType: 3,
-                                         values: [2.4, 0.055, 0.04045, 0.0, 0.0, 0.0])),
+                                         values: [2.4, 0.055, 0.04045, 0.0, 0.0])),
             ("view", viewingPayload(values: [0.9642, 1.0, 0.8249, 0.2, 0.2, 0.2], illuminant: 1)),
             ("meas", measurementPayload(observer: 1, geometry: 1, illuminant: 2,
                                           backing: [0.1, 0.2, 0.3], flare: 0.05))
@@ -328,7 +511,7 @@ final class PreviewContractsTests: XCTestCase {
         XCTAssertEqual(profile.tags[1].fixedPointValues?[0] ?? .nan, 0.64000, accuracy: 1.0 / 65536.0)
 
         XCTAssertEqual(profile.tags[2].parametricFunctionType, 3)
-        XCTAssertEqual(profile.tags[2].fixedPointValues?.count, 6)
+        XCTAssertEqual(profile.tags[2].fixedPointValues?.count, 5)
         XCTAssertEqual(profile.tags[2].fixedPointValues?[0] ?? .nan, 2.4, accuracy: 1.0 / 65536.0)
 
         XCTAssertEqual(profile.tags[3].fixedPointValues?.count, 6)
@@ -506,7 +689,9 @@ final class PreviewContractsTests: XCTestCase {
             bytes.replaceSubrange(start + 4..<start + 8, with: bigEndian(UInt32(offset)))
             bytes.replaceSubrange(start + 8..<start + 12, with: bigEndian(UInt32(item.1.count)))
             bytes += item.1
-            offset += item.1.count
+            let paddedCount = (item.1.count + 3) / 4 * 4
+            bytes += [UInt8](repeating: 0, count: paddedCount - item.1.count)
+            offset += paddedCount
         }
         bytes.replaceSubrange(0..<4, with: bigEndian(UInt32(bytes.count)))
         return bytes

@@ -78,4 +78,21 @@ final class RootContractsTests: XCTestCase {
         XCTAssertEqual(flat.inverse(0.375).status, .nonUnique)
         XCTAssertEqual(flat.inverse(.nan).status, .nonFinite)
     }
+
+    func testLegacyCubicKeepsFiniteCriticalPointWhenDiscriminantOverflows() throws {
+        let curve = try LegacyCubicCurve1D(
+            values: [8.984900966844184e258, 1.3457406847046075e265,
+                     -3.225797001415437e282],
+            lower: 0,
+            upper: 1
+        )
+        // The first segment's derivative has a finite t = 2/3 critical point,
+        // although the unscaled quadratic discriminant overflows to infinity.
+        let target = try curve.sample(1.0 / 3.0, outside: .reject)
+        let roots = curve.allInverseRoots(target)
+        XCTAssertTrue(roots.contains { result in
+            guard result.status == .converged, let value = result.value else { return false }
+            return abs(value - 1.0 / 3.0) <= 1e-12
+        }, "finite tangent root was lost when the raw discriminant overflowed: \(roots)")
+    }
 }

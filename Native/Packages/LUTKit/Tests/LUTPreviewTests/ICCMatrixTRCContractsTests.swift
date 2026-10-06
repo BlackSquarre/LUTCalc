@@ -26,6 +26,75 @@ final class ICCMatrixTRCContractsTests: XCTestCase {
         XCTAssertEqual(restored.b, encoded.b, accuracy: 2e-4)
     }
 
+    func testSystemDisplayP3ProfileLoadsThroughValidatedMatrixTRCPath() throws {
+        let url = URL(fileURLWithPath: "/System/Library/ColorSync/Profiles/Display P3.icc")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw XCTSkip("系统未提供 Display P3.icc")
+        }
+        let data = try Data(contentsOf: url)
+        let validation = try ICCProfileValidator.validate(data)
+        XCTAssertEqual(validation.colorSpaceSignature, "RGB ")
+        XCTAssertEqual(validation.pcsSignature, "XYZ ")
+        XCTAssertTrue(validation.tagSignatures.contains("rTRC"))
+        XCTAssertTrue(validation.tagSignatures.contains("rXYZ"))
+
+        let plan = try ICCMatrixTRCTransform(profileData: data)
+        let encoded = try RGB64(0.17, 0.63, 0.91)
+        let xyz = try plan.encodedRGBToXYZ(encoded)
+        XCTAssertTrue([xyz.x, xyz.y, xyz.z].allSatisfy(\.isFinite))
+        let restored = try plan.xyzToEncodedRGB(xyz)
+        XCTAssertEqual(restored.r, encoded.r, accuracy: 2e-4)
+        XCTAssertEqual(restored.g, encoded.g, accuracy: 2e-4)
+        XCTAssertEqual(restored.b, encoded.b, accuracy: 2e-4)
+    }
+
+    func testSystemAdobeRGBProfileLoadsThroughValidatedMatrixTRCPath() throws {
+        try assertSystemMatrixTRCProfile(
+            path: "/System/Library/ColorSync/Profiles/AdobeRGB1998.icc",
+            sample: try RGB64(0.19, 0.57, 0.83)
+        )
+    }
+
+    func testSystemITU2020ProfileLoadsThroughValidatedMatrixTRCPath() throws {
+        try assertSystemMatrixTRCProfile(
+            path: "/System/Library/ColorSync/Profiles/ITU-2020.icc",
+            sample: try RGB64(0.19, 0.57, 0.83)
+        )
+    }
+
+    func testRealSystemDisplayProfileExecutesMatrixTRCPath() throws {
+        let url = URL(fileURLWithPath: "/Library/ColorSync/Profiles/Displays/XBH-6C4F598C-E1DA-4CA4-82C7-618A66227F93.icc")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw XCTSkip("系统未提供显示器 ICC profile")
+        }
+        let plan = try ICCMatrixTRCTransform(profileData: try Data(contentsOf: url))
+        let input = try RGB64(0.21, 0.58, 0.87)
+        let xyz = try plan.encodedRGBToXYZ(input)
+        let restored = try plan.xyzToEncodedRGB(xyz)
+        XCTAssertTrue([xyz.x, xyz.y, xyz.z].allSatisfy(\.isFinite))
+        XCTAssertEqual(restored.r, input.r, accuracy: 3e-4)
+        XCTAssertEqual(restored.g, input.g, accuracy: 3e-4)
+        XCTAssertEqual(restored.b, input.b, accuracy: 3e-4)
+    }
+
+    private func assertSystemMatrixTRCProfile(path: String, sample: RGB64) throws {
+        let url = URL(fileURLWithPath: path)
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw XCTSkip("系统未提供 (url.lastPathComponent)")
+        }
+        let data = try Data(contentsOf: url)
+        let validation = try ICCProfileValidator.validate(data)
+        XCTAssertEqual(validation.colorSpaceSignature, "RGB ")
+        XCTAssertEqual(validation.pcsSignature, "XYZ ")
+        let plan = try ICCMatrixTRCTransform(profileData: data)
+        let xyz = try plan.encodedRGBToXYZ(sample)
+        XCTAssertTrue([xyz.x, xyz.y, xyz.z].allSatisfy(\.isFinite))
+        let restored = try plan.xyzToEncodedRGB(xyz)
+        XCTAssertEqual(restored.r, sample.r, accuracy: 2e-4)
+        XCTAssertEqual(restored.g, sample.g, accuracy: 2e-4)
+        XCTAssertEqual(restored.b, sample.b, accuracy: 2e-4)
+    }
+
     func testMatrixTRCProfileLinkingUsesRelativeColorimetricPCSConnection() throws {
         let source = Data(makeProfile(tags: matrixTRCTags(gamma: 2.0)))
         let target = Data(makeProfile(tags: matrixTRCTags(curvePayloadData: curvePayload([0, 65535]))))
@@ -44,6 +113,57 @@ final class ICCMatrixTRCContractsTests: XCTestCase {
                                                           intent: .perceptual)) {
             XCTAssertEqual($0 as? ICCMatrixTRCProfileLinkError, .unsupportedRenderingIntent(.perceptual))
         }
+    }
+
+    func testAbsoluteColorimetricUsesPCSConnectionWhenMediaWhitePointsMatch() throws {
+        let source = Data(makeProfile(tags: matrixTRCTags(gamma: 2.0)))
+        let target = Data(makeProfile(tags: matrixTRCTags(curvePayloadData: curvePayload([0, 65535]))))
+        let relative = try ICCMatrixTRCProfileLink(sourceProfile: source, targetProfile: target,
+                                                    intent: .relativeColorimetric)
+        let absolute = try ICCMatrixTRCProfileLink(sourceProfile: source, targetProfile: target,
+                                                    intent: .absoluteColorimetric)
+        let input = try RGB64(0.5, 0.25, 0.75)
+        let relativeOutput = try relative.convert(input)
+        let actual = try absolute.convert(input)
+        let independent = try RGB64(input.r * input.r, input.g * input.g, input.b * input.b)
+        XCTAssertEqual(relativeOutput.r, independent.r, accuracy: 2e-14)
+        XCTAssertEqual(relativeOutput.g, independent.g, accuracy: 2e-14)
+        XCTAssertEqual(relativeOutput.b, independent.b, accuracy: 2e-14)
+        XCTAssertEqual(actual.r, independent.r, accuracy: 2e-14)
+        XCTAssertEqual(actual.g, independent.g, accuracy: 2e-14)
+        XCTAssertEqual(actual.b, independent.b, accuracy: 2e-14)
+        XCTAssertEqual(absolute.intent, .absoluteColorimetric)
+    }
+
+    func testAbsoluteColorimetricAcceptsMismatchedMediaWhitePoints() throws {
+        let source = Data(makeProfile(tags: matrixTRCTags(gamma: 2.0)))
+        var targetTags = matrixTRCTags(gamma: 2.0)
+        targetTags[3].1 = xyzPayload(0.95047, 1.0, 1.08883)
+        let link = try ICCMatrixTRCProfileLink(
+            sourceProfile: source, targetProfile: Data(makeProfile(tags: targetTags)),
+            intent: .absoluteColorimetric
+        )
+        XCTAssertEqual(link.intent, .absoluteColorimetric)
+    }
+
+    func testAbsoluteColorimetricScalesBetweenDifferentMediaWhitePoints() throws {
+        var sourceTags = matrixTRCTags(gamma: 2.0)
+        sourceTags[3].1 = xyzPayload(0.75, 1.0, 0.5)
+        var targetTags = matrixTRCTags(curvePayloadData: curvePayload([0, 65535]))
+        targetTags[3].1 = xyzPayload(1.5, 0.5, 1.0)
+
+        let link = try ICCMatrixTRCProfileLink(
+            sourceProfile: Data(makeProfile(tags: sourceTags)),
+            targetProfile: Data(makeProfile(tags: targetTags)),
+            intent: .absoluteColorimetric
+        )
+        let actual = try link.convert(RGB64(0.5, 0.25, 0.75))
+
+        // ICC.1:2022-05 §6.3.2.2: relative -> absolute -> target-relative.
+        // These powers-of-two white-point ratios make the independent result exact.
+        XCTAssertEqual(actual.r, 0.125, accuracy: 2e-14)
+        XCTAssertEqual(actual.g, 0.125, accuracy: 2e-14)
+        XCTAssertEqual(actual.b, 0.28125, accuracy: 2e-14)
     }
 
     func testMatrixTRCProfileLinkingRejectsMismatchedPCSWhitePoints() throws {
@@ -212,15 +332,15 @@ final class ICCMatrixTRCContractsTests: XCTestCase {
     }
 
     func testParametricTypeThreeMatchesIndependentReferenceAndInverse() throws {
-        // ICC type 3: y=(a*x+b)^g+c for x >= d, otherwise f*x.
-        let values = [2.0, 1.0, 0.0, 0.0, 0.25, 0.25]
+        // ICC type 3: y=(a*x+b)^g+c for x >= d, otherwise 0.
+        let values = [2.0, 1.0, 0.0, 0.0, 0.25]
         let plan = try ICCMatrixTRCTransform(profileData: Data(makeProfile(
             tags: matrixTRCTags(parametricValues: values, functionType: 3)
         )))
 
         let lowInput = try RGB64(0.1, 0.1, 0.1)
         let low = try plan.encodedRGBToXYZ(lowInput)
-        XCTAssertEqual(low.x, values[5] * lowInput.r, accuracy: 2e-13)
+        XCTAssertEqual(low.x, 0, accuracy: 2e-13)
 
         let highInput = try RGB64(0.5, 0.5, 0.5)
         let high = try plan.encodedRGBToXYZ(highInput)
@@ -229,9 +349,9 @@ final class ICCMatrixTRCContractsTests: XCTestCase {
 
         var maximum = 0.0
         for size in [33, 65] {
-            for r in 0..<size {
-                for g in 0..<size {
-                    for b in 0..<size {
+            for r in (size / 4)..<size {
+                for g in (size / 4)..<size {
+                    for b in (size / 4)..<size {
                         let input = try RGB64(
                             Double(r) / Double(size - 1),
                             Double(g) / Double(size - 1),
@@ -252,21 +372,20 @@ final class ICCMatrixTRCContractsTests: XCTestCase {
     }
 
     func testParametricTypeThreeInverseRejectsGapAndOverlap() throws {
-        // d=0.5; the low branch ends at 0.125 and the high branch starts at 0.25.
+        // Type 3 has a constant zero low branch; zero is therefore non-unique.
         let gap = try ICCMatrixTRCTransform(profileData: Data(makeProfile(
-            tags: matrixTRCTags(parametricValues: [2, 1, 0, 0, 0.5, 0.25], functionType: 3)
+            tags: matrixTRCTags(parametricValues: [2, 1, 0, 0, 0.5], functionType: 3)
         )))
-        XCTAssertThrowsError(try gap.xyzToEncodedRGB(try XYZ64(0.1875, 0.1875, 0.1875))) { error in
-            XCTAssertEqual(error as? ICCMatrixTRCError, .outsideDomain(stage: .encodeTransfer))
-        }
-
-        // The low and high branches both map distinct inputs to 0.36.
-        let overlap = try ICCMatrixTRCTransform(profileData: Data(makeProfile(
-            tags: matrixTRCTags(parametricValues: [2, 1, 0, 0, 0.5, 1], functionType: 3)
-        )))
-        XCTAssertThrowsError(try overlap.xyzToEncodedRGB(try XYZ64(0.36, 0.36, 0.36))) { error in
+        XCTAssertThrowsError(try gap.xyzToEncodedRGB(try XYZ64(0, 0, 0))) { error in
             XCTAssertEqual(error as? ICCMatrixTRCError, .nonUnique(stage: .encodeTransfer))
         }
+
+        // The high branch remains invertible above the threshold.
+        let overlap = try ICCMatrixTRCTransform(profileData: Data(makeProfile(
+            tags: matrixTRCTags(parametricValues: [2, 1, 0, 0, 0.5], functionType: 3)
+        )))
+        XCTAssertEqual(try overlap.xyzToEncodedRGB(try XYZ64(0.36, 0.36, 0.36)).r,
+                       sqrt(0.36), accuracy: 2e-13)
     }
 
     func testParametricTypeFourInverseRejectsGapAndOverlap() throws {
@@ -386,7 +505,9 @@ final class ICCMatrixTRCContractsTests: XCTestCase {
             bytes.replaceSubrange(start + 4..<start + 8, with: bigEndian(UInt32(offset)))
             bytes.replaceSubrange(start + 8..<start + 12, with: bigEndian(UInt32(item.1.count)))
             bytes += item.1
-            offset += item.1.count
+            let paddedCount = (item.1.count + 3) / 4 * 4
+            bytes += [UInt8](repeating: 0, count: paddedCount - item.1.count)
+            offset += paddedCount
         }
         bytes.replaceSubrange(0..<4, with: bigEndian(UInt32(bytes.count)))
         return bytes

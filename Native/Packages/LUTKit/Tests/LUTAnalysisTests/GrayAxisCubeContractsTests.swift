@@ -34,4 +34,27 @@ final class GrayAxisCubeContractsTests: XCTestCase {
             XCTAssertEqual($0 as? GrayAxisError, .requiresThreeDimensionalLUT)
         }
     }
+
+    func testAffineIdentityGrayAxisHasZeroMidpointResidual() throws {
+        let size = 3
+        var samples: [RGB64] = []
+        for b in 0..<size {
+            for g in 0..<size {
+                for r in 0..<size {
+                    let point = Double(r) / Double(size - 1)
+                    let green = Double(g) / Double(size - 1)
+                    let blue = Double(b) / Double(size - 1)
+                    samples.append(try RGB64(point, green, blue))
+                }
+            }
+        }
+        let volume = try LUTVolume3D(size: size, domain: .unit, samples: samples)
+
+        for interpolation in [LUTInterpolation.trilinear, .tetrahedral] {
+            let report = try GrayAxisAnalyzer.extract(volume, interpolation: interpolation)
+            XCTAssertEqual(report.samples.map(\.output), report.samples.map(\.input))
+            XCTAssertEqual(report.midpointProbeCount, size - 1)
+            XCTAssertLessThanOrEqual(report.maximumMidpointResidual, 2e-15)
+        }
+    }
 }

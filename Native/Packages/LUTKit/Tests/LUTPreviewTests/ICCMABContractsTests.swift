@@ -4,6 +4,39 @@ import LUTCore
 @testable import LUTPreview
 
 final class ICCMABContractsTests: XCTestCase {
+    func testMABSupportsFourChannelDeviceInputThroughFourDCLUT() throws {
+        let payload = arbitraryIdentityPipeline(type: "mAB ", input: 4, output: 3)
+        let transform = try ICCMABTransform(
+            profileData: Data(makeProfile(tag: "A2B0", payload: payload, colorSpace: "CMYK")),
+            tag: "A2B0")
+        let output = try transform.sample([0.2, 0.4, 0.6, 0.8])
+        XCTAssertEqual(output.count, 3)
+        for (actual, expected) in zip(output, [0.2, 0.4, 0.6]) {
+            XCTAssertEqual(actual, expected, accuracy: 2.0 / 65535.0)
+        }
+    }
+
+    func testMBASupportsFourChannelDeviceOutputThroughThreeDCLUT() throws {
+        let payload = arbitraryIdentityPipeline(type: "mBA ", input: 3, output: 4)
+        let transform = try ICCMABTransform(
+            profileData: Data(makeProfile(tag: "B2A0", payload: payload)), tag: "B2A0")
+        let output = try transform.sample([0.2, 0.4, 0.6])
+        XCTAssertEqual(output.count, 4)
+        for (actual, expected) in zip(output, [0.2, 0.4, 0.6, 0.0]) {
+            XCTAssertEqual(actual, expected, accuracy: 2.0 / 65535.0)
+        }
+    }
+
+    func testMABRGBConvenienceEntryRejectsNonThreeChannelPipeline() throws {
+        let payload = arbitraryIdentityPipeline(type: "mAB ", input: 4, output: 3)
+        let transform = try ICCMABTransform(
+            profileData: Data(makeProfile(tag: "A2B0", payload: payload, colorSpace: "CMYK")),
+            tag: "A2B0")
+        XCTAssertThrowsError(try transform.sample(try RGB64(0.2, 0.4, 0.6))) { error in
+            XCTAssertEqual(error as? ICCMABError, .unsupportedChannels)
+        }
+    }
+
     func testMABIdentityPipelineUsesAClutMMatrixBOrder() throws {
         let transform = try ICCMABTransform(profileData: Data(makeProfile(tag: "A2B0", payload: pipeline(type: "mAB "))), tag: "A2B0")
         let input = try RGB64(0.25, 0.5, 0.75)
@@ -108,7 +141,7 @@ final class ICCMABContractsTests: XCTestCase {
         XCTAssertThrowsError(try ICCMABTransform(profileData: Data(makeProfile(tag: "A2B0", payload: clutOverlap)), tag: "A2B0"))
     }
 
-    func testMatrixUsesInterleavedOffsetsAndClipsBeforeNextCurve() throws {
+    func testMatrixUsesContiguousMatrixThenOffsetsAndClipsBeforeNextCurve() throws {
         let payload = pipeline(type: "mAB ", matrixData: matrix(scale: [2, 0.5, 1],
                                                                     offset: [0.125, 0.25, -0.25]))
         let transform = try ICCMABTransform(profileData: Data(makeProfile(tag: "A2B0", payload: payload)), tag: "A2B0")
@@ -140,6 +173,18 @@ final class ICCMABContractsTests: XCTestCase {
         XCTAssertEqual(output.b, 0.6, accuracy: 2.0 / 65535.0)
     }
 
+    func testMABRejectsExtremeCurveEntryCountBeforeResourceUse() {
+        var payload = pipeline(type: "mAB ")
+        let curveOffset = Int(payload[12]) << 24 | Int(payload[13]) << 16 |
+            Int(payload[14]) << 8 | Int(payload[15])
+        payload.replaceSubrange(curveOffset + 8..<curveOffset + 12,
+                                with: be(UInt32.max))
+        XCTAssertThrowsError(try ICCMABTransform(
+            profileData: Data(makeProfile(tag: "A2B0", payload: payload)), tag: "A2B0")) { error in
+            XCTAssertEqual(error as? ICCMABError, .malformedSection)
+        }
+    }
+
     func testNonUniformCLUTGridUsesLastChannelFastest() throws {
         let payload = pipeline(type: "mAB ", clutData: clutIdentity(grid: [2, 3, 4]))
         let transform = try ICCMABTransform(profileData: Data(makeProfile(tag: "A2B0", payload: payload)), tag: "A2B0")
@@ -161,6 +206,50 @@ final class ICCMABContractsTests: XCTestCase {
     private func makeTransform(outputCurve: [UInt8]) throws -> ICCMABTransform {
         let payload = pipeline(type: "mAB ", outputCurve: outputCurve)
         return try ICCMABTransform(profileData: Data(makeProfile(tag: "A2B0", payload: payload)), tag: "A2B0")
+    }
+
+    private func arbitraryIdentityPipeline(type: String, input: Int, output: Int) -> [UInt8] {
+        precondition(type == "mAB " || type == "mBA ")
+        let clutInput = input
+        let clutNodes = Int(pow(2.0, Double(clutInput)))
+        var payload = [UInt8](repeating: 0, count: 32)
+        payload.replaceSubrange(0..<4, with: Array(type.utf8))
+        payload[8] = UInt8(input); payload[9] = UInt8(output)
+        let bCount = type == "mAB " ? output : input
+        let aCount = type == "mAB " ? input : output
+        var sections: [(Int, [UInt8])] = []
+        sections.append((0, Array(repeating: curveIdentity(), count: bCount).flatMap { $0 }))
+        var clut = [UInt8](repeating: 0, count: 20)
+        for axis in 0..<clutInput { clut[axis] = 2 }
+        clut[16] = 2
+        for node in 0..<clutNodes {
+            var remainder = node
+            var coordinates = [Int](repeating: 0, count: clutInput)
+            for axis in stride(from: clutInput - 1, through: 0, by: -1) {
+                coordinates[axis] = remainder % 2
+                remainder /= 2
+            }
+            for channel in 0..<output {
+                let value = channel < input ? coordinates[channel] : 0
+                clut += be(UInt16(value * 65535))
+            }
+        }
+        sections.append((3, clut))
+        sections.append((4, Array(repeating: curveIdentity(), count: aCount).flatMap { $0 }))
+        var offsets = [Int](repeating: 0, count: 5)
+        var cursor = 32
+        for (kind, section) in sections {
+            cursor = (cursor + 3) & ~3
+            if payload.count < cursor { payload += [UInt8](repeating: 0, count: cursor - payload.count) }
+            let start = cursor
+            payload += section
+            cursor = payload.count
+            offsets[kind] = start
+        }
+        for (index, offset) in offsets.enumerated() {
+            payload.replaceSubrange(12 + index * 4..<16 + index * 4, with: be(UInt32(offset)))
+        }
+        return payload
     }
 
     private func pipeline(type: String, includeMatrix: Bool = false,
@@ -212,8 +301,8 @@ final class ICCMABContractsTests: XCTestCase {
             for column in 0..<3 {
                 result += be(Int32(((row == column ? scale[row] : 0) * 65536).rounded()))
             }
-            result += be(Int32((offset[row] * 65536).rounded()))
         }
+        result += offset.map { be(Int32(($0 * 65536).rounded())) }.flatMap { $0 }
         return result
     }
     private func clutIdentity(grid: [Int] = [2, 2, 2]) -> [UInt8] {
@@ -226,10 +315,11 @@ final class ICCMABContractsTests: XCTestCase {
         } } }
         return bytes
     }
-    private func makeProfile(tag: String, payload: [UInt8], pcs: String = "XYZ ") -> [UInt8] {
+    private func makeProfile(tag: String, payload: [UInt8], pcs: String = "XYZ ",
+                             colorSpace: String = "RGB ") -> [UInt8] {
         let tableEnd = 144
         var bytes = [UInt8](repeating: 0, count: tableEnd)
-        bytes[16...19] = ArraySlice("RGB ".utf8); bytes[20...23] = ArraySlice(pcs.utf8); bytes[36...39] = ArraySlice("acsp".utf8)
+        bytes[16...19] = ArraySlice(colorSpace.utf8); bytes[20...23] = ArraySlice(pcs.utf8); bytes[36...39] = ArraySlice("acsp".utf8)
         bytes.replaceSubrange(128..<132, with: be(UInt32(1)))
         bytes.replaceSubrange(132..<136, with: Array(tag.utf8)); bytes.replaceSubrange(136..<140, with: be(UInt32(tableEnd))); bytes.replaceSubrange(140..<144, with: be(UInt32(payload.count)))
         bytes += payload; bytes.replaceSubrange(0..<4, with: be(UInt32(bytes.count))); return bytes

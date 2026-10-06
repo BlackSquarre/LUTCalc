@@ -38,7 +38,7 @@ public enum ProjectAssetRole: String, Codable, Equatable, Sendable {
 }
 
 public struct ProjectManifest: Equatable, Codable, Sendable {
-    public static let currentSchema = 25
+    public static let currentSchema = 27
     public static let currentEngine = "native-minimal-v1"
     public static let currentCatalog = "catalog-minimal-v1"
 
@@ -125,6 +125,9 @@ public struct ProjectManifest: Equatable, Codable, Sendable {
         if let fc=settings.falseColour {versions["falseColour"]=fc.algorithm.rawValue}
         if let final=settings.finalOutput {versions["finalOutput"]=final.algorithm.rawValue}
         if let hlg=settings.hlgOOTF {versions["hlgOOTF"]=hlg.algorithm.rawValue}
+        if let rgc = settings.acesReferenceGamutCompression {
+            versions["acesReferenceGamutCompression"] = rgc.algorithm
+        }
         if settings.requiresOutputCodeUnitIdentity {versions["outputCodeUnits"]=settings.outputCodeUnits.rawValue}
         if let exposureBatchPreset { versions["exposureBatchPreset"] = exposureBatchPreset.algorithm }
         if exposureBatchPreset?.format == .threeDL { versions["exposureBatchFormat"] = ThreeDLFlavor.batchAlgorithm }
@@ -185,6 +188,12 @@ public struct ProjectManifest: Equatable, Codable, Sendable {
         guard schema >= 20 || !decodedSettings.referencesBMDGen5 else {throw ProjectError.unsupportedSchema(schema)}
         guard schema >= 21 || (!decodedSettings.referencesCanonCLog2 && !decodedSettings.referencesCanonCLog3) else {throw ProjectError.unsupportedSchema(schema)}
         guard schema >= 22 || decodedSettings.hlgOOTF == nil else {throw ProjectError.unsupportedSchema(schema)}
+        guard schema >= 26 || decodedSettings.acesReferenceGamutCompression == nil else {
+            throw ProjectError.unsupportedSchema(schema)
+        }
+        guard schema >= 27 || decodedSettings.hlgOOTF?.referenceGammaMode == nil else {
+            throw ProjectError.unsupportedSchema(schema)
+        }
         guard schema >= 18 || !decodedSettings.referencesARRIWideGamut3 else {
             throw ProjectError.unsupportedSchema(schema)
         }
@@ -226,6 +235,9 @@ public struct ProjectManifest: Equatable, Codable, Sendable {
         guard schema >= 14 || settings.falseColour == nil else{throw ProjectError.unsupportedSchema(schema)}
         guard schema >= 15 || settings.finalOutput == nil else{throw ProjectError.unsupportedSchema(schema)}
         guard schema >= 22 || settings.hlgOOTF == nil else{throw ProjectError.unsupportedSchema(schema)}
+        guard schema >= 26 || settings.acesReferenceGamutCompression == nil else {
+            throw ProjectError.unsupportedSchema(schema)
+        }
         cubeSize = try container.decode(Int.self, forKey: .cubeSize)
         domain = try container.decode(LUTDomain.self, forKey: .domain)
         assetHashes = try container.decode([String: String].self, forKey: .assetHashes)
@@ -334,6 +346,7 @@ public enum ProjectCodec {
         if schema >= 14 {allowedSettings.insert("falseColour")}
         if schema >= 15 {allowedSettings.insert("finalOutput")}
         if schema >= 22 {allowedSettings.insert("hlgOOTF")}
+        if schema >= 26 {allowedSettings.insert("acesReferenceGamutCompression")}
         if schema >= 17 { allowedSettings.formUnion(["inputLogC", "outputLogC"]) }
         if schema >= 19 { allowedSettings.insert("cameraExposure") }
         try exactKeys(settings, allowed: allowedSettings, path: "settings.")
@@ -353,7 +366,14 @@ public enum ProjectCodec {
         }
         if let hlg=settings["hlgOOTF"] {
             guard let object=hlg as? [String:Any] else{throw ProjectError.malformed}
-            try exactKeys(object,allowed:["algorithm","enabled","inputPeakNits","outputPeakNits","inputBlackNits","outputBlackNits","scale","bbcInput","bbcOutput"],path:"settings.hlgOOTF.")
+            var allowed: Set<String> = ["algorithm","enabled","inputPeakNits","outputPeakNits","inputBlackNits","outputBlackNits","scale","bbcInput","bbcOutput"]
+            if schema >= 27 { allowed.insert("referenceGammaMode") }
+            try exactKeys(object,allowed: allowed,path:"settings.hlgOOTF.")
+        }
+        if let rgc = settings["acesReferenceGamutCompression"] {
+            guard let object = rgc as? [String: Any] else { throw ProjectError.malformed }
+            try exactKeys(object, allowed: ["algorithm", "enabled", "operation"],
+                          path: "settings.acesReferenceGamutCompression.")
         }
         if let fc=settings["falseColour"] {
             guard let object=fc as? [String:Any] else{throw ProjectError.malformed}

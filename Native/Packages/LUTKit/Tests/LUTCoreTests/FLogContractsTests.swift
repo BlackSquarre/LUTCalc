@@ -55,4 +55,20 @@ final class FLogContractsTests: XCTestCase {
         XCTAssertTrue(TransferID.fujifilmFLogLUTCalcLegacy.hasNormalizedDataEncoding)
         XCTAssertEqual(TransferID.fujifilmFLogLUTCalcLegacy.outputLegalScale(policy: .completeV2), 876.0 / 1023.0, accuracy: 1e-15)
     }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        let base = TransformSettings(inputTransfer: .fujifilmFLogLUTCalcLegacy,
+                                     outputTransfer: .linearScene,
+                                     inputSpace: .fujifilmFGamut, outputSpace: .acesAP0,
+                                     inputRange: .data, outputRange: .data, exposureStops: 0)
+        let reverse = TransformSettings(inputTransfer: .linearScene,
+                                        outputTransfer: .fujifilmFLogLUTCalcLegacy,
+                                        inputSpace: .acesAP0, outputSpace: .fujifilmFGamut,
+                                        inputRange: .data, outputRange: .data, exposureStops: 0)
+        let alternate = base.withInput(transfer: .fujifilmFLogLUTCalcLegacy, space: .srgb)
+        XCTAssertNotEqual(try TransformPlan(settings: base).planVersion,
+                          try TransformPlan(settings: reverse).planVersion)
+        XCTAssertNotEqual(try TransformPlan(settings: base).planVersion,
+                          try TransformPlan(settings: alternate).planVersion)
+    }
 }

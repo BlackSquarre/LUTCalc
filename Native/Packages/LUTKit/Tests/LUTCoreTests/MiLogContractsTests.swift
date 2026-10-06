@@ -43,11 +43,29 @@ final class MiLogContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 1
         )
         let plan = try TransformPlan(settings: settings)
-        XCTAssertEqual(plan.planVersion, "minimal-milog-v1")
+        XCTAssertTrue(plan.planVersion.hasPrefix("minimal-milog-v1:"))
         let encoded = try MiLogTransfer.encodeSceneToData(0.18)
         let result = try plan.evaluate(RGB64(encoded, encoded, encoded))
         XCTAssertEqual(result.r, 0.36, accuracy: tolerance)
         XCTAssertEqual(result.g, 0.36, accuracy: tolerance)
         XCTAssertEqual(result.b, 0.36, accuracy: tolerance)
+    }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        func version(inputTransfer: TransferID = .xiaomiMiLog,
+                     outputTransfer: TransferID = .linearScene,
+                     inputSpace: ColorSpaceID = .rec2020,
+                     outputSpace: ColorSpaceID = .rec2020) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: inputTransfer, outputTransfer: outputTransfer,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0
+            )).planVersion
+        }
+
+        let baseline = try version()
+        XCTAssertNotEqual(try version(inputTransfer: .linearScene, outputTransfer: .xiaomiMiLog), baseline)
+        XCTAssertNotEqual(try version(inputSpace: .srgb), baseline)
+        XCTAssertNotEqual(try version(outputSpace: .displayP3), baseline)
     }
 }

@@ -41,11 +41,26 @@ final class ILogContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 1
         )
         let plan = try TransformPlan(settings: settings)
-        XCTAssertEqual(plan.planVersion, "minimal-ilog-v1")
+        XCTAssertEqual(plan.planVersion,
+                       "minimal-ilog-v1:insta360.ilog.v1:linear.scene.v1:inSpace:rec2020.d65.v1:outSpace:rec2020.d65.v1")
         let encoded = try ILogTransfer.encodeSceneToData(0.18)
         let result = try plan.evaluate(RGB64(encoded, encoded, encoded))
         XCTAssertEqual(result.r, 0.36, accuracy: tolerance)
         XCTAssertEqual(result.g, 0.36, accuracy: tolerance)
         XCTAssertEqual(result.b, 0.36, accuracy: tolerance)
+    }
+
+    func testDirectionAndGamutArePartOfILogPlanIdentity() throws {
+        let forward = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .insta360ILog, outputTransfer: .linearScene,
+            inputSpace: .rec2020, outputSpace: .srgb,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        let reverse = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .linearScene, outputTransfer: .insta360ILog,
+            inputSpace: .srgb, outputSpace: .rec2020,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        XCTAssertNotEqual(forward.planVersion, reverse.planVersion)
+        XCTAssertTrue(forward.planVersion.contains(":inSpace:rec2020.d65.v1:outSpace:srgb.d65.v1"))
+        XCTAssertTrue(reverse.planVersion.contains(":inSpace:srgb.d65.v1:outSpace:rec2020.d65.v1"))
     }
 }

@@ -2,6 +2,71 @@ import XCTest
 @testable import LUTCore
 
 final class ParameterizedGammaContractsTests: XCTestCase {
+    func testParameterizedGammaPlanIdentityIncludesExactDirectionalParameters() throws {
+        let inputA = try ParameterizedGammaSettings(
+            exponent: 2.200000000000001, linearSlope: 4.5, offset: 0.1,
+            linearCut: 0.02)
+        let inputB = try ParameterizedGammaSettings(
+            exponent: 2.2, linearSlope: 4.5, offset: 0.1,
+            linearCut: 0.02)
+        let output = try ParameterizedGammaSettings(
+            exponent: 2.4, linearSlope: 4.5, offset: 0.1,
+            linearCut: 0.02, encodedCut: 0.09)
+
+        func plan(input: ParameterizedGammaSettings?, output: ParameterizedGammaSettings?) throws -> TransformPlan {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: input == nil ? .linearScene : .parameterizedGamma,
+                outputTransfer: output == nil ? .linearScene : .parameterizedGamma,
+                inputSpace: .srgb, outputSpace: .srgb,
+                inputRange: .data, outputRange: .data, exposureStops: 0,
+                inputGamma: input, outputGamma: output))
+        }
+
+        let decodeA = try plan(input: inputA, output: nil)
+        let decodeB = try plan(input: inputB, output: nil)
+        let encodeA = try plan(input: nil, output: output)
+        let encodeOther = try plan(input: nil, output: inputA)
+        XCTAssertNotEqual(decodeA.planVersion, decodeB.planVersion)
+        XCTAssertNotEqual(encodeA.planVersion, encodeOther.planVersion)
+        XCTAssertNotEqual(decodeA.planVersion, encodeA.planVersion)
+
+        let value = try RGB64(0.4, 0.4, 0.4)
+        XCTAssertNotEqual(try decodeA.evaluate(value).r, try decodeB.evaluate(value).r)
+        XCTAssertNotEqual(try encodeA.evaluate(value).r, try encodeOther.evaluate(value).r)
+    }
+
+    func testParameterizedGammaPlanIdentityIncludesBothColorSpaces() throws {
+        let gamma = try ParameterizedGammaSettings(
+            exponent: 2.2, linearSlope: 4.5, offset: 0.1, linearCut: 0.02)
+        func plan(inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: .parameterizedGamma, outputTransfer: .parameterizedGamma,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0,
+                inputGamma: gamma, outputGamma: gamma
+            )).planVersion
+        }
+        let baseline = try plan(inputSpace: .srgb, outputSpace: .srgb)
+        XCTAssertNotEqual(baseline, try plan(inputSpace: .acesAP0, outputSpace: .srgb))
+        XCTAssertNotEqual(baseline, try plan(inputSpace: .srgb, outputSpace: .acesAP0))
+    }
+
+    func testImplicitAndEquivalentExplicitEncodedCutSharePlanIdentity() throws {
+        let implicit = try ParameterizedGammaSettings(
+            exponent: 2.4, linearSlope: 4.5, offset: 0.1, linearCut: 0.02)
+        let explicit = try ParameterizedGammaSettings(
+            exponent: 2.4, linearSlope: 4.5, offset: 0.1, linearCut: 0.02,
+            encodedCut: 0.09)
+        func plan(_ gamma: ParameterizedGammaSettings) throws -> TransformPlan {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: .parameterizedGamma, outputTransfer: .parameterizedGamma,
+                inputSpace: .srgb, outputSpace: .srgb,
+                inputRange: .data, outputRange: .data, exposureStops: 0,
+                inputGamma: gamma, outputGamma: gamma))
+        }
+        XCTAssertEqual(try plan(implicit).planVersion, try plan(explicit).planVersion)
+    }
+
     func testRangeDepthAndAdaptationEditsPreserveParameterizedGammaSlots() throws {
         let gamma = try ParameterizedGammaSettings(exponent: 2.2, linearSlope: 1,
                                                    offset: 0, linearCut: 0)

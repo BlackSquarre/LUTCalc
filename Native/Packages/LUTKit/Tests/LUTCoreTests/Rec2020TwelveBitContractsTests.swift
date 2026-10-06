@@ -32,8 +32,8 @@ final class Rec2020TwelveBitContractsTests: XCTestCase {
             inputTransfer: .rec2020TenBit, outputTransfer: .rec2020TenBit,
             inputSpace: .rec2020, outputSpace: .rec2020,
             inputRange: .data, outputRange: .data, exposureStops: 0)
-        XCTAssertEqual(try TransformPlan(settings: tenSettings).planVersion,
-                       "minimal-rec2020-10bit-v1")
+        XCTAssertTrue(try TransformPlan(settings: tenSettings).planVersion.hasPrefix(
+            "minimal-rec2020-10bit-v1:"))
 
         let twelveSettings = TransformSettings(
             inputTransfer: .rec2020TwelveBit, outputTransfer: .rec2020TwelveBit,
@@ -41,6 +41,26 @@ final class Rec2020TwelveBitContractsTests: XCTestCase {
             inputRange: .data, outputRange: .data, exposureStops: 0)
         XCTAssertNotEqual(try TransformPlan(settings: twelveSettings).planVersion,
                           "minimal-rec2020-10bit-v1")
+    }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        func plan(input: TransferID, output: TransferID,
+                  inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> TransformPlan {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: input, outputTransfer: output,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0))
+        }
+
+        let decode = try plan(input: .rec2020TwelveBit, output: .linearScene,
+                              inputSpace: .rec2020, outputSpace: .srgb)
+        let encode = try plan(input: .linearScene, output: .rec2020TwelveBit,
+                              inputSpace: .srgb, outputSpace: .rec2020)
+        let alternate = try plan(input: .rec2020TwelveBit, output: .linearScene,
+                                 inputSpace: .displayP3, outputSpace: .srgb)
+
+        XCTAssertNotEqual(decode.planVersion, encode.planVersion)
+        XCTAssertNotEqual(decode.planVersion, alternate.planVersion)
     }
 
     func testNonFiniteInputsAreRejected() {

@@ -71,7 +71,21 @@ public struct ICCProfileTagValidation: Equatable, Sendable {
 public struct ICCProfileValidation: Equatable, Sendable {
     public let byteCount: Int
     public let declaredByteCount: Int
+    /// ICC header version encoded as an unsigned 8.8.8.8 value at offset 8.
+    public let profileVersion: UInt32
     public let profileSignature: String
+    /// ICC header platform signature at offset 40. Legacy synthetic fixtures
+    /// may leave this field zeroed when the platform is unknown.
+    public let platformSignature: String?
+    /// ICC header creator signature at offset 80. Legacy synthetic fixtures
+    /// may leave this field zeroed when the creator is unknown.
+    public let creatorSignature: String?
+    /// ICC header device manufacturer signature at offset 48. Legacy
+    /// synthetic fixtures may leave this field zeroed when unknown.
+    public let manufacturerSignature: String?
+    /// ICC header device model signature at offset 52. Legacy synthetic
+    /// fixtures may leave this field zeroed when unknown.
+    public let modelSignature: String?
     /// ICC profile/device class from header offset 12. Synthetic legacy
     /// fixtures may leave this header field zeroed, in which case it is nil.
     public let profileClassSignature: String?
@@ -84,6 +98,10 @@ public struct ICCProfileValidation: Equatable, Sendable {
     public let pcsKind: ICCPCSKind?
     /// ICC header rendering intent (0..3), retained as metadata only.
     public let renderingIntent: Int
+    /// ICC header flags (bits 0 and 1 are defined by ICC.1).
+    public let profileFlags: UInt32
+    /// ICC device attributes (bits 0...3 are defined by ICC.1).
+    public let deviceAttributes: UInt64
     public let tagCount: Int
     public let tagSignatures: [String]
     public let tags: [ICCProfileTagValidation]
@@ -93,11 +111,19 @@ public struct ICCProfileValidation: Equatable, Sendable {
 public enum ICCProfileError: Error, Equatable, Sendable {
     case tooShort
     case declaredLengthMismatch
+    case invalidProfileVersion
     case invalidSignature
+    case invalidPlatformSignature
+    case invalidCreatorSignature
+    case invalidManufacturerSignature
+    case invalidModelSignature
+    case invalidProfileID
     case invalidProfileClass
     case invalidColorSpaceSignature
     case invalidPCSSignature
     case invalidRenderingIntent
+    case invalidProfileFlags
+    case invalidDeviceAttributes
     case invalidTagTable
     case invalidTagRange
     case invalidTagPayload
@@ -137,8 +163,63 @@ public enum ICCProfileValidator {
         let bytes = [UInt8](data)
         let declared = Int(bytes[0]) << 24 | Int(bytes[1]) << 16 | Int(bytes[2]) << 8 | Int(bytes[3])
         guard declared == data.count else { throw ICCProfileError.declaredLengthMismatch }
+        let profileVersion = UInt32(bytes[8]) << 24 | UInt32(bytes[9]) << 16 |
+            UInt32(bytes[10]) << 8 | UInt32(bytes[11])
+        // ICC.1 encodes major/minor/bug-fix in the upper 16 bits. The lower
+        // 16 bits are reserved and must remain zero; accepting a zero version
+        // preserves legacy synthetic fixtures with unspecified metadata.
+        guard (profileVersion & 0x0000FFFF) == 0 else {
+            throw ICCProfileError.invalidProfileVersion
+        }
         let signature = String(bytes: bytes[36..<40], encoding: .ascii) ?? ""
         guard signature == "acsp" else { throw ICCProfileError.invalidSignature }
+        let rawPlatform = String(bytes: bytes[40..<44], encoding: .ascii) ?? ""
+        let platform: String?
+        if bytes[40..<44].allSatisfy({ $0 == 0 }) {
+            platform = nil
+        } else {
+            guard Self.validSignature(rawPlatform) else { throw ICCProfileError.invalidPlatformSignature }
+            platform = rawPlatform
+        }
+        let rawCreator = String(bytes: bytes[80..<84], encoding: .ascii) ?? ""
+        let creator: String?
+        if bytes[80..<84].allSatisfy({ $0 == 0 }) {
+            creator = nil
+        } else {
+            guard Self.validSignature(rawCreator) else { throw ICCProfileError.invalidCreatorSignature }
+            creator = rawCreator
+        }
+        let rawManufacturer = String(bytes: bytes[48..<52], encoding: .ascii) ?? ""
+        let manufacturer: String?
+        if bytes[48..<52].allSatisfy({ $0 == 0 }) {
+            manufacturer = nil
+        } else {
+            guard Self.validSignature(rawManufacturer) else { throw ICCProfileError.invalidManufacturerSignature }
+            manufacturer = rawManufacturer
+        }
+        let rawModel = String(bytes: bytes[52..<56], encoding: .ascii) ?? ""
+        let model: String?
+        if bytes[52..<56].allSatisfy({ $0 == 0 }) {
+            model = nil
+        } else {
+            guard Self.validSignature(rawModel) else { throw ICCProfileError.invalidModelSignature }
+            model = rawModel
+        }
+        // ICC.1 permits an all-zero profile ID when the digest is unavailable.
+        // Otherwise it is the MD5 of the complete profile with this 16-byte
+        // field itself zeroed (the ID is metadata, never conversion input).
+        let profileID = Array(bytes[84..<100])
+        if profileID.contains(where: { $0 != 0 }) {
+            var digestInput = bytes
+            digestInput.replaceSubrange(84..<100, with: repeatElement(UInt8(0), count: 16))
+            let expected = Array(Insecure.MD5.hash(data: Data(digestInput)))
+            guard profileID == expected else { throw ICCProfileError.invalidProfileID }
+        }
+        // ICC.1 reserves bytes 100...127 in the profile header. They must be
+        // zero so future header extensions cannot be mistaken for this format.
+        guard bytes[100..<128].allSatisfy({ $0 == 0 }) else {
+            throw ICCProfileError.invalidTagTable
+        }
         let rawProfileClass = String(bytes: bytes[12..<16], encoding: .ascii) ?? ""
         let profileClass: String?
         if bytes[12..<16].allSatisfy({ $0 == 0 }) {
@@ -155,6 +236,21 @@ public enum ICCProfileValidator {
             Int(bytes[66]) << 8 | Int(bytes[67])
         guard (0...3).contains(renderingIntent) else {
             throw ICCProfileError.invalidRenderingIntent
+        }
+        let profileFlags = UInt32(bytes[44]) << 24 | UInt32(bytes[45]) << 16 |
+            UInt32(bytes[46]) << 8 | UInt32(bytes[47])
+        // ICC.1 defines only embedded (bit 0) and independent (bit 1).
+        guard (profileFlags & ~UInt32(0x3)) == 0 else {
+            throw ICCProfileError.invalidProfileFlags
+        }
+        var deviceAttributes: UInt64 = 0
+        for byte in bytes[56..<64] {
+            deviceAttributes = (deviceAttributes << 8) | UInt64(byte)
+        }
+        // ICC.1 defines transparency, matte, negative and black-and-white
+        // in the low four bits; all higher bits are reserved.
+        guard (deviceAttributes & ~UInt64(0xF)) == 0 else {
+            throw ICCProfileError.invalidDeviceAttributes
         }
         let tagCount = Int(bytes[128]) << 24 | Int(bytes[129]) << 16 |
             Int(bytes[130]) << 8 | Int(bytes[131])
@@ -178,6 +274,7 @@ public enum ICCProfileValidator {
                 Int(bytes[start + 6]) << 8 | Int(bytes[start + 7])
             let size = Int(bytes[start + 8]) << 24 | Int(bytes[start + 9]) << 16 |
                 Int(bytes[start + 10]) << 8 | Int(bytes[start + 11])
+            guard offset % 4 == 0 else { throw ICCProfileError.invalidTagRange }
             let (tagEnd, tagOverflow) = offset.addingReportingOverflow(size)
             guard size > 0, offset >= tableEnd, !tagOverflow, tagEnd <= data.count else {
                 throw ICCProfileError.invalidTagRange
@@ -186,7 +283,9 @@ public enum ICCProfileValidator {
             // All ICC tag payloads start with a four-byte type signature and a
             // four-byte reserved field. Keep the reserved bytes opaque, but
             // require the complete fixed header before interpreting any tag.
-            guard payload.count >= 8 else { throw ICCProfileError.invalidTagPayload }
+            guard payload.count >= 8,
+                  payload[payload.startIndex + 4..<payload.startIndex + 8].allSatisfy({ $0 == 0 })
+            else { throw ICCProfileError.invalidTagPayload }
             let typeSignature = String(bytes: payload.prefix(4), encoding: .ascii) ?? ""
             guard Self.validSignature(typeSignature) else { throw ICCProfileError.invalidTagPayload }
             let summary = try Self.decodeCommonTextPayload(typeSignature, payload,
@@ -206,12 +305,17 @@ public enum ICCProfileValidator {
         }
         let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
         return ICCProfileValidation(byteCount: data.count, declaredByteCount: declared,
-                                    profileSignature: signature, profileClassSignature: profileClass,
+                                    profileVersion: profileVersion,
+                                    profileSignature: signature,
+                                    platformSignature: platform, creatorSignature: creator,
+                                    manufacturerSignature: manufacturer, modelSignature: model,
+                                    profileClassSignature: profileClass,
                                     profileClass: profileClass.flatMap(ICCProfileClass.init(rawValue:)),
                                     colorSpaceSignature: colorSpace,
                                     colorChannelCount: Self.colorChannelCount(colorSpace),
                                     pcsSignature: pcs,
                                     pcsKind: ICCPCSKind(rawValue: pcs), renderingIntent: renderingIntent,
+                                    profileFlags: profileFlags, deviceAttributes: deviceAttributes,
                                     tagCount: tagCount,
                                     tagSignatures: tagSignatures, tags: tags, sha256: digest)
     }
@@ -434,7 +538,9 @@ public enum ICCProfileValidator {
             case 0: parameterCount = 1
             case 1: parameterCount = 3
             case 2: parameterCount = 4
-            case 3: parameterCount = 6
+            // ICC parametricCurveType function 3 has five parameters:
+            // g, a, b, c and d. Function 4 is the seven-parameter form.
+            case 3: parameterCount = 5
             case 4: parameterCount = 7
             default: throw ICCProfileError.invalidTagPayload
             }
@@ -618,9 +724,11 @@ public enum ICCProfileValidator {
     }
 
     private static func validSignature(_ value: String) -> Bool {
-        value.count == 4 && value.unicodeScalars.allSatisfy { scalar in
-            scalar.value == 0x20 || (0x30...0x39).contains(scalar.value) ||
-                (0x41...0x5A).contains(scalar.value) || (0x61...0x7A).contains(scalar.value)
+        // ICC signatures are four printable ASCII bytes. Punctuation is
+        // valid; restricting this to alphanumeric characters rejects legal
+        // private or future signatures before their payload can be inspected.
+        value.utf8.count == 4 && value.unicodeScalars.allSatisfy { scalar in
+            (0x20...0x7E).contains(scalar.value)
         }
     }
 }

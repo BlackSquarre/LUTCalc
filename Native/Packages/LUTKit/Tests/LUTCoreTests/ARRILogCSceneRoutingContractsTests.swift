@@ -40,6 +40,23 @@ final class ARRILogCSceneRoutingContractsTests: XCTestCase {
         XCTAssertNotEqual(plan.planVersion, try TransformPlan(settings: s.withOutputLogC(
             ARRILogCSceneSettings(algorithm: .sup3Published, exposureIndex: 800))).planVersion)
     }
+
+    func testScenePlanIdentityIncludesBothColorSpaces() throws {
+        let payload = try ARRILogCSceneSettings(algorithm: .sup3Published, exposureIndex: 800)
+        func make(inputSpace: ColorSpaceID, outputSpace: ColorSpaceID) throws -> String {
+            try TransformPlan(settings: TransformSettings(
+                inputTransfer: .arriLogCSUP3Scene, outputTransfer: .linearScene,
+                inputSpace: inputSpace, outputSpace: outputSpace,
+                inputRange: .data, outputRange: .data, exposureStops: 0,
+                inputLogC: payload
+            )).planVersion
+        }
+        let baseline = try make(inputSpace: .rec2020, outputSpace: .rec2020)
+        XCTAssertNotEqual(baseline, try make(inputSpace: .displayP3, outputSpace: .rec2020))
+        XCTAssertNotEqual(baseline, try make(inputSpace: .rec2020, outputSpace: .displayP3))
+        XCTAssertTrue(baseline.contains("inSpace:rec2020.d65.v1"))
+        XCTAssertTrue(baseline.contains("outSpace:rec2020.d65.v1"))
+    }
     func testScenePlanStagesAgainstIndependentDecimalProbesAndFullCodes() throws {
         let raw = try JSONSerialization.jsonObject(with: Data(contentsOf: root().appendingPathComponent(
             "tests/fixtures/native-contracts/arri-logc-compact-independent.json"))) as! [String: Any]

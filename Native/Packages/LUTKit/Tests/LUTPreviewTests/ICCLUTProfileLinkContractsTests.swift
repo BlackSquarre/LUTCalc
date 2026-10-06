@@ -4,6 +4,43 @@ import LUTCore
 @testable import LUTPreview
 
 final class ICCLUTProfileLinkContractsTests: XCTestCase {
+    func testPerceptualIntentUsesExactA2B0AndB2A0Tags() throws {
+        let source = Data(makeProfile(tag: "A2B0", payload: mft2Identity()))
+        let target = Data(makeProfile(tag: "B2A0", payload: mft2Identity()))
+        let link = try ICCLUTProfileLink(sourceProfile: source, targetProfile: target,
+                                         intent: .perceptual)
+        let actual = try link.convert(try RGB64(0.25, 0.5, 0.75))
+        XCTAssertEqual(actual.r, 0.25, accuracy: 4.0 / 32768.0)
+        XCTAssertEqual(actual.g, 0.5, accuracy: 4.0 / 32768.0)
+        XCTAssertEqual(actual.b, 0.75, accuracy: 4.0 / 32768.0)
+    }
+
+    func testSaturationIntentUsesExactA2B2AndB2A2Tags() throws {
+        let source = Data(makeProfile(tag: "A2B2", payload: mft2Identity()))
+        let target = Data(makeProfile(tag: "B2A2", payload: mft2Identity()))
+        let link = try ICCLUTProfileLink(sourceProfile: source, targetProfile: target,
+                                         intent: .saturation)
+        let actual = try link.convert(try RGB64(0.25, 0.5, 0.75))
+        XCTAssertEqual(actual.r, 0.25, accuracy: 4.0 / 32768.0)
+        XCTAssertEqual(actual.g, 0.5, accuracy: 4.0 / 32768.0)
+        XCTAssertEqual(actual.b, 0.75, accuracy: 4.0 / 32768.0)
+    }
+
+    func testAbsoluteIntentUsesA2B3B2A3AndMediaWhitePointScale() throws {
+        let source = Data(makeProfile(tags: [
+            ("A2B3", mft2Identity()), ("wtpt", xyzPayload(0.8, 1.0, 0.9))
+        ]))
+        let target = Data(makeProfile(tags: [
+            ("B2A3", mft2Identity()), ("wtpt", xyzPayload(1.6, 0.5, 1.8))
+        ]))
+        let link = try ICCLUTProfileLink(sourceProfile: source, targetProfile: target,
+                                         intent: .absoluteColorimetric)
+        let actual = try link.convert(try RGB64(0.25, 0.5, 0.75))
+        XCTAssertEqual(actual.r, 0.125, accuracy: 4.0 / 32768.0)
+        XCTAssertEqual(actual.g, 1.0, accuracy: 4.0 / 32768.0)
+        XCTAssertEqual(actual.b, 0.375, accuracy: 4.0 / 32768.0)
+    }
+
     func testMFT2PCSXYZProfileLinkUsesRelativePCSConnection() throws {
         let source = Data(makeProfile(tag: "A2B0", payload: mft2Identity()))
         let target = Data(makeProfile(tag: "B2A0", payload: mft2Identity()))
@@ -69,9 +106,9 @@ final class ICCLUTProfileLinkContractsTests: XCTestCase {
         let mft2 = Data(makeProfile(tag: "A2B0", payload: mft2Identity()))
         let target = Data(makeProfile(tag: "B2A0", payload: mft2Identity()))
         XCTAssertThrowsError(try ICCLUTProfileLink(sourceProfile: mft2, targetProfile: target,
-                                                   intent: .perceptual)) {
+                                                   intent: .absoluteColorimetric)) {
             XCTAssertEqual($0 as? ICCLUTProfileLinkError,
-                           .unsupportedRenderingIntent(.perceptual))
+                           .missingTransformTag("A2B3"))
         }
         XCTAssertThrowsError(try ICCLUTProfileLink(
             sourceProfile: Data(makeProfile(tag: "A2B0", payload: mft1Identity())),
@@ -183,9 +220,19 @@ final class ICCLUTProfileLinkContractsTests: XCTestCase {
             bytes.replaceSubrange(offset + 4..<offset + 8, with: be(UInt32(cursor)))
             bytes.replaceSubrange(offset + 8..<offset + 12, with: be(UInt32(item.1.count)))
             bytes += item.1
-            cursor += item.1.count
+            let paddedCount = (item.1.count + 3) / 4 * 4
+            bytes += [UInt8](repeating: 0, count: paddedCount - item.1.count)
+            cursor += paddedCount
         }
         bytes.replaceSubrange(0..<4, with: be(UInt32(bytes.count))); return bytes
+    }
+
+    private func xyzPayload(_ x: Double, _ y: Double, _ z: Double) -> [UInt8] {
+        var bytes = Array("XYZ ".utf8) + [0, 0, 0, 0]
+        for value in [x, y, z] {
+            bytes += be(Int32((value * 65536).rounded()))
+        }
+        return bytes
     }
 
     private func writeIdentityTables(_ bytes: inout [UInt8], start: Int, entries: Int) {

@@ -87,4 +87,17 @@ final class CanonCLog2ContractsTests: XCTestCase {
             XCTAssertThrowsError(try CanonCLog2Transfer.decodeLegacyDataToLegacy(value))
         }
     }
+
+    func testPlanIdentityIncludesDirectionAndBothColorSpaces() throws {
+        let decode = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .canonCLog2, outputTransfer: .linearScene,
+            inputSpace: .canonCinemaGamut, outputSpace: .srgb,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        let alternate = try TransformPlan(settings: TransformSettings(
+            inputTransfer: .canonCLog2, outputTransfer: .linearScene,
+            inputSpace: .canonCinemaGamut, outputSpace: .displayP3,
+            inputRange: .data, outputRange: .data, exposureStops: 0))
+        XCTAssertNotEqual(decode.planVersion, alternate.planVersion)
+        XCTAssertTrue(decode.planVersion.contains(":inSpace:"))
+    }
 }
