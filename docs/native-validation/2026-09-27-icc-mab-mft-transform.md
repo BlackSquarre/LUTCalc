@@ -1,5 +1,7 @@
 # 2026-09-27 ICC `mAB/mBA` 与 `mft1/mft2` 数值契约验收
 
+矩阵编码说明：`mAB/mBA` 的可选矩阵按 ICC 的连续 9 个 3×3 s15Fixed16 系数，随后 3 个 s15Fixed16 offset 解码；旧版“3×4 交错矩阵”的文字描述已更正。
+
 ## 范围
 
 本阶段只实现用户主动导入 ICC profile 的三通道 CPU 路径。没有新增厂商 profile、内置 LUT、旧 `.labin` 或等价采样资源；所有解析和生成仍使用 Swift `Double`。实现依据 ICC.1:2022-05 的公开定义（<https://www.color.org/specification/ICC.1-2022-05.pdf>）：

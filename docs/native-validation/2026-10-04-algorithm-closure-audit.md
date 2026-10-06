@@ -46,7 +46,7 @@ Null legacy 的 17³／33³／65³ 独立 Decimal 结果、目录和完整 Relea
 ### 尚有数学子集但不等于完整算法完成
 
 - HLG OOTF 已声明参数的 Double 数学、nits 计划边界以及标量／RGB 峰值裁切逆向非唯一域拒绝均有验收；自动峰值、参考白／黑位、四种 HDR 变体、完整限幅和真实 HDR/EDR 仍未完成。边界记录见[HLG OOTF 标量峰值裁切逆向边界验收](2026-10-04-hlg-ootf-scalar-clipped-inverse.md)和[HLG OOTF 峰值裁切逆向边界验收](2026-10-04-hlg-ootf-clipped-inverse.md)。
-- ICC 仅完成受限 RGB matrix/TRC、三通道 `mft1/mft2/mAB/mBA`、PCS Lab／XYZ 和显式 linking；relative colorimetric 的 `A2B1`／`B2A1` 优先及对明确不支持 tag type 的 `A2B0`／`B2A0` 回退已有独立契约。完整 profile 类型、通道、intent、黑点补偿和 gamut mapping 仍未完成，详见[ICC relative colorimetric 标签优先级验收](2026-10-04-icc-relative-intent-tags.md)。
+- ICC 仅完成受限 RGB matrix/TRC、四种 intent 的 `mpet`、三通道 `mft1/mft2/mAB/mBA`、PCS Lab／XYZ 和显式 linking；relative colorimetric 的 `A2B1`／`B2A1` 优先及对明确不支持 tag type 的 `A2B0`／`B2A0` 回退已有独立契约。`mpet` 的 ICC.1:2022-05 当前元素集合（`cvst`、`matf`、`clut`、`bACS`、`eACS`）已覆盖，`parf` type 3/4 明确属于传统 `para`，不应扩展到 MPE。传统 tag 的任意通道 linking、真实 profile 独立参照、黑点补偿和 gamut mapping 仍未完成，详见[ICC MPE 验收](2026-10-05-icc-mpet-absolute.md)、[ICC MPE 任意通道验收](2026-10-05-icc-mpet-arbitrary.md)和[ICC relative colorimetric 标签优先级验收](2026-10-04-icc-relative-intent-tags.md)。
 - LUTAnalyst 已补充独立 1D transfer 的 cubic 全域多根诊断：按导数临界点切段，保留全部根和残差；定向 Debug／Release 各 18 项、全量 Release 的 LUTAnalysis 45 项均通过，结果见[一维 cubic 全局多根诊断验收](2026-10-04-lutanalyst-global-roots.md)。另已验收严格单值下降方向 `.labin` transfer 进入反求计划并输出 3D CUBE，见[LUTAnalyst 一维反求导出接线验收](2026-10-04-lutanalyst-inverse-export.md)；调用方显式已知仿射模型的 3D 生成接线，见[LUTAnalyst 显式仿射 3D 反求生成验收](2026-10-04-lutanalyst-affine-inverse.md)。完整 TF／颜色自动分离重建、病态三维／全局多解证明和任意 3D 逆仍未完成。
 
 ## 状态

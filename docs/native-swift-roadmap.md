@@ -1,9 +1,618 @@
 # 全 Swift 原生迁移实施任务清单
 
+### 2026-10-06 RED Log 计划色域身份
+
+- 已为 RED LogFilm 与 RED Log3G10 增加先红后绿的身份契约，计划版本同时绑定输入、输出色域。
+- 定向 Release 8/8、整包 Release 通过，`git diff --check` 通过；公式与 legacy 冻结参照未改变。
+- 该项只闭合计划身份，不代表 `.labin`、直接查表、tricubic 全根、完整 ICC/HDR/OOTF、平台或发布验收完成。
+
+### 2026-10-06 HLG 计划色域身份
+
+- 为 BT.2100 HLG 计划补充输入/输出色域身份，避免 HLG 与线性场景之间不同色域方向共享同一计划版本。
+- 公式、HLG OETF/逆函数和已有 OOTF 参数路径未改变；定向 Release `HLGPlanIdentityContractsTests` 2/2、整包 `swift test --package-path Native/Packages/LUTKit -c release --quiet` 通过，`git diff --check` 通过。详情见[HLG 计划色域身份验收](native-validation/2026-10-06-hlg-plan-color-space-identity.md)。
+
+### 2026-10-06 sRGB 计划色域身份
+
+- W3C sRGB 与 LUTCalc legacy sRGB 的计划版本现包含输入/输出 transfer 方向和两端色域；修改前分别在两种身份上复现仅输入色域、仅输出色域变化仍发生身份冲突。
+- 数值公式保持不变；定向 Release 4/4、整包 Release 测试套件全部通过，LUTAnalysis 93/93，`git diff --check` 通过。详情见[sRGB 计划色域身份验收](native-validation/2026-10-06-srgb-plan-color-space-identity.md)。
+
+### 2026-10-06 Rec.2020 12-bit 计划色域身份
+
+- Rec.2020 12-bit legacy 计划现在包含输入/输出 transfer 和两端色域；历史分段公式与量化规则未修改。
+- 定向 Release 4/4、整包 Release 测试套件全部通过，LUTAnalysis 93/93，`git diff --check` 通过。详情见[Rec.2020 12-bit 计划色域身份验收](native-validation/2026-10-06-rec2020-12bit-plan-color-space-identity.md)。
+
+### 2026-10-06 Nikon N-Log/Cineon 计划色域身份
+
+- Nikon N-Log、N-Log legacy、Cineon 与 Cineon legacy 共享计划版本现在包含输入/输出 transfer 和两端色域；既有 90 位 Decimal、legacy JavaScript 冻结参照和线性缩放契约未修改。
+- 定向 Release 4/4、整包 Release 测试套件全部通过，LUTAnalysis 93/93，`git diff --check` 通过。详情见[N-Log/Cineon 计划色域身份验收](native-validation/2026-10-06-camera-transfer-plan-color-space-identity.md)。
+
+### 2026-10-06 Canon C-Log legacy 计划色域身份
+
+- Canon C-Log legacy 计划版本现在包含输入/输出 transfer 和两端色域；legacy 公式、目录和 JavaScript 冻结参照未修改。
+- 定向 Release 4/4、整包 Release 测试套件全部通过，LUTAnalysis 93/93，`git diff --check` 通过。详情见[Canon C-Log legacy 计划色域身份验收](native-validation/2026-10-06-canon-clog-plan-color-space-identity.md)。
+
+### 2026-10-06 Blackmagic legacy Film 计划色域身份
+
+- Blackmagic Pocket Film、Film、Film4k、Film4.6k legacy 计划现在包含输入/输出 transfer 和两端色域；既有冻结公式、边界和量化分类未修改。
+- 定向 Release 9/9、整包 Release 测试套件全部通过，LUTAnalysis 93/93，`git diff --check` 通过。详情见[Blackmagic legacy Film 计划色域身份验收](native-validation/2026-10-06-bmd-legacy-plan-color-space-identity.md)。
+
+### 2026-10-06 Blackmagic Gen5 与 Canon C-Log2/C-Log3 计划色域身份
+
+- Gen5、Canon C-Log2、Canon C-Log3 计划版本现包含输入/输出 transfer、两端色域及既有固定 gamut 身份；公开曲线和矩阵未修改。
+- 定向 Release 共 17/17、整包 Release 测试套件全部通过，LUTAnalysis 93/93，`git diff --check` 通过。BMD Gen5 曲线最大尺度化误差 `1.4077780908170443e-14`，矩阵最大误差 `9.910082886630748e-16`。详情见[Gen5/C-Log 计划色域身份验收](native-validation/2026-10-06-bmd-canon-plan-color-space-identity.md)。
+
+### 2026-10-06 DaVinci Intermediate 与 DJI X3 DLog legacy 计划色域身份
+
+- 两个已有 legacy 连续公式分支的计划版本现在包含输入/输出 transfer 和两端色域；公式和 JavaScript 冻结参照未修改。
+- 定向 Release 8/8、整包 Release 测试套件全部通过，LUTAnalysis 93/93，`git diff --check` 通过。详情见[DaVinci/DJI X3 计划色域身份验收](native-validation/2026-10-06-davinci-dji-plan-color-space-identity.md)。
+
+### 2026-10-06 Legacy Registered Log 计划色域身份
+
+- Bolex Log、Panalog、DJI X5/X7/X9 DLog、GoPro Protune 四个 legacy 连续公式计划现在包含输入/输出 transfer 和两端色域；冻结公式和目录身份未修改。
+- 定向 Release 4/4、整包 Release 测试套件全部通过，LUTAnalysis 93/93，`git diff --check` 通过。详情见[Legacy Registered Log 计划色域身份验收](native-validation/2026-10-06-legacy-registered-log-plan-color-space-identity.md)。
+
+### 2026-10-06 Fujifilm F-Log legacy 计划色域身份
+
+- Fujifilm F-Log legacy 计划现在包含输入/输出 transfer 和两端色域；F-Log legacy 公式、冻结 JavaScript 参照和相机路由未修改。
+- 定向、整包 Release 与差异检查结果见[F-Log legacy 计划色域身份验收](native-validation/2026-10-06-flog-legacy-plan-color-space-identity.md)。
+
+### 2026-10-06 `.labin` 与直接查表替代边界复核
+
+- 复核 9 个 `.labin` 与 45 个直接查表注册；没有同时具备公开连续公式、适用版本/机型、非灰轴语义和独立参照的可安全闭合项。
+- 定向 `RegistryContractsTests/testBlockedLookupRegistrationsHaveNoNativeCatalogIdentity` 1/1 通过；`.labin` 仍 `0/9`，直接查表仍 `0/45`。
+- 旧资源 SHA-256 与最小复现见[`.labin` 与直接查表替代边界复核](native-validation/2026-10-06-labin-direct-lookup-boundary-followup.md)。本项保持研究阻塞，不新增等价采样数据。
+
+### 2026-10-06 `.labin` 研发夹具逐项 Release 复核
+
+- 根目录九个旧 `.labin` 均以 `LUTCALC_LABIN_SAMPLE` 逐项运行现有 Swift `LABinParser` 兼容契约，Release 每项通过；汇总日志 `/tmp/labin-fixtures-release-20261006.log`，SHA-256 为 `e1df906341d0813a6f5966ac138c88657d397f2b363027157c466c7cffb705c4`。
+- 该证据只证明 little-endian Int32 解码、旧缩放、元数据读取及有损哨兵拒绝；没有获得任何资源的公开连续定义、版本化设备范围、非灰轴语义和独立全域参照。
+- 因此 `.labin` 算法替代仍为 `0/9`，不新增目录身份、不改变默认路由、不携带资源；详见[`.labin` 研发夹具逐项复核](native-validation/2026-10-06-labin-fixture-reaudit.md)。
+
+### 2026-10-06 `.labin` 算法缺口复核
+
+- 九个旧 `.labin` 研发夹具再次逐项通过同一 Swift Release 解析契约；本轮日志 `/tmp/labin-gap-recheck-20261006.log`，SHA-256 为 `f8a74d2e2b94cc274d45e8f2ec4d2df887c15e1fe3fa0f2441c0737ddaa8e864`。
+- 复核旧 JavaScript 调用关系和现有资料后，仍未取得任何条目同时具备公开连续公式、版本化设备范围、非灰轴语义与独立全域参照；`.labin` 算法替代保持 `0/9`。
+- 本轮不新增 Swift 算法、目录身份、默认路由或等价采样数据。详见[`.labin` 算法替代缺口复核](native-validation/2026-10-06-labin-algorithm-gap-recheck.md)。
+
+## 2026-10-06 Mi-Log、Leica L-Log、KineLOG3 计划身份
+
+- 三个固定版本 transfer 分支的 `planVersion` 加入输入/输出 `TransferID` 与输入/输出 `ColorSpaceID`，避免编码/解码方向及两端色域被误认为同一计划。
+- 三份现有 transfer 契约测试先覆盖反方向、仅改变输入色域、仅改变输出色域。修改前 Release 测试复现 9 个身份断言失败；生产改动后的定向 Release 测试为 5/5，通过；整包 Release 退出码 0，LUTAnalysis 93/93，通过；`git diff --check` 退出码 0。数值公式和执行路径未改。
+- 身份边界仅针对这三个 transfer 分支；它不是所有 `TransformSettings` 数值参数的完整缓存键/内容指纹，也不代表其余 `planVersion` 分支已审计。详情见[Mi-Log、Leica L-Log、KineLOG3 计划身份验收](native-validation/2026-10-06-camera-log-plan-identity.md)。
+
+## 2026-10-06 Rec.709/Rec.2020 10-bit/PQ 计划身份
+
+- 修复三个 `basePlanVersion` 分支未区分输入/输出方向和两端色域的问题；身份现包含输入/输出 `TransferID` 与 `ColorSpaceID`，计算公式、矩阵、Double 路径和阈值不变。
+- 失败契约先行，Release 定向 `Rec709Rec2020PQPlanIdentityContractsTests` 3 项通过。验收见[计划身份验收](native-validation/2026-10-06-plan-identity-rec709-rec2020-pq.md)。
+- 受影响的 Rec.2020 10-bit／12-bit 契约组合共 9 项通过；完整 `swift test --package-path Native/Packages/LUTKit -c release` 退出码 `0`，`git diff --check` 通过。
+- 该项只关闭三个计划身份的缓存/预览别名，不代表全局计划身份审计、完整 HDR/ICC、格式、设备或 Goal 完成。
+
+## 2026-10-06 ICC MPE `samf` 末段采样曲线修复
+
+- 修正 `ICCMPETransform` 对合法末段 `samf` 的错误拒绝：首段仍拒绝，末段以
+  前一段末值为隐含起点并延伸到归一化域终点 `1.0`；中间段保持下一个
+  breakpoint 上界和 Double 线性插值。
+- 契约先行覆盖末段端点和中点结果，并覆盖多样本末段端点及区间插值；Release
+  `ICCMPEContractsTests` 30 项通过。
+  详情见[ICC MPE `samf` 末段采样曲线修复验收](native-validation/2026-10-06-icc-mpe-samf-final.md)。
+- 本项只修复公开 ICC.1 采样段边界，不代表完整 ICC、真实第三方 profile 逐码
+  参照、BPC、gamut mapping、ColorSync 或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 BT.601 transfer 阻塞复验
+
+- 在现有研究记录基础上重新执行 `swift test --package-path Native/Packages/LUTKit -c release --filter BT601TransferAuditContractsTests`；Apple SwiftPM Release 工具链构建成功，`BT601TransferAuditContractsTests` 执行 2 项、0 失败，退出码 `0`。结果覆盖目录不注册 BT.601 525/625 别名、Rec.709 候选 Decimal 锚点和通用 8-bit 视频范围边界。
+- 复验没有新增生产 transfer：BT.601 525/625 的 OETF、量化范围、矩阵和项目 legacy 包装仍缺少同一标准版本的联合来源与独立逐码参照，不能把 Rec.709 候选式当作身份闭合。BT.601 transfer 继续研究阻塞，Goal 保持 `active`。
+
+## 2026-10-06 BT.601 transfer 复审证据
+
+- 重新运行 `swift test --package-path Native/Packages/LUTKit -c release --filter BT601TransferAuditContractsTests`，2 项通过、0 失败；日志 SHA-256：`116eb09722042ee35e151953fded7d5a42644b76b6385fbaa95de0c30157e3c1`。
+- 本轮仍不新增 BT.601 525／625 transfer：现有公开资料只闭合 SMPTE-C 与 EBU 原色矩阵，尚未把 OETF、代码范围、采样矩阵和 LUTCalc legacy 包装在同一版本来源及独立逐码参照中闭合。详见[BT.601 传递函数复审](native-validation/2026-10-06-bt601-transfer-reaudit.md)。
+- 本轮未覆盖 PQ OOTF、厂商查表替代、`.labin`、完整 ICC 或任意三维 LUT 全局反求；没有扩大算法范围。
+
+## 2026-10-06 LUTAnalyst 三线性严格仿射单元完备性
+
+- `Trilinear3DInverseReport` 新增空间单元枚举数、候选单元数和 `isGloballyComplete`。对混合项严格为零的单元使用矩阵反解，完整区分唯一解、单元外无解和奇异未决；含混合项的单元仍保守返回 `unresolved`。
+- 先行契约修正“全局无候选时仍需枚举全部空间单元”的计数边界；Release `TrilinearInverseContractsTests` 14 项通过。详情见[LUTAnalyst 三线性严格仿射单元完备性验收](native-validation/2026-10-06-lutanalyst-trilinear-affine-completeness.md)。
+- 该项只关闭严格仿射单元子集，不代表三线性含混合项、tricubic 或任意 3D LUT 全局全根证明、自动 transfer/colour 分离和完整重建；Goal 继续 `active`。
+- 完备性收紧：含混合项单元即使有有限 Newton 根也强制保持 `unresolved`；仅分段仿射单元允许报告可证明的 `multiple` 或 `unique`。
+
+## 2026-10-06 LUTAnalyst tricubic 全局完备性研究阻塞
+
+- 以三次张量积最小模型复核：单通道三次多项式可在同一单元产生多个根，有限 Newton 初值和迭代上限只能证明已回放根，不能证明没有遗漏根；Jacobian 奇异、共享面和 ghost-node 边界还需要区间根隔离与去重证明。
+- 当前 `Tricubic3DInverse` 保持生产 sampler、解析 Jacobian、Bernstein 输出包围盒和 `unresolved` 保守状态；未新增猜测性全局求解器。详情见[tricubic 全局完备性研究阻塞](native-validation/2026-10-06-lutanalyst-tricubic-global-research-block.md)。Goal 继续 `active`。
+- 完备性收紧：`Tricubic3DInverseReport` 新增 `isGloballyComplete`；任何候选 tricubic 单元即使已回放根也保持 `unresolved`，仅无候选单元允许报告全局完备。Release `TricubicInverseContractsTests` 12 项通过。
+- 组合 shaper 诊断同步传播该状态：identity/folded tricubic 的已回放根仍保留，但组合报告不再把它们标记为 `unique`/`multiple` 全局结论；`CombinedShaperColourInverseContractsTests` 已按该契约复验。
+- `CombinedShaperColourInverseReport` 新增 `isGloballyComplete`，仅在颜色单元和 shaper 通道都无未决项时为真；Release 组合 shaper 契约通过。
+- 组合 shaper 完备性低并行原生数值门禁退出码 `0`，66 项检查通过；记录见[组合 shaper 完备性门禁验收](native-validation/2026-10-06-combined-shaper-completeness-gate.md)。
+
+## 2026-10-06 LUTAnalyst tricubic 严格仿射子集边界
+
+- 复核旧 `LegacyTricubicVolume3D` 是否存在可安全认证的 cell 级严格仿射子集。现有生产 sampler 只暴露取样、解析 Jacobian 和 Bernstein 输出包围盒，没有完整 cell 多项式高阶系数证书；ghost-node 分段规则也必须纳入证明。有限 Newton 根、单点 Jacobian 或近似零系数均不能推出 cell 内高阶项严格为零。
+- 未新增近似仿射判定或生产 API。Release `TricubicInverseContractsTests` 执行 12 项、0 失败；结果与未覆盖范围见[tricubic 严格仿射子集边界](native-validation/2026-10-06-lutanalyst-tricubic-affine-subset-boundary.md)。
+- 只有补充独立 cell 多项式系数提取、ghost-node 边界覆盖、逐项精确零证明、矩阵反解和生产回放契约后，才可讨论关闭该子集；当前 tricubic 全局完备性、任意 3D LUT 全根证明以及 Goal 继续 `active`。
+
+## 2026-10-06 LUTAnalyst 四面体分区全根枚举边界
+
+- 现有 `tetrahedral` 3D LUT 反求报告新增完整分区枚举计数、输出包围盒候选计数和 `isGloballyComplete`。在有限的 `(size - 1)^3 * 6` 片段仿射模型内，只有全部候选完成矩阵反解、生产采样器回放和 `2e-12` 残差认证时，才报告全根枚举完成；奇异候选保持 `unresolved`。
+- 先行契约覆盖 4^3 恒等网格 162 个四面体、折叠双根、域外无解、单纯形外无解和奇异映射；Release 定向 12 项通过。详情见[LUTAnalyst 四面体分区全根枚举边界验收](native-validation/2026-10-06-lutanalyst-tetrahedral-global-completeness.md)。
+- 该项只闭合有限四面体分区的枚举证据，不代表三线性／tricubic 任意 3D 全局反求、自动 transfer/colour 分离、完整重建、`.labin`、直接查表或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 ICC intent 剩余边界复核
+
+- 复核当前 `ICCLUTProfileLink`、`ICCRGBProfileLink` 与 `ICCMatrixTRCProfileLink` 的四种 rendering intent 路由：定向 Release `LUTPreviewTests` 实际执行 74 项、0 失败，覆盖 `A2B0`...`A2B3`、`B2A0`...`B2A3`、传统 Lab/XYZ、MPE 与系统 sRGB/Display P3 夹具。
+- 没有安全的生产代码扩展：perceptual/saturation 的 profile-specific 色域压缩、BPC 与 gamut mapping，以及第三方 profile 逐码 CMM 参照仍缺公开唯一公式和独立结果；不添加猜测性 fallback、通用 BPC 或 ColorSync 等价实现。详情见 [ICC intent 剩余边界复核](native-validation/2026-10-06-icc-intent-boundary-next.md)。完整 ICC、H13、FULL-03 和 Goal 继续 `active`。
+
+## 2026-10-06 ICC profile class 路由边界
+
+- `ICCRGBProfileLink` 现在仅接受 input/display/output device class；device-link 继续由独立 `ICCDeviceLinkTransform` 处理，abstract、namedColor、colorSpace profile 在路由选择前返回 `.unsupportedProfileKind`。
+- 新增 `ICCRGBProfileLinkContractsTests.testNonDeviceProfileClassesAreRejectedBeforeRouteSelection`；Release 定向 39 项通过。详情见[ICC profile class 路由边界验收](native-validation/2026-10-06-icc-profile-class-route-boundary.md)。
+- 该项只闭合 profile class 防误接边界，不关闭完整 ICC profile class/intent、BPC、gamut mapping、ColorSync、第三方逐码参照、HDR/EDR 或 Goal；Goal 继续 `active`。
+
+## 2026-10-06 PQ OOTF 标准路径隔离契约
+
+- 新增 `RegistryContractsTests.testRec2100PQReferenceRemainsSeparateFromLegacyOOTF`，Release 定向执行 1 项、0 失败。契约确认标准 `rec2100.pq-reference.v1` 继续使用 ST 2084 绝对 PQ 路径，历史 `LegacyPQOOTF` 没有目录身份或计划隐式接线。
+- 该项只关闭标准 PQ 与历史兼容 OOTF 的身份隔离边界，不关闭完整 PQ OOTF、自动峰值、HDR/EDR、真实显示参照或 Goal。旧公式的 `Lw`／`scale`／输入单位／knee 冲突和不连续性继续按研究阻塞处理。详见[PQ OOTF 标准路径隔离契约验收](native-validation/2026-10-06-pq-ootf-isolation-contract.md)。
+
+## 2026-10-06 GoPro GP-Log2 base-600 标量子集
+
+- 按归档参考代码的 `LOGBASE=600`、`invLog` 和 `logEnc` 公式新增 `GPLog2Transfer`，定义域严格限制 `[0,1]`，负值扩展和设备语义明确拒绝。
+- 新增独立 Decimal 锚点、`TransferPlan`／目录／输出编码接线；`GPLog2TransferContractsTests` Debug／Release 各 3 项通过。详情见[GP-Log2 base-600 验收](native-validation/2026-10-06-gplog2-base600.md)。
+- 该项不接 Rec.2020 矩阵、曝光风格、相机预设或旧 Protune 身份，不关闭完整 GP-Log2、查表台账或 Goal；Goal 继续 `active`。
+- 追加独立 `Decimal(80)` 参照脚本 `tools/native-validation/probe-gplog2.py`：`0.18` 编码为 `0.7331165721407825605965489544`，`0.5` 编码为 `0.8919040948532175844901100017`，反向精确回到输入；Python 编译检查通过。该证据强化数值参照，不扩大 GP-Log2 语义范围。
+
+## 2026-10-06 BT.601 525／625 传递函数研究阻塞
+
+- 审计确认现有 Rec.709 候选分段式与 BT.601 常见 OETF 形状相同，但 `rec709LUTCalcLegacy` 具有独立历史包装；通用 `CodeRange` 不能表达 BT.601 525／625 的完整制式、矩阵与范围语义。
+- 新增独立 80 位 Decimal 探针和 `BT601TransferAuditContractsTests`，在没有完整联合来源时保持目录不注册 BT.601 transfer 别名。待定向 Debug／Release 测试通过后，详情见[BT.601 传递函数研究阻塞记录](native-validation/2026-10-06-bt601-transfer-research-block.md)。
+- 在同一标准版本的 OETF、量化范围、矩阵及项目 legacy 包装联合来源闭合前，BT.601 525／625 transfer 保持研究阻塞；不影响已完成的 BT.601 两套色域矩阵子集，Goal 继续 `active`。
+
+## 2026-10-06 ICC MPE/device-link 公开边界审计（本轮）
+
+- 复审 `cvst`、`samf`、`matf`、`clut`、ACS 元素链、共享 offset 及 device-link `A2B0` `mpet` 路由；现有公开边界保持通过，Release `ICCMPEContractsTests` 29 项通过，`git diff --check` 通过。
+- `samf` 隐含起点与末段终点、动态矩阵通道变化、CLUT 维度顺序、元素范围校验和真实 LittleCMS device-link 参照均已有记录。本轮未发现同时具备公开规范、失败契约和独立逐码参照的安全新增项。
+- 完整 ICC MPE 元素集合、全部 profile class/intent、BPC、gamut mapping、ColorSync 及全局 3D 反求继续保持研究阻塞；不作猜测性扩展。详情见[ICC MPE 与 device-link 公开边界审计](native-validation/2026-10-06-icc-mpe-public-boundary-audit.md)。Goal 继续 `active`。
+
+## 2026-10-06 LittleCMS device-link 真实参照复核
+
+- 使用系统 LittleCMS 2.19 `linkicc` 生成真实 RGB/RGB device-link profile，并由 Swift `ICCDeviceLinkTransform` 解析其合法 `A2B0` MPE 路由；Release `ICCDeviceLinkContractsTests` 7 项通过，日志 SHA-256 为 `3592d1a445d235532b76dfe8246dd4e270b1d26c7f89153df2b2c937b9bedc39`。
+- 本项只增加一个外部真实 profile 的结构与路由证据，没有扩大兼容范围；完整 ICC、BPC、gamut mapping、ColorSync、`.labin`、直接查表和 LUTAnalyst 全局反求仍未完成。详情见[LittleCMS device-link 真实参照验收](native-validation/2026-10-06-icc-device-link-lcms.md)。Goal 继续 `active`。
+
+## 2026-10-06 ICC MPE 资源与元素范围审计
+
+- 复审 `mpet` 元素表的数量、offset/size、共享与交叠范围，`curf`/`samf`
+  采样曲线，`matf` 动态矩阵，`clut` 网格和资源算术；现有公开边界保持
+  通过，未发现可安全新增的生产修复。
+- Debug `ICCMPEContractsTests` 28 项、Release `ICCMPEContractsTests` 28 项、
+  Release `ICCDeviceLinkContractsTests` 7 项及 `git diff --check` 均通过。
+- 动态矩阵厂商扩展、MPE 末端额外填充语义和完整真实 profile 逐码参照缺少
+  足够公开证据，记录为研究阻塞，未猜测实现。详情见[ICC MPE 资源与元素范围审计](native-validation/2026-10-06-icc-mpe-resource-boundary-audit.md)。Goal 继续 `active`。
+
+## 2026-10-06 ICC MPE 与 device-link 边界复审
+
+- 复审 `ICCMPETransform` 的元素通道数、CLUT/曲线/矩阵组合和末段 `samf`；现有公开边界与 Release 定向契约保持通过，共 34 项（含 `ICCDeviceLinkContractsTests`），`git diff --check` 通过。
+- 真实 Little CMS device-link 夹具的 `colorSpace=RGB `、输出字段 `RGB ` 证明 device-link 颜色空间语义不能套用普通 profile 的 PCS `XYZ `/`Lab ` 限制；未增加错误拒绝。MPE tag 末端额外字节的填充语义缺少独立参照，保留研究阻塞。详情见[ICC MPE 与 device-link 边界复审](native-validation/2026-10-06-icc-mpe-device-link-followup.md)。Goal 继续 `active`。
+
+## 2026-10-06 ICC MPE 末段采样曲线
+
+- `ICCMPETransform` 依据 `curf` 采样段的隐含首样本规则，仅拒绝首段 `samf`；末段 `samf` 允许使用前一段末值作为隐含起点，并将归一化域终点 `1.0` 作为分段上界。先行失败契约已复现旧实现误拒绝末段，修复后 Debug／Release `ICCMPEContractsTests` 各 28 项通过，`git diff --check` 通过。
+- 详情见[ICC MPE 末段采样曲线验收](native-validation/2026-10-06-icc-mpet-final-sampled.md)。本项只关闭 MPE `samf` 末段边界，不代表完整 ICC、真实 profile 逐码参照、BPC、gamut mapping、ColorSync 或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 ICC MPE 处理元素零通道边界
+
+- `ICCMPETransform` 解析 `mpet` 元素时拒绝零输入或零输出通道，避免空向量元素绕过通道链约束；先行失败契约覆盖 `matf` 零输入和零输出，修复后 Debug／Release `ICCMPEContractsTests` 各 28 项通过，`git diff --check` 通过。
+- 详情见[ICC MPE 通道数边界验收](native-validation/2026-10-06-icc-mpet-channel-count.md)。本项只关闭结构边界，不代表完整 ICC、真实 profile 逐码参照、BPC、gamut mapping、ColorSync 或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 ICC BPC 与 gamut mapping 公开子集审计
+
+- 审计 `ICCMatrixTRCProfileLink`、`ICCLUTProfileLink` 与 `ICCDeviceLinkTransform` 的黑点补偿和色域映射边界；本轮没有生产代码改动。
+- Matrix/TRC 只实现 relative/absolute colorimetric 并显式拒绝 perceptual/saturation；LUT linking 只执行 profile 已提供的 A2B/B2A 变换；device-link 不插入额外 BPC 或 gamut mapping。
+- Debug/Release `ICCLUTProfileLinkContractsTests` 10 项、`ICCMatrixTRCContractsTests` 25 项通过，`git diff --check` 通过。没有发现可由公开公式和独立逐码参照安全实现的 BPC 或通用 gamut mapping 子集。详见[ICC BPC 与 gamut mapping 公开子集审计](native-validation/2026-10-06-icc-bpc-gamut-mapping-audit.md)。
+- 缺少唯一公开 BPC 算法和脱离具体 A2B/B2A 的通用 gamut mapping 算法，继续标记研究阻塞；完整 ICC、ColorSync 与 Goal 保持 `active`。
+
+## 2026-10-06 直接查表算法替代研究阻塞复核
+
+- 逐项复核 45 个直接查表注册（DJI DLog-M、`LUTGammaIOLUT`、`LUTGammaLUTSL3`、`LUTGammaLUTSimple`）后，仍没有同时满足公开连续定义、适用范围、非灰轴语义和独立参照的项目；不能从通用 S-Log3、SimpleLog、SMPTE 240M 或已实现的 DJI D-Log2 推断厂商显示变换。
+- `RegistryContractsTests/testBlockedLookupRegistrationsHaveNoNativeCatalogIdentity` 的 Release 定向测试执行 1 项、0 失败；不修改生产算法、不新增目录身份，直接查表替代保持 `0/45`。详见[直接查表算法替代研究阻塞复核](native-validation/2026-10-06-direct-lookup-algorithm-research-block.md)。
+- 只有取得公开连续定义、版本化适用范围、非灰轴语义和独立 17³／33³／65³ 参照后，才进入失败契约、Swift `Double` 实现和台账更新；Goal 保持 `active`。
+
+# 2026-10-06 ICC BPC 非唯一性最小复现
+
+- 固定 source/target 黑点、白点和输入值，使用一族同样满足黑白端点的幂函数压缩模型，实际得到三个不同的中间结果；复现命令和输出见[ICC BPC 非唯一性最小复现](native-validation/2026-10-06-icc-bpc-nonunique-minimal-repro.md)。
+- 该证据确认仅凭 `bkpt`/`wtpt` 不能选择唯一 BPC 中间曲线；没有新增生产代码、BPC 开关或通用 gamut mapping。完整 ICC、ColorSync 与 Goal 继续保持 `active`。
+
+# 2026-10-06 ICC Display P3 para type 3 真实 profile
+
+- 修正 ICC parametricCurveType function 3 的参数数量和分段语义：按规范使用五参数 `g、a、b、c、d`，低段为零；原实现错误使用六参数并拒绝合法 Display P3 profile。
+- 新增 macOS `/System/Library/ColorSync/Profiles/Display P3.icc` 的 Matrix/TRC 解析、真实 profile 往返和同 profile linking 契约。Release 定向 `ICCMatrixTRCContractsTests|ICCRGBProfileLinkContractsTests` 共 58 项、0 失败。
+- 该项只关闭真实 Display P3 matrix/TRC 与 `para` type 3 子集，不关闭真实第三方逐码参照、其他 ICC profile class/intent、BPC、gamut mapping、ColorSync、MPE 扩展或 Goal。详见[ICC Display P3 与 para type 3 验收](native-validation/2026-10-06-icc-display-p3-para3.md)。
+
+# 2026-10-06 ICC 系统 RGB profile 复验
+
+- 在同一修复基础上复验 macOS sRGB、Display P3、AdobeRGB1998 和 ITU-2020 四个系统 RGB profile；Matrix/TRC Release 契约 24 项通过。
+- 该项只增加真实系统 profile 的解析和往返证据，不关闭完整 ICC、全部 rendering intent、BPC、gamut mapping、ColorSync、第三方逐码参照或 Goal。详见[ICC 系统 RGB profile 复验](native-validation/2026-10-06-icc-system-rgb-profiles.md)。
+
+# 2026-10-06 ICC 系统 profile 跨 profile 白点边界
+
+- 新增 Display P3 到 sRGB 的真实 relative-colorimetric linking 契约；因 PCS media white point 不一致，路径明确拒绝并返回 `mismatchedPCSWhitePoint`，不猜测适应矩阵。Release `ICCRGBProfileLinkContractsTests` 37 项通过。
+- 该项只验证真实 profile 的拒绝边界，不关闭 absolute-colorimetric 真实跨白点逐码参照、ColorSync、BPC、gamut mapping 或完整 ICC。详见[ICC 系统 profile 跨 profile 白点边界](native-validation/2026-10-06-icc-system-cross-profile-boundary.md)。
+
+# 2026-10-06 ICC 系统 profile absolute linking
+
+- 新增 Display P3 与 sRGB 系统 profile 的 absolute-colorimetric matrix/TRC 契约；不同 media white point 按现有比例路径执行，输出有限。Release `ICCRGBProfileLinkContractsTests` 38 项通过。
+- 该项只关闭真实系统 profile 的 absolute 路由有限性边界，不关闭 ColorSync/第三方逐码参照、BPC、gamut mapping 或完整 ICC。详见[ICC 系统 profile absolute linking](native-validation/2026-10-06-icc-system-absolute-link.md)。
+
+# 2026-10-06 ICC 真实显示器 profile 结构验收
+
+- 新增 macOS 实际显示器 profile 的结构契约，覆盖非零 profile ID 的 MD5 校验、RGB/XYZ 头部和 tag 目录；Release Preview 定向合计 45 项通过。
+- 该项只增加真实 profile 结构证据，不关闭 ColorSync 逐码转换、BPC、gamut mapping、第三方 profile 参照或完整 ICC。详见[ICC 真实显示器 profile 结构验收](native-validation/2026-10-06-icc-real-display-profile.md)。
+
+# 2026-10-06 ICC para type 3 Release 回归
+
+- `para` type 3 修复后的完整 LUTKit SwiftPM Release 回归退出码 0；先行 `PreviewContractsTests` 44 项和 ICC 定向测试均通过。
+- 该回归只证明当前 Swift 包没有回归，不关闭完整 ICC、HDR/OOTF、查表替代或平台发布验收。详见[ICC para type 3 Release 回归](native-validation/2026-10-06-icc-para3-release-regression.md)。
+
+# 2026-10-06 原生数值门禁低并行复验
+
+- 默认并行度运行时 Swift 子进程曾被系统以 `SIGKILL (137)` 终止，未将其误报为契约失败；降低为 2 个 CPU、2 个 Swift job、单测试/验证/批次 worker 后重跑退出码 0。
+- 低并行结果覆盖 66 项原生数值检查，确认当前子集通过；该证据不关闭双端 App、完整 ICC/HDR、真机和发布清单。详见[原生数值门禁低并行复验](native-validation/2026-10-06-native-numerics-low-parallel-rerun.md)。
+
+## 2026-10-06 ICC MPE/device-link 剩余公开边界复核
+
+- 复核 `mpet` 元素表、`cvst`、`samf`、`matf`、`clut`、ACS、共享资源范围、通道链、有限 Float32 值及 device-link `A2B0` `mpet` 路由；本轮没有生产代码改动。
+- 定向 Debug／Release `ICCMPEContractsTests` 各 29 项、`ICCDeviceLinkContractsTests` 各 7 项通过，`git diff --check` 通过；日志和 SHA 位于 `native-validation/artifacts/2026-10-06-icc-mpe-next10/`。
+- 完整 MPE 元素集合、厂商扩展、全部 profile class/intent、BPC、gamut mapping、ColorSync、MPE 末端填充兼容语义、动态矩阵扩展和真实第三方 profile 逐码参照仍缺少充分公开证据，继续标记研究阻塞；Goal 保持 `active`。详见[ICC MPE/device-link 剩余公开边界复核](native-validation/2026-10-06-icc-mpe-next10.md)。
+
+## 2026-10-06 ICC device-link `mpet` 路由
+
+- `ICCDeviceLinkTransform` 现支持 `A2B0` 的 `mpet` 处理元素，并复用 `ICCMPETransform` 的 `matf`、`clut`、曲线和 ACS 执行链；device-link 输出通道数按 profile 声明校验。先行失败契约复现旧实现的 `unsupportedTagType("mpet")`，修复后 Debug 单项与 Release ICCDeviceLink/ICCMPE 组合共 35 项通过。
+- 本项只关闭 device-link `mpet` 路由子集，不关闭真实第三方逐码参照、完整 ICC、BPC、gamut mapping、ColorSync、mBA 反向执行或 Goal。详见[ICC MPE device-link `mpet` 验收](native-validation/2026-10-06-icc-mpet-device-link.md)。
+
+## 2026-10-06 ICC MPE CLUT 维度顺序
+
+- `ICCMPETransform` 按 ICC.1:2022-05 §10.16.2.4 修正 `clut` 展平索引：第一输入维度最慢、最后输入维度最快；此前实现方向相反，但全 2 网格夹具无法暴露该问题。
+- 新增非均匀 `[2,3,2]` 网格失败契约，修复后 Debug／Release 定向测试均通过，`git diff --check` 通过。详情见[ICC MPE CLUT 维度顺序验收](native-validation/2026-10-06-icc-mpet-clut-order.md)。
+- 本项只关闭 MPE CLUT 存储顺序边界，不代表完整 ICC、真实 profile 逐码参照、BPC、gamut mapping、ColorSync 或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 ICC mAB/mBA section offset 顺序研究阻塞
+
+- 审计 `mAB `/`mBA ` 的 B、Matrix、M、CLUT、A section offset：当前已拒绝越界、未对齐、部分重叠，并按更高 offset 限定 section；但没有足够公开证据证明 section 必须按语义顺序物理递增。
+- 未增加猜测性顺序约束，以免拒绝合法用户 profile。详情见[ICC mAB/mBA section offset 顺序审计](native-validation/2026-10-06-icc-mab-mpet-offset-order-audit.md)。
+- 本项是研究阻塞，不代表完整 ICC/MPE 已完成；Goal 继续 `active`。
+
+## 2026-10-06 LUTAnalyst 三线性近似仿射认证边界
+
+- 三线性反求不再把容差以内的非零混合项当作严格仿射单元；只有逐项精确为零时才允许用仿射逆证明 `noSolution`。新增边界根契约，Debug／Release `TrilinearInverseContractsTests` 各 13 项通过，`git diff --check` 通过。详情见[三线性近似仿射认证边界验收](native-validation/2026-10-06-trilinear-near-affine-certification.md)。
+- 本项只关闭近似仿射无解误证边界，不代表任意三维 LUT 全局反求、全根完备性、多解证明、`.labin`、直接查表或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 LUTAnalyst 反求结果去重与排序语义
+
+- 三线性与旧三次反求对相同输入的重复候选改为按生产采样器重放残差择优，再按输入 `r/g/b` 稳定排序；非有限目标继续在入口分类为 `.nonFinite`，不让非有限根进入结果。Debug／Release 两个测试组共 22 项通过，`git diff --check` 通过。详情见[反求结果语义验收](native-validation/2026-10-06-inverse-result-semantics.md)。
+- 本项只关闭重复根结果选择的确定性边界，不代表任意三维 LUT 全局反求、全根完备性、多解证明、`.labin`、直接查表或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 LUTAnalyst 三线性与四面体反求取消语义
+
+- 先失败契约证明已取消任务仍会返回报告；随后在 `Trilinear3DInverse` 与 `Tetrahedral3DInverse` 入口及网格扫描边界传播标准 Swift `CancellationError`。Debug 取消定向 2 项通过，Release 三线性／四面体组合 23 项通过。详情见[三线性与四面体反求取消语义验收](native-validation/2026-10-06-linear-tetrahedral-inverse-cancellation.md)。
+- 本项只关闭取消传播边界，不代表任意三维 LUT 全局反求、全根完备性、多解证明、`.labin`、直接查表或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 LUTAnalyst tricubic 取消语义
+
+- `Tricubic3DInverse` 现在在入口、cell／seed 扫描及 Newton 迭代中传播标准 Swift `CancellationError`；先失败契约证明原实现会在取消后错误返回结果，修复后 Debug 定向测试 1 项通过。详情见[Tricubic 三维反求取消语义验收](native-validation/2026-10-06-tricubic-inverse-cancellation.md)。
+- Release 定向复验尚未取得，需在无 SwiftPM 并发时补充；本项只关闭任务取消边界，不代表任意三维 LUT 全局反求、全根完备性、多解证明、`.labin`、直接查表或 Goal 完成，Goal 继续 `active`。
+
+## 2026-10-06 ICC 头部 platform 与 creator 字段边界
+
+- `ICCProfileValidator` 现在按公开四字节签名规则校验 header offset 40 的 platform 与 offset 80 的 creator；全零保持未知兼容，非零非法字节分别拒绝为 `invalidPlatformSignature` 与 `invalidCreatorSignature`，合法值作为可选元数据返回，不参与颜色计算。
+- 先失败契约后实现；Debug `PreviewContractsTests` filter 共 31 项通过，`git diff --check` 通过。Release 本轮因共享 SwiftPM 并发未取得完整退出结果，须由主代理在无并发后复验并保存证据。详情见[ICC platform 与 creator 字段边界验收](native-validation/2026-10-06-icc-platform-creator.md)。
+- 该项只关闭两个 header 字段的结构边界，不代表 manufacturer/model 语义、完整 ICC、第三方逐码参照、BPC、gamut mapping、ColorSync、HDR/EDR/OOTF 或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 LUTAnalyst tricubic 迭代耗尽保守边界
+
+- 旧 tricubic 局部反求对所有未收敛候选统一报告 `unresolved`；认证输出包围盒只能证明“可能存在”，有限 Newton 预算耗尽不能推断无解。新增失败契约后，Debug／Release `TricubicInverseContractsTests` 各 9 项通过。详情见[LUTAnalyst tricubic 迭代耗尽边界验收](native-validation/2026-10-06-lutanalyst-tricubic-exhaustion.md)。
+- 本包只关闭局部诊断的误报无解边界，不关闭任意三维 LUT 全局反求、全根完备性、多解证明、组合 shaper 全局完备性、`.labin`、直接查表或 Goal；Goal 继续 `active`。
+
+## 2026-10-06 ICC 头部 flags 与 device attributes 保留位
+
+- `ICCProfileValidator` 现在按 ICC.1 头部结构限制 offset 44 的 profile flags（仅 bit 0/1）和 offset 56 的八字节 device attributes（仅低四位），并把已验证值作为元数据返回；未知高位 fail closed，不参与颜色计算。先失败契约后实现，Debug／Release `PreviewContractsTests` 各 37 项通过。详情见[ICC 头部 flags 与 device attributes 结构验收](native-validation/2026-10-06-icc-header-flags-attributes.md)。
+- 该项只关闭两个头部保留位边界，不代表完整 ICC 或 Goal 完成；platform、creator、manufacturer/model 语义、第三方逐码参照、BPC、gamut mapping、ColorSync、HDR/EDR/OOTF、查表替代及平台发布验收仍保持 active。
+
+## 2026-10-06 ICC profile ID 完整性边界
+
+- `ICCProfileValidator` 现在允许全零 profile ID，并严格校验非零 ID 是否等于将 header ID 字段清零后的完整 profile MD5；错误 ID 拒绝为 `.invalidProfileID`。
+- 失败契约先行，Debug／Release 各 2 项通过。详情见 [ICC profile ID 校验验收](native-validation/2026-10-06-icc-profile-id.md)。
+- 该项只关闭 header 完整性结构边界，不代表完整 ICC 或 Goal 完成；第三方逐码参照、BPC、gamut mapping、ColorSync、HDR/EDR/OOTF 及其他未完成范围保持 active。
+
+## 2026-10-06 ICC profile header reserved 区域
+
+- `ICCProfileValidator` 按 ICC header 结构拒绝 bytes 100...127 非零保留字段；失败契约先行，Debug／Release `PreviewContractsTests` 各 33 项通过。验收见[ICC profile header reserved 字段验收](native-validation/2026-10-06-icc-header-reserved.md)。
+- 该项只关闭 header 结构边界，不代表完整 ICC 或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 LUT 格式解析器结构边界审计
+
+- 复核 CUBE、SPI1D、SPI3D、VLT、ILUT、OLUT、3DL、Assimilate LUT 与 NCP 0100 的版本／签名、维度、行数、索引、有限值、代码范围和资源上限拒绝边界；未发现可安全新增且不扩大格式兼容承诺的结构缺口。
+- Release 定向组合执行 51 项、跳过 1 项外部 NCP 实样、0 失败。详情见[LUT 格式解析器结构边界审计](native-validation/2026-10-06-parser-boundary-audit.md)。NCP 0100 仍只读，缺少公开厂商 writer 规范时不实现写出。
+- 该审计不关闭目标软件往返、完整格式矩阵、`.labin`、直接查表、LUTAnalyst、ICC/HDR、平台和发布验收，Goal 保持 `active`。
+
+## 2026-10-06 ICC tag reserved 字段
+
+- `ICCProfileValidator` 现在按 ICC tag type 固定头约束拒绝非零 4 字节 reserved 字段；新增失败契约后修复，Debug／Release `PreviewContractsTests` 各 32 项通过。验收见[ICC tag reserved 字段边界验收](native-validation/2026-10-06-icc-tag-reserved.md)。
+- 该项只关闭 tag payload 固定头结构边界，不代表完整 ICC、第三方逐码参照、BPC、gamut mapping、ColorSync 或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 Transfer 与 HDR/OOTF 缺口审计
+
+- 复核现有公开 transfer、色域矩阵、HLG/PQ/BT.1886 与 OOTF 路径；未发现同时具备公开公式、明确单位语义和独立参照、且可在不扩大范围下安全新增的算法缺口。
+- `RootContractsTests` Release 执行 8 项、0 失败，覆盖 Legacy cubic 判别式溢出下的有限临界根保留。PQ OOTF 的历史 `Lw`／`scale`／输入单位冲突继续作为研究阻塞，不猜测或接入标准路由。详见[Transfer 与 HDR/OOTF 算法缺口审计](native-validation/2026-10-06-transfer-hdr-gap-audit.md)。
+- `.labin`、直接查表、任意三维全局反求、完整 ICC/HDR/EDR/OOTF、平台与发布验收仍未完成，Goal 保持 `active`。
+
+## 2026-10-06 PQ OOTF 标准边界最小复现
+
+- 依据 BT.2100 与 SMPTE ST 2084 的绝对 PQ 语义，补充了标准边界证据：PQ EOTF/OETF 只定义绝对亮度编码，不能从 PQ 码值推导场景参考白、系统 gamma、黑位或显示峰值。`s=0.18` 的标准绝对 PQ 路径为 `1800 cd/m²`，旧 `LegacyPQOOTF` 在相同数值输入下为 `5.704834098099198 nits`，差异来自单位和物理语义而非数值误差；旧 knee 跳变仍为约 `1.7751367975487e-3 nits`。
+- 新增独立 80 位 `Decimal` 探针 `tools/native-validation/probe-pq-ootf-boundary.py`，复核标准绝对 PQ 与历史 PQ OOTF 的单位差异及 knee 跳变；`py_compile` 通过。详见[PQ OOTF 标准边界与最小复现](native-validation/2026-10-06-pq-ootf-standard-boundary.md)。该记录只强化标准／兼容身份隔离，不新增生产公式或采样表；完整 PQ OOTF、自动峰值、HDR/EDR 设备语义继续未完成，Goal 保持 `active`。
+
+## 2026-10-06 ICC tag offset 四字节对齐
+
+- `ICCProfileValidator` 现在拒绝未按 4 字节对齐的 tag offset；多 tag 测试 helper 保持 tag size 为原 payload 长度，并在 payload 之间补齐到下一个 4 字节边界。
+- `PreviewContractsTests` Debug／Release 各 30 项、`ICCLUTProfileLinkContractsTests` 各 10 项、`ICCMPEContractsTests` 各 26 项及 `ICCMatrixTRCContractsTests` Release 21 项通过。详情见[ICC tag offset 对齐验收](native-validation/2026-10-06-icc-tag-alignment.md)。
+- 该项只关闭 profile 目录结构边界，不代表完整 ICC、第三方逐码参照、BPC、gamut mapping、ColorSync 或 Goal 完成。
+
+## 2026-10-06 BT.2020 连续 OETF
+
+- 新增 BT.2020-2 精确连续 OETF／逆变换，独立于已有实用 10-bit 常数；Swift `Double` 运行时接入 transfer、计划、输出编码和连续预设。
+- `Rec2020ContinuousContractsTests` Debug／Release 各 2 项通过，Release 目录检查同步为 82 条曲线、23 个色域、76 个预设。证据见[BT.2020 连续 OETF 原生算法验收](native-validation/2026-10-06-rec2020-continuous.md)。
+- 该项只关闭 S03 的连续数学子集；完整 BT.2020 显示/HDR/EDR/OOTF、`.labin`、直接查表、任意三维全局反求和发布验收仍未完成，Goal 继续 `active`。
+
+## 2026-10-06 ICC MPE `curf` breakpoint 域边界
+
+- 按 ICC.1:2022-05 规范，`curf` 分段曲线 breakpoint 现在要求为有限的归一化 `0...1` 值并严格递增；域外值和重复值均拒绝，避免零宽区间进入 `samf` 插值执行。合法 breakpoint 命中前一段的行为保留。
+- 先行契约覆盖域外与重复 breakpoint；实现后 `ICCMPEContractsTests` Debug／Release 各 26 项通过，Debug／Release SwiftPM 构建和 `git diff --check` 通过。详情见[ICC MPE 曲线 breakpoint 域边界验收](native-validation/2026-10-06-icc-mpet-breakpoint-domain.md)。
+- 该项只关闭 MPE `curf` 结构边界，不代表完整 ICC、全部 MPE 元素、真实 profile 逐码参照、BPC、gamut mapping、ColorSync、HDR/EDR 或 Goal 完成。
+
+## 2026-10-06 SMPTE 240M 公开公式闭合
+
+- 新增 SMPTE 240M 独立传递函数与 D65 原色：使用公开分段 OETF、逆变换及运行时 `Double` 色度矩阵；不把 Sony STD4 历史查表名标成已实现。
+- `SMPTE240MContractsTests` Debug／Release 各 2 项通过，日志与 SHA-256 见[SMPTE 240M 原生算法验收](native-validation/2026-10-06-smpte240m.md)。
+- 该项仅关闭 S06 的公开解析数学子集；模拟分量范围、历史设备语义、`.labin` `0/9`、直接查表 `0/45`、任意三维全局反求、完整 ICC/HDR/OOTF 和发布验收仍未完成，Goal 继续 `active`。
+
+## 2026-10-06 research G03/G04 公式闭合核验
+
+- 核对 research G03 Leica L-Log 与 G04 KineLOG3：两项已有公开公式的 Swift `Double` 标量实现、TransferID、AlgorithmCatalog、TransformPlan 和 NativeOutputEncoder 接线，不重复实现或扩大范围。
+- Release 定向 `LLogContractsTests` 3 项、`KineLog3ContractsTests` 3 项通过；既有 33³/65³ 独立读回误差分别为 `3.049417739399331e-16` 与 `1.1150635581761299e-15`。
+- 详情见[research G03/G04 公式闭合核验](native-validation/2026-10-06-research-g03-g04-formula-closure.md)。设备全范围、跨色域矩阵、真实软件往返与发布验收仍未完成。
+
+## 2026-10-06 LUTCore 算法边界审计
+
+- 复核 CIELAB/Delta E、公开 CAT、BT.1886、HLG/PQ、ACEScc/ACEScct/ACESproxy 与参数化伽马的现有公开公式和边界契约；CIELAB Debug 8 项、ACEScc Release 4 项定向测试通过。
+- 本轮没有发现同时满足公开公式、明确单位语义、独立参照和不扩展范围条件的安全新增算法。PQ OOTF 语义冲突、Legacy cubic 判别式溢出风险、完整 HDR/EDR、任意 3D 全局反求和查表替代继续保持未完成。
+- 详见[LUTCore 算法边界审计](native-validation/2026-10-06-lutcore-boundary-audit.md)。Goal 继续 `active`。
+
+## 2026-10-06 ICC 传统任意通道 Lab absolute linking
+
+- 传统 `mft2`、`mAB`、`mBA` 的 Lab PCS 任意设备通道 linking 已接入 `A2B3/B2A3` absolute 路由：使用 D50 Lab↔XYZ `Double` 公式和源／目标 `wtpt` 比例缩放，保留 `[Double]` 通道数组，RGB convenience API 继续拒绝非三通道输入。
+- `testTraditionalAbsoluteLabMABProfileLinkScalesCMYKPCS` 独立预期值为 `0.2935715779621544`、`0.4477083911771103`、`0.5522887827367406`；`ICCRGBProfileLinkContractsTests` Debug／Release 各 35 项通过，原生数值门禁退出码 0。日志和 SHA-256 见[ICC 传统任意通道 Lab absolute linking 验收](native-validation/2026-10-06-icc-traditional-arbitrary-lab-absolute.md)。
+- 该项只关闭传统 Lab absolute 任意通道数学子集，不代表完整 ICC；真实第三方逐码参照、BPC、gamut mapping、ColorSync、HDR/EDR、`.labin` `0/9`、直接查表 `0/45`、任意三维全局反求和 Goal 继续未完成。
+
+## 2026-10-06 ICC mft 输入表与矩阵顺序
+
+- 修正用户导入 `mft1`／`mft2` 的执行顺序：输入表 A → 可选 3×3 矩阵 → CLUT → 输出表 B，避免非线性输入曲线下把矩阵错误地作用于编码值。
+- 先行非交换顺序契约与实现后的 `ICCMFTContractsTests` Debug／Release 各 12 项通过。验收见[ICC mft 管线顺序验收](native-validation/2026-10-06-icc-mft-pipeline-order.md)。
+- 该项只修正既有用户导入执行器的规范顺序，不扩展 ICC profile、MPE、BPC、gamut mapping、ColorSync 或第三方逐码覆盖；`.labin` `0/9`、直接查表 `0/45`、任意 3D 全局反求和 Goal 继续 `active`。
+
+## 2026-10-06 ICC 传统任意通道 absolute linking
+
+- 传统 `mft2`、`mAB`、`mBA` 的任意设备通道 linking 新增 `A2B3/B2A3` absolute XYZ 路由：运行时使用源／目标 `wtpt` 媒体白点比例，保持 `[Double]` 通道数组和 RGB convenience 拒绝边界。
+- 失败契约先复现 CMYK absolute 标签未接线；实现后 `ICCRGBProfileLinkContractsTests` Debug／Release 各 34 项通过。验收见[ICC 传统任意通道 absolute linking](native-validation/2026-10-06-icc-traditional-arbitrary-absolute.md)。
+- 该项不扩展传统 Lab arbitrary absolute，不实现 BPC、gamut mapping、ColorSync、真实 profile 逐码参照或完整 ICC；查表、任意 3D 反求和 Goal 继续 active。
+
+## 2026-10-06 ICC 传统 LUT absolute intent 接线
+
+- 传统用户导入 `mft2`、`mAB`、`mBA` 的 PCS XYZ linking 现在支持精确 `A2B3`／`B2A3` absolute colorimetric 标签；源 PCS 按 ICC.1:2022-05 媒体白点比例缩放后连接目标，复用已验收的 `sourceWhite/targetWhite` Double 公式。
+- 先行契约覆盖缺少 `A2B3` 的拒绝、不同媒体白点的比例结果和完整 `A2B3/B2A3` 路由；Debug 定向 10 项通过。详细记录见[ICC 传统 LUT absolute intent 验收](native-validation/2026-10-06-icc-traditional-absolute-intent.md)。
+- 该项只关闭传统 LUT absolute 标签和媒体白点比例数学子集，不实现黑点补偿、gamut mapping、ColorSync、真实第三方逐码参照或完整 ICC；`.labin` `0/9`、直接查表 `0/45`、任意 3D 全局反求和 Goal 继续 active。
+
+## 2026-10-06 ICC 传统 LUT perceptual／saturation 标签接线
+
+- 传统用户导入 `mft2`、`mAB`、`mBA` 的 PCS XYZ linking 现在按请求 intent 选择公开 ICC 标签：perceptual 使用 `A2B0`／`B2A0`，relative 使用 `A2B1`／`B2A1` 并保留明确不支持时的 `A2B0`／`B2A0` fallback，saturation 使用 `A2B2`／`B2A2`。适配器的方向白名单同步扩展到 intent 2。
+- 先行失败契约复现 saturation 标签被拒绝；实现后 `ICCLUTProfileLinkContractsTests` Debug／Release 各 9 项通过。详情见[ICC 传统 LUT intent 标签接线验收](native-validation/2026-10-06-icc-traditional-intent-tags.md)。
+- 该项只关闭已有传统 LUT 执行器的两个 intent 标签分派，不实现 `A2B3`／`B2A3` absolute、黑点补偿、gamut mapping、ColorSync、真实第三方逐码参照或完整 ICC；`.labin` `0/9`、直接查表 `0/45`、任意 3D 全局反求和 Goal 继续 active。
+
+## 2026-10-06 直接查表注册阻塞白名单契约
+
+- 将查表替代台账的 45 个旧注册名称冻结为 `AlgorithmCatalog.blockedLookupRegistrationNames`，新增目录契约逐项断言它们不能解析为 transfer、色域或预设。契约先在缺少 API 时按预期编译失败，补齐只读白名单后 Debug／Release 定向各 1 项通过；结果见[直接查表注册阻塞白名单契约验收](native-validation/2026-10-06-direct-lookup-blocklist-contract.md)。
+- 该包只建立防误注册边界，不实现任何查表算法，不携带采样数据，直接查表替代仍为 `0/45`，`.labin` 仍为 `0/9`；Goal 保持 `active`。
+
+## 2026-10-05 LUTAnalyst 组合 shaper 与三维 colour 局部反求诊断
+
+- 新增显式 `shaper -> colour` 诊断：先反求不带 shaper 的三维 colour LUT，再逐通道保留 shaper 的全部 cubic 根，最后经完整生产 sampler 回放并按既有 `2e-12` 阈值验收。奇异 colour 单元、shaper 平段、候选遗漏和非单调情形保留为 `unresolved`，不推断唯一根。
+- `CombinedShaperColourInverseContractsTests` Debug／Release 各 4 项通过；Swift Release 全量、原生数值门禁、macOS、iOS generic、iOS Simulator Release 均退出 `0`。命令、工具链、日志哈希和未覆盖范围见[组合 shaper 与三维 colour 局部反求验收](native-validation/2026-10-05-lutanalyst-combined-shaper-inverse.md)。
+- 随后补充四面体资源上限：`Tetrahedral3DInverse` 对 `(size - 1)^3 * 6` 做溢出安全检查，超过 `maxTetrahedra` 明确拒绝；组合 shaper tetrahedral 路径传递同一预算。Release 定向 13 项、Swift Release 全量、数值门禁和三平台 Release 复验均退出 `0`，复验产物见同一验收目录中 `max-tetra` 文件。
+- 三线性诊断的网格盒子计数也改为溢出安全乘法；极大尺寸或超过 `maxBoxes` 会在遍历前明确拒绝。新增资源上限契约，避免整数溢出把诊断误放行。
+- 只关闭组合 shaper 到已有局部三维诊断的显式接线子集；不关闭任意三维全局反求、全根完备性、自动 transfer/colour 分离、完整重建、生成导出、`.labin` `0/9`、直接查表 `0/45`、完整 HDR/ICC 或发布验收。`FULL-05`、`H10` 与 Goal 保持 `active`。
+
+## 2026-10-05 算法范围复核
+
+- 复核最新研究资料、查表替代台账与现有 `LUTCore`／`LUTAnalysis` 后，没有发现可在不引入采样表或猜测公式的前提下新增的内置变换；未新增算法身份或放宽任何阈值。
+- 三线性、四面体、旧 tricubic、组合 shaper 局部反求及核心 Double 网格/矩阵定向 Release 回归共 46 项通过；命令、未覆盖范围和阻塞项见[算法范围复核记录](native-validation/2026-10-05-algorithm-scope-recheck.md)。
+- 任意 3D 全局反求、完整重建、`.labin` `0/9`、直接查表 `0/45`、资料阻塞项和 `FULL-05`／`H10` 继续 active。
+
+## 2026-10-06 ICC MPE 资源边界修复
+
+- 为用户导入的 `mpet` 解析增加元素计数、元素表偏移、`matf` 矩阵参数、`cvst` 曲线表与采样段的溢出安全计算；恶意极大计数在分配或读取元素表前稳定返回 `.malformed`，合法 profile 的数值路径保持不变。
+- 定向 ICC MPE Debug／Release 各 25 项通过，`Scripts/verify-native-numerics.sh` 退出码 0；元素计数溢出与 17 通道 CLUT 网格头越界均有失败契约，结果日志及 SHA-256 保存在[ICC MPE 资源边界验收](native-validation/2026-10-06-icc-mpet-resource-safety.md)。
+- 该项只关闭解析资源安全边界，不增加 ICC 元素、profile class、intent、BPC、gamut mapping、ColorSync 或第三方逐码覆盖；完整 ICC、任意 3D 全局反求和 Goal 继续 `active`。
+
+## 2026-10-06 并行算法工作包
+
+- 三线性局部反求新增严格仿射单元判定；非奇异单元外部目标可证明为 `noSolution`，奇异/非线性仍为 `unresolved`。Release 定向 11 项通过。
+- 传统 ICC `mft/mAB/mBA` 用户导入解析补齐 CLUT、曲线、表尺寸和偏移的溢出边界；Release 定向 `ICCMFT` 12 项、`ICCMAB` 19 项通过。
+- 目录审计确认 79 个 transfer、20 个色域、75 个预设均接入 Double 解码/编码或矩阵路径，没有发现可安全接线的公开公式遗漏。
+- 命令、日志哈希和未覆盖范围见[并行算法工作包验收](native-validation/2026-10-06-parallel-algorithm-packages.md)。这些只关闭局部诊断/解析安全子集，不关闭任意 3D 全局反求、查表替代、完整 ICC/HDR 或 Goal。
+
+## 2026-10-06 算法并行后续
+
+- 四面体诊断新增输出包围盒内但精确逆在单纯形外的契约；Release 定向 10 项通过。四面体单元级仿射边界更明确，但任意 LUT 全局根完备性仍未完成。
+- PQ OOTF 研究复核保存了 Decimal 探针、历史 knee 跳变和单位语义冲突；不猜测标准公式，不接入生产路径。PQ OOTF、完整 HDR/EDR 和自动峰值继续阻塞。
+- 1D cubic 审计发现极大有限系数会令导数判别式溢出，可能漏报临界点；该风险尚未修复，下一包需先补失败契约后再采用稳定缩放求根。
+- 详细证据见[算法并行后续验收](native-validation/2026-10-06-algorithm-parallel-followup.md)。
+
+## 2026-10-06 公开公式生成路径覆盖审计
+
+- 交叉核对 `TransferID`、`AlgorithmCatalog`、`TransformPlan` 输入解码和 `NativeOutputEncoder` 输出编码；目录中已有的公开传递公式均有最终 Double 生成分支，没有发现漏接项。
+- `CatalogTransferSmokeTests`、`RegistryContractsTests`、`NativeOutputEncoderContractsTests` 和 `OutputCodeUnitsContractsTests` Release 定向共 23 项通过；结果见[公开传递公式生成路径覆盖审计](native-validation/2026-10-06-transfer-coverage-audit.md)。
+- 该审计不减少 `.labin` `0/9` 或直接查表 `0/45`，不关闭任意 3D LUT 全局反求、完整 ICC/HDR/OOTF 或发布验收；`FULL-01`、`FULL-03`、`FULL-05`、`FULL-07` 与 Goal 继续 active。
+
+## 2026-10-05 LUTAnalyst 旧 tricubic 局部反求诊断子集
+
+- 为旧 `LegacyTricubicVolume3D` 增加了与生产采样器共用的解析 Jacobian，以及把 Catmull-Rom 张量基转换为 Bernstein 基的单元输出包围盒。包围盒包含节点之间的 cubic overshoot，只用于证明目标不可能落在单元内；不把有限 Newton 搜索失败解释成无解。
+- 新增 `Tricubic3DInverse`：按单元生成有限候选，使用 `Double` Newton 迭代，候选必须再次经过旧生产 sampler 回放并满足既有 `2e-12` 相对尺度阈值。支持恒等根、折叠双根、非单位输入域和明确的 `unresolved`／`noSolution`／shaper 拒绝边界；`ImportedLUTAnalyzer.diagnoseTricubicColourInverse` 只提供诊断入口，不接通生成或隐式任意 3D 逆。
+- 先行契约新增 `TricubicInverseContractsTests` 8 项，覆盖生产回放、有限差分独立 Jacobian、Bernstein 包围盒 overshoot、折叠双根、包围盒无解、奇异映射未决、非单位域和参数／shaper 拒绝。Debug／Release 定向均通过；Swift Release 全量回归退出 0；`Scripts/verify-native-numerics.sh` 退出 0。命令、工具链、结果包和 SHA-256 见[旧 tricubic 局部反求验收](native-validation/2026-10-05-lutanalyst-tricubic-inverse.md)。
+- 该子集不证明任意 3D LUT 的全局根完备性、唯一性或连续域逆；有限种子遗漏、多根跨单元、组合 shaper、自动 transfer/colour 分离、完整重建、目标软件往返、`.labin` `0/9`、直接查表 `0/45`、完整 HDR/ICC 和发布清单仍未完成。FULL-05、H10 与 Goal 保持 `active`。
+
+## 2026-10-05 ICC MPE `parf` 公式类型边界
+
+- 按 ICC.1:2022-05 §10.16.2.2 Table 60 核对 `cvst` 的 `parf` 只定义 type 0、1、2；传统 `para` type 3、4 不属于 MPE，新增契约固定两类输入拒绝，不猜测扩展公式。
+- Debug／Release 定向 `ICCMPEContractsTests` 各 23 项通过；Swift Release 全量测试和 `Scripts/verify-native-numerics.sh` 均退出 0。命令、工具链、规范哈希和结果包见[ICC MPE 公式类型边界验收](native-validation/2026-10-05-icc-mpet-formula-boundary.md)。
+- 该项只关闭规范边界和拒绝语义，不增加 MPE 功能范围。真实 profile 逐码参照、黑点补偿、gamut mapping、ColorSync、HDR/EDR、`.labin`、直接查表注册、LUTAnalyst 任意三维反求、平台和发布验收仍未完成，Goal 保持 `active`。
+
+## 2026-10-05 BT.2100 HLG reference OOTF extended gamma 项目持久化子集
+
+- 将 `HLGOOTFSettings.referenceGammaMode` 接入项目 schema `27`。只有 `bt2100.hlg-reference-ootf.v1` 可以显式保存 `extended`；历史 `lutcalc.hlg-ootf-display.v1` 携带该字段、schema 26 或更早版本携带该字段、以及 reference 路由的非 nits／非零黑位／不相等峰值／BBC 参数均拒绝。
+- 先行项目契约覆盖 schema 27 JSON 字段、算法版本、扩展模式往返、schema 26 拒绝和 legacy 算法拒绝。定向 Debug／Release 均为 9 项通过；完整 Swift Release 为 8 个测试包、896 项执行、0 失败，`LUTFormats` 的 2 项既有外部夹具按原规则跳过；`Scripts/verify-native-numerics.sh` 退出码 0。命令、结果包和 SHA-256 见[HLG extended gamma 项目持久化验收](native-validation/2026-10-05-hlg-reference-ootf-extended-project.md)。
+- 该子集只关闭已实现 reference OOTF 扩展 gamma 的项目存储边界；不关闭自动峰值、参考白／黑位策略、四种 HDR 变体、PQ OOTF、完整 HDR/EDR、UI、真实设备显示、`.labin`、直接查表注册、完整 ICC、LUTAnalyst 任意三维反求或 Goal。Goal 保持 `active`。
+
+## 2026-10-05 ICC device-link A2B0 数值子集
+
+- 新增用户导入 `link` profile 的单个 `A2B0` device-to-device 执行器；使用 profile header rendering intent，支持 `mft1`、`mft2` 和 `mAB`，拒绝反向 `mBA`、缺少 A2B0、非 link class、维度或 intent 不一致。`mAB` 矩阵按连续 3×3 系数后接 3 个 offset 解码。
+- 真实 Little CMS 2.19 profile 的公开 `cmsPipelineEvalFloat` 三点参照与 Swift Double 结果一致，最大差低于 `3e-5`；Release 定向 24 项通过。完整命令、profile SHA-256、参照输出、工具前端差异和日志哈希见[ICC device-link A2B0 验收](native-validation/2026-10-05-icc-device-link.md)。
+- 该阶段只关闭单个 device-link A2B0 数学子集，不勾选完整 ICC/H13；其他 profile class／MPE／intent、black point compensation、gamut mapping、ColorSync、HDR/EDR、第三方往返、`.labin`、直接查表、LUTAnalyst 和 Goal 仍未完成，Goal 保持 `active`。
+
+## 2026-10-05 BT.2100 HLG reference OOTF extended gamma 数学子集
+
+- 在 `bt2100.hlg-reference-ootf.v1` 的通常制作范围实现之上，按 BT.2100-3 Note 5f 新增显式 `GammaMode.extended`，使用 `gamma = 1.2 * 1.111 ^ log2(L_W / 1000)`；默认初始化器仍严格限制 `400...2000 cd/m²`。
+- 先行契约覆盖显式模式、默认范围拒绝、非正/非有限峰值和 90 位 Decimal 参照；另覆盖 extended gamma 下的黑位抬升、负 PLUGE 头房、标量逆和 RGB 亮度耦合。扩展定向 Debug/Release 各 4 项，与既有 OOTF 定向契约合计各 10 项通过；OOTF 交叉参照最大尺度化误差为 `7.771561172376096e-16`。`Scripts/verify-native-fast.sh` 与 `Scripts/verify-native-numerics.sh` 均退出码 0，详见[扩展 gamma 验收](native-validation/2026-10-05-hlg-reference-ootf-extended.md)。
+- 该数学子集本身不改变默认路由或 UI；项目字段随后在 schema 27 的独立持久化子集中接线。自动峰值、参考白/黑位策略、四种 HDR 变体、PQ OOTF、完整 HDR/EDR、真实设备和 Goal 仍未完成。
+
+## 2026-10-05 BT.2100 HLG reference EOTF 黑位抬升数学子集
+
+- 在已验收的 `bt2100.hlg-reference-ootf.v1` 之上新增 `beta = sqrt(3) * (LB/LW)^(1/gamma)` 黑位抬升和 reference EOTF 的标量/RGB `Double` 路径；`E'=0` 的显示锚点为 `LB²/LW`，RGB 仍按 BT.2100 亮度耦合。
+- 先行契约覆盖负 `E'` PLUGE 头房、`max(0, ...)` 的零显示非唯一逆、黑位锚点、RGB 逐通道拒绝、90 位 Decimal 独立参照、Debug/Release 定向测试。`Scripts/verify-native-fast.sh` 与 `Scripts/verify-native-numerics.sh` 均退出码 0，结果见[HLG reference EOTF 黑位抬升验收](native-validation/2026-10-05-hlg-reference-eotf.md)。
+- 该子集只关闭 reference EOTF 黑位数学，不新增默认路由、项目字段或 UI；自动峰值、参考白/黑位策略、四种 HDR 变体、PQ OOTF、完整 HDR/EDR、真实设备和 Goal 仍未完成。extended gamma 的独立数学记录见上一节。
+
+## 2026-10-05 ICC 任意通道 profile linking 数学子集
+
+- 在现有 `ICCMPETransform` 通用数组执行之上，`ICCRGBProfileLink` 现支持用户导入 `mpet` profile 的成对 `D2B0`...`D2B3`／`B2D0`...`B2D3` linking。source/target 设备端可按各自 profile 声明使用 1...15 个通道，PCS 必须同为三通道 `XYZ ` 或 `Lab `；新增 `[Double]` 设备数组入口和 source/target 通道数暴露。
+- 传统 `mft2`、`mAB`、`mBA` profile linking 现支持用户导入的任意设备通道数组（1...15）与 `XYZ `/`Lab ` PCS；`mft1` 任意设备执行器保留，但 `mft1`+`XYZ ` PCS 因 ICC 未定义 8 位 PCSXYZ 编码而明确拒绝。固定 3×3／3×4 矩阵边界、RGB 便利入口拒绝和传统 RGB route 回归均有契约。定向 Debug 62 项通过；独立 `Decimal(90)` 参照、命令和哈希见[ICC 传统任意通道 profile linking 验收](native-validation/2026-10-05-icc-traditional-arbitrary.md)。
+- 本项只关闭传统任意通道 `mft`/`mAB`/`mBA` 的成对 relative-colorimetric 路由子集，不关闭 `mpet` 其他元素、真实 profile 逐码参照、其他 profile class 与 rendering intent、黑点补偿、gamut mapping、ColorSync、HDR/EDR、查表替代或 Goal。
+
+## 2026-10-05 ICC 传统任意通道 profile linking 数学子集
+
+- `ICCMFTTransform` 与 `ICCMABTransform` 现按 ICC.1:2022-05 §10.10–§10.13 执行 1...15 通道数组；`mft` 的矩阵固定 3×3，非三通道设备侧只接受规范要求的恒等矩阵，`mAB/mBA` 的矩阵固定 3×4 并只在合法 PCS 三通道边界执行。CLUT 轴序、曲线数量、输入/输出表和方向均按 profile 声明解析。
+- `ICCRGBProfileLink` 现把非 RGB 设备的传统 `mft2`、`mAB/mBA` 连接到显式 `[Double]` 入口；PCS 只接受一致的 `XYZ `/`Lab `，只接通 relative colorimetric。传统 `mft1`+`XYZ ` 明确拒绝，防止猜测不存在的 8 位 PCSXYZ 编码；现有 RGB matrix/TRC、RGB LUT、MPE 和 Lab absolute 路由边界不改变。
+- 定向 Debug／Release 11 项 mft、18 项 mAB/mBA、33 项 profile linking 共 62 项通过；完整 Swift Release 8 个测试包共 869 项执行、0 失败，`LUTFormats` 的 2 项既有外部夹具按原规则跳过。`Scripts/verify-native-numerics.sh` 退出码 0。独立参照、日志哈希和未覆盖范围见[ICC 传统任意通道验收](native-validation/2026-10-05-icc-traditional-arbitrary.md)。
+- 本项只关闭传统 LUT 任意设备通道 relative linking 数学子集；真实第三方 profile 逐码参照、其他 intent／profile class、black point compensation、gamut mapping、ColorSync、其他 ICC 类型、HDR/EDR、目标软件往返、`.labin`、直接查表注册和 Goal 仍未完成。
+
+## 2026-10-05 ICC mpet 任意设备通道数学子集
+
+- `ICCMPETransform` 依据 ICC.1:2022-05 §10.16.2.1–§10.16.2.4 扩展为通用 `[Double]` 执行路径：PCS 仍为三通道 `XYZ `/`Lab `，设备端支持 profile 声明的 1...15 通道；`matf`、`clut`、`cvst` 和 ACS 元素不再硬编码三通道，保留元素边界、float32 有限性、CLUT 输入裁切和共享区间规则。
+- 先行契约新增 4 通道 CMYK 的 D2B/B2D 动态矩阵、曲线串接、4D CLUT 和非法维度拒绝；定向 Debug／Release 共 22 项通过。Python `Decimal(90)` 参照与全量 Swift Release 结果已保存于[ICC mpet 任意设备通道验收](native-validation/2026-10-05-icc-mpet-arbitrary.md)。全量 Swift Release 0 失败；未改变 RGB profile linker 的边界。
+- 本项只关闭直接 `mpet` 任意设备通道执行数学子集，不关闭任意通道 profile linking、传统任意通道 LUT、其他 MPE 元素、真实 profile 逐码参照、黑点补偿、gamut mapping、ColorSync、HDR/EDR、查表替代或 Goal。
+
+## 2026-10-05 BT.2100 HLG reference OOTF 数学子集
+
+- 新增独立纯 Swift `Double` `bt2100.hlg-reference-ootf.v1`，依据 BT.2100-3 (02/2025) Table 5 与 Note 5f 实现 `F_D = L_W * Y_S^(gamma - 1) * E` 及 `gamma = 1.2 + 0.42 * log10(L_W / 1000)`；峰值范围严格限定为 `400...2000 cd/m²`，支持标量与 RGB 正逆变换。
+- 先行契约覆盖标准锚点、RGB 亮度耦合、负色度分量、零亮度非唯一逆、非法范围、独立 90 位 Decimal 参照，以及 `TransformPlan` stage 130 和 stage 13 的 nits 归一化。定向算法 Debug／Release 各 6 项通过；项目 schema 22 定向 Debug／Release 各 2 项通过；当前源码 Swift Release 全量实际执行 872 项、0 失败，`Scripts/verify-native-numerics.sh` 的 66 项检查也通过。独立参照最大尺度化误差为标量 `1.1102230246251565e-16`、RGB `1.3342336993997586e-16`。
+- `bt2100.hlg-reference-ootf.v1` 已接入 `TransformPlan` 的显式算法路由，并由现有 schema 22 严格保存算法身份、nits 单位和参数往返；仍与历史 `HLGOOTF` 的黑位、BBC、场景范围和裁切语义隔离。参考路由只接受 nits、输入／输出峰值相同、黑位为零且关闭 BBC。尚未新增 schema 版本、默认路由或 UI。自动峰值、参考白／黑位策略、四种 HDR 变体、PQ OOTF、完整 HDR/EDR 和 Goal 仍未完成。详见[HLG reference OOTF 验收](native-validation/2026-10-05-hlg-reference-ootf.md)。
+
+## 2026-10-05 ACES 1.3 Reference Gamut Compression 数学子集
+
+- 新增纯 Swift `Double` `aces.reference-gamut-compression-1.3.0`，按 ACES 1.3 规范的 `TRA1`／`TRA2`、`A`、`d_n`、`l/t/p` 分段公式实现静态 RGC 压缩和闭式逆向 decompression，并保存正式 ACES Transform ID。
+- 先行契约覆盖边界、负值、非有限输入、公开样例、逆向奇异点旁路和 5,069 点 90 位 Decimal 独立正向/逆向参照；正向 15,207 通道最大尺度化误差 `4.4408920981579213e-16`，逆向最大尺度化误差 `1.0058398558498993e-11`，Debug／Release 定向各 7 项通过，Swift Release 全量 `847/847` 通过；Node 22.21.0 下原生数值总门禁 66 项全部通过。详情见[ACES RGC 数学子集验收](native-validation/2026-10-05-aces-rgc.md)。
+- 后续已接入 `TransformPlan` 的显式阶段 `75` 与项目 schema `26`：只接受线性 AP0→AP0、data range、无相机状态和无其他耦合调节；schema 25 无该字段仍可读，携带该字段拒绝。计划／项目定向 Release 7 项、当前 Swift Release 全量 879 项、Node 22.21.0 下 66 项原生数值检查、Node 11 项和 54 个 CUBE 生成／读回案例均通过。首次回归发现的 5 个旧 schema 25 断言已按当前 schema 26 修正。三平台 Release 构建和 App 包审计未在本批执行。详情见[计划与项目接线验收](native-validation/2026-10-05-aces-rgc-plan.md)。
+- 该接线不提供默认相机路由、自动旧调节链组合或 UI，不勾选完整 ACES／旧调节链。`.labin` 替代仍为 `0/9`，直接查表替代仍为 `0/45`，完整 ICC、HDR/EDR/OOTF、白平衡／PSST、LUTAnalyst 任意三维反求和 Goal 保持未完成／`active`。
+
+## 2026-10-05 ICC 传统 Lab PCS absolute colorimetric 子集
+
+- 传统 RGB/Lab `mft1`/`mft2`/`mAB`/`mBA` profile linking 在没有 `D2B3`/`B2D3` MPE 对时，现按 ICC.1:2022-05 §6.3.2.2 的 source/target `wtpt` 比例完成 absolute colorimetric 三通道子集；PCS Lab 与 PCS XYZ 的转换使用 Swift `Double` 和项目 D50 CIELAB 实现。
+- 先行契约覆盖 `mft2`、`mAB/mBA`、不同媒体白点、缺少 `wtpt` 和传统 LUT absolute 拒绝。Debug／Release 定向 `ICCRGBProfileLinkContractsTests` 各 26 项通过；Python `Decimal` 90 位独立参照、命令、日志和哈希见[ICC 传统 Lab PCS absolute 验收](native-validation/2026-10-05-icc-absolute-lab.md)。
+- 该项只关闭三通道传统 Lab PCS absolute 数学子集，不勾选完整 ICC。任意通道、所有传统标签变体、真实 profile 逐码参照、黑点补偿、gamut mapping、ColorSync、HDR/EDR、第三方往返、查表替代和 Goal 仍保持未完成／active。
+
+## 2026-10-05 ICC `D2B`/`B2D` float32 PCSLAB MPE 子集
+
+- 依据 ICC.1:2022-05 §6.3.4.1、§6.3.4.2、§9.2.9–§9.2.12、§9.2.25–§9.2.28 与 §10.16，将现有 `mpet` RGB linking 从 `XYZ ` PCS 扩展到用户导入的 `Lab ` PCS。float32 MPE 直接使用 `L*`（0...100）、`a*`、`b*`，不走 8/16 位量化、不隐式裁切；内部 `CIELABColor` 仅把 `L*` 转为项目的 0...1 存储约定。
+- 契约先行：新增 `D2B3`/`B2D3` Lab 浮点编解码与 absolute linking 契约；旧实现先因缺少 API 编译失败，完成后 Debug／Release 定向 `ICCMPEContractsTests` 与 `ICCRGBProfileLinkContractsTests` 各 40 项通过。独立 90 位 Decimal 参照覆盖矩阵偏置、float32 参数舍入和 D2B→B2D 链，结果见[ICC MPE PCSLAB 验收](native-validation/2026-10-05-icc-mpet-lab.md)。
+- 本项只关闭 RGB/`Lab `、三通道、四种 rendering intent 的 `mpet` 路由子集；不关闭任意通道、其他 MPE 元素、传统 `mft`/`mAB` Lab absolute、黑点补偿、gamut mapping、真实 profile 逐码参照、ColorSync、HDR/EDR、UI 或 Goal。真实全量清单仍缺失，Goal 保持 `active`。
+
+## 2026-10-05 公开 CAT 白点适应矩阵子集
+
+- `ChromaticAdaptation` 补齐旧实现已有的公开锥响应矩阵：CIE CAT97s、Von Kries、Sharp、CMCCAT2000、Bianco-S 群组（BS、BS-PC）和 XYZ Scaling；原有 CIE CAT02、Bradford 保持数值不变。所有模型仍按 `A⁻¹ · diag(dst/source) · A` 在运行时使用 `Double` 推导，不保存旧矩阵结果、LUT 或采样表。
+- 契约先行：新增 `ChromaticAdaptationContractsTests`，旧枚举缺少 7 个成员时按预期编译失败；实现后 Debug／Release 定向各 2 项通过。独立 90 位 Decimal 参照覆盖 9 个模型的 D65→D50 矩阵、非中性 XYZ 样本、同白点恒等和 Codable 原始值往返，结果包见[公开 CAT 白点适应验收](native-validation/2026-10-05-chromatic-adaptation.md)。
+- 本项只关闭已有 CAT 数学分派子集；没有新增 UI 选择器、项目字段或默认 CAT，现有默认仍为 CIE CAT02。白平衡的 501 点 Planck 轨迹、Duv/Dpl 语义、PSST 固定映射、自定义色域、完整相机/HDR/ICC、查表替代和 Goal 仍保持未完成。
+
+## 2026-10-05 CIELAB CIE94 数学子集
+
+- `CIELABColor` 新增 `deltaE94(to:application:)`，按 CIE 116-1995 的图形艺术和纺织权重计算；归一化 `L*` 仅在指标内部转换为标准 `0...100`，不改变 Lab 存储或 RGB 路由。
+- 先行契约覆盖公开样例、两种应用权重、零色度和有限性；Debug 定向 `CIELABContractsTests` 8 项通过。90 位 Decimal 独立参照为图形艺术 `1.3950388678587343803...`、纺织 `1.4230462054212797491...`，Swift Double 最大差约 `3.3e-15`，门槛 `1e-14`。
+- 详情见[CIELAB CIE94 验收](native-validation/2026-10-05-cielab-deltae94.md)。该项只关闭同一 Lab 条件下的 CIE94 距离数学子集，不接入 RGB 主计划、ICC、项目 schema、显示管理或完整 CIELAB；CAM、HDR/EDR、查表替代和 Goal 仍未完成。
+
+## 2026-10-05 CIELAB CIEDE2000 数学子集
+
+- `CIELABColor` 新增 `deltaE2000(to:)`，按 Sharma、Wu、Dalal（2005）公开 CIEDE2000 公式计算；内部归一化 `L*` 只在指标内部还原为标准 `0...100`，不改变存储格式、白点和 RGB 计划。
+- 先行契约覆盖四组公开参考对、零色度、色相环绕和对称性；Debug／Release 定向 `CIELABContractsTests` 各 6 项通过。独立 90 位 `Decimal` 参照自行实现三角函数、角度和指数，四组结果分别为 `2.0424596801565578...`、`2.8615101747474967...`、`3.4411905986907235...`、`0.9999988647524657...`，Swift Double 与参照最大差为 `1.7e-14`，契约门槛为 `3e-14`。
+- 详情见[CIELAB CIEDE2000 验收](native-validation/2026-10-05-cielab-deltae2000.md)。该项只关闭同一 Lab 白点和观察条件下的 CIEDE2000 距离数学子集，不接入 RGB 主计划、ICC rendering intent、项目 schema、显示管理或完整 CIELAB；CAM、HDR/EDR、查表替代和 Goal 仍未完成。
+
+## 2026-10-05 CIELAB CIE 1976 Delta E 数学子集
+
+- `CIELABColor` 新增 `deltaE76(to:)`，按 CIE 1976 公开欧氏距离计算；内部归一化 `L*` 在距离中转换到标准 `0...100`，`a*`／`b*` 保持传统单位。
+- 契约先行在旧实现上按预期因缺少成员编译失败；实现后 Debug／Release 各 4 项通过。80 位 Decimal 独立参照的 `(-15,9,-12)` 距离为 `21.213203435596425732...`，Swift 与其 Double 舍入差低于 `1e-14`。详情见[CIELAB Delta E 验收](native-validation/2026-10-05-cielab-deltae76.md)。
+- 该项只关闭 CIE 1976 同条件距离，不接入 RGB 主计划、项目 schema、ICC、UI 或显示管理；完整 CIELAB、HDR/EDR、查表替代和 Goal 仍未完成。CIE94 与 CIEDE2000 另见前两项验收。
+
+## 2026-10-05 旧 PQ OOTF 兼容内核
+
+- 新增独立 `LegacyPQOOTF` Swift `Double` 内核，完整保留旧 `LUTGammaOOTFPQ` 的分段常数、nits／normalized 标度、data/legal 包装和阈值跳变；80 位 Decimal 参照与 Debug/Release 各 4 项契约均通过。
+- 该内核故意没有注册为 `TransferID` 或接入 `TransformPlan`。旧输入单位、`Lw`／`scale` 语义与 BT.2100 标准 OOTF 尚未形成可验证对应，不能把历史兼容公式冒充标准 HDR 算法。详情见[旧 PQ OOTF 兼容内核验收](native-validation/2026-10-05-legacy-pq-ootf-algorithm.md)和[PQ OOTF 公式冲突研究阻塞](native-validation/2026-10-03-pq-ootf-research.md)。
+- 本包不减少 `9/9` `.labin` 或 `45/45` 直接查表注册的替代台账，不关闭完整 PQ OOTF、HDR/EDR、ICC、LUTAnalyst 或 Goal；下一项只选择有公开公式和独立参照的算法子集。
+
+## 2026-10-05 ICC 四种 rendering intent 的三通道 MPE 子集
+
+- 依据 ICC.1:2022-05 §6.2.2/§6.2.3、§6.3.2.3、§9.2.9/§9.2.28 和 §10.16，接通 RGB/`XYZ ` profile 成对的 `D2B0`/`B2D0` perceptual、`D2B1`/`B2D1` relative、`D2B2`/`B2D2` saturation 与 `D2B3`/`B2D3` absolute `mpet` 三通道子集：公式曲线、中间段 `samf`、`matf`、float32 `clut`、ACS pass-through 及严格元素区间/浮点边界。
+- 契约先行新增 breakpoint 等号、共享元素区间、ACS、非法浮点、`samf` 中间段插值和首尾拒绝、relative MPE 成对路由覆盖；定向 Debug 15 项 MPE、18 项 profile route，定向 Release 同样通过。完整 Swift Release 819 项、Node 11 项、66 项原生检查、三平台 Release 构建和 App 包审计通过；入口仍因缺少真实 `full-scope-acceptance.json` 退出 2。
+- 实际命令、工具链、规范来源、结果包 SHA-256、误差和未覆盖范围见[ICC MPE 验收](native-validation/2026-10-05-icc-mpet-absolute.md)。发布入口仍因缺少真实 `full-scope-acceptance.json` 退出 2。
+- 该项只关闭四种 intent 的三通道 `mpet` 数学与成对路由子集；任意通道、完整 ICC PCS／其他 MPE 元素、真实 profile 参照、黑点补偿、gamut mapping、ColorSync、HDR/EDR 和 Goal 仍未完成。
+
+## 2026-10-05 ICC absolute colorimetric 不同媒体白点 matrix/TRC 子集
+
+- 依据 ICC.1:2022-05 §6.3.2.2 公式 (1)–(6) 与 Annex D §D.6.1 公式 (D.6)–(D.7)，在 source/target `mediaWhitePointTag` 不同的 RGB matrix/TRC linking 中加入 source/target 媒体白点逐通道比例；relative intent 仍保留白点一致边界，LUT/Lab absolute 继续拒绝。
+- 契约先行复现旧实现失败，随后通过差异白点 synthetic matrix/TRC 的独立预期；定向 Release ICC 75 项通过。实现与公式、日志哈希和未覆盖范围见[ICC absolute 不同媒体白点验收](native-validation/2026-10-05-icc-different-whitepoint-absolute.md)。
+- `Scripts/verify-native-release.sh` 的 66 项原生检查、Node 11 项、Swift Release 799 项、三平台 Release 构建和 3 个 App 包审计通过；入口仍因真实 `docs/native-validation/full-scope-acceptance.json` 缺失退出 2。
+- 该项只关闭 ICC matrix/TRC absolute 的不同媒体白点比例子集，不关闭 `DToB3`/`BToD3`、完整 profile/intent、黑点补偿、gamut mapping、ColorSync、真实 profile 参照、HDR/EDR 或 Goal。
+
+## 2026-10-05 ICC absolute colorimetric matrix/TRC 子集
+
+- 依据 ICC.1:2022-05 §6.2.3、§6.3.2.2 公式 (1)–(6) 与 Annex D §D.6.1 公式 (D.7)，在源／目标 `wtpt` 相同的 RGB matrix/TRC linking 子集中接通 `absoluteColorimetric`；两侧媒体白点比例相消，仍拒绝白点不一致、LUT 和 Lab 路由。
+- 契约先行后实现：synthetic 独立平方预期、白点不一致拒绝、LUT/Lab absolute 拒绝均通过。ICC 定向 Release 94 项、Swift Release 全量 793 项均为 0 失败；`LUTFormats` 2 项既有外部夹具按原规则跳过，`LUTAnalysis` 66 项。
+- macOS arm64、generic iOS、generic iOS Simulator 未签名 Release 构建均退出码 0。命令、来源、日志／源码哈希和未覆盖范围见[ICC absolute colorimetric matrix/TRC 子集验收](native-validation/2026-10-05-icc-absolute-colorimetric.md)。
+- 该项不关闭完整 ICC、不同媒体白点、`DToB3`/`BToD3`、黑点补偿、gamut mapping、系统色彩管理或第三方软件往返；Goal 保持 `active`。
+
+## 2026-10-05 原生算法数值入口与目录契约复验
+
+- 首次运行发现 `LUTCatalogChecks` 的冻结计数落后于当前目录；更新为实际 79 条 transfer、20 个色域、75 个预设，保留稳定 ID、来源、别名、相机 66 项和预设引用校验。
+- `swift run ... LUTCatalogChecks` 与 `Scripts/verify-native-numerics.sh` 修复后均退出码 0；静态/公式并行检查 66 项、Node 11 项及 Swift 命令行算法/格式/LUTAnalysis 检查通过。结果包和 SHA-256 见[原生算法数值入口与目录契约复验](native-validation/2026-10-05-algorithm-numerics-gate.md)。
+- 该项只修正验收门槛与当前注册表的一致性，不新增算法范围，也不关闭查表资源、资料阻塞、完整 ICC/HDR、任意 3D 反求或 Goal。
+
+## 2026-10-05 LUTAnalyst 三线性解析 Jacobian 复验
+
+- `Trilinear3DInverse` 的单元 Newton 候选改用三线性多项式解析 Jacobian；新增强缩放仿射单元契约，保持 `Double`、网格、插值规则和 `2e-12` 阈值不变。
+- 定向 Debug／Release 各 10 项通过；Swift Release 全量 8 个测试包、793 项执行、0 失败，其中 `LUTFormats` 2 项既有外部夹具按原规则跳过，`LUTAnalysis` 66 项。macOS、generic iOS、generic iOS Simulator Release 构建均退出码 0。命令、结果包和 SHA-256 见[三线性三维反求诊断验收](native-validation/2026-10-04-lutanalyst-trilinear-inverse.md)。
+- 只改善三线性分区候选求解的数值稳定性；不代表任意 3D LUT 全局反求、tricubic／组合 shaper、自动 transfer／colour 分离、完整重建或 H10/FULL-05 完成。Goal 保持 `active`。
+
+## 2026-10-05 LUTAnalyst tetrahedral 反求生产回放收紧
+
+- `Tetrahedral3DInverse` 的仿射候选现在必须通过生产 tetrahedral sampler 回放和 `2e-12` 相对残差；新增相邻四面体边界去重、非单位输入域坐标回映射契约。
+- 定向 Debug／Release 各 9 项通过；当前源码复验的 Swift Release 全量为 8 个测试包、793 项执行、0 失败，其中 LUTAnalysis 66 项，LUTFormats 仍按原规则跳过 2 个既有外部夹具；macOS、generic iOS、generic iOS Simulator Release 构建均退出码 0。命令、日志 SHA-256 和未覆盖范围见[四面体反求生产回放收紧验收](native-validation/2026-10-05-lutanalyst-tetrahedral-replay.md)。
+- 只收紧 tetrahedral 分区诊断的根认证，不代表任意 3D LUT 全局反求、tricubic／组合 shaper、自动 transfer／colour 分离、生成接线或 FULL-05/H10 完成；Goal 保持 `active`。
+
 ## 2026-10-04 LUTAnalyst 三线性三维反求诊断
 
 - 新增 `Trilinear3DInverse`，按生产三线性采样逐网格单元诊断输入反求；候选必须经过生产采样回放和 `2e-12` 相对尺度残差核验。恒等映射返回唯一根，折叠映射返回全部分支，域外无根，奇异或未被有限求解器证明的包围盒命中保守报告 `unresolved`。
-- 先行定向 Debug／Release 各 7 项通过；Swift Release 全量 8 个测试包、61 项通过、0 失败；macOS、generic iOS、generic iOS Simulator Release 构建均退出码 0。工具链、命令、日志 SHA-256 和未覆盖边界见[LUTAnalyst 三线性三维反求诊断验收](native-validation/2026-10-04-lutanalyst-trilinear-inverse.md)。
+- 先行定向 Debug／Release 各 9 项通过；该段保留当时 Swift Release 全量 8 个测试包、733 项通过、0 失败的历史结果，其中 LUTAnalysis 63 项。当前源码复验计数见 2026-10-05 解析 Jacobian 记录；新增相邻单元边界根去重和非单位输入域坐标回映射契约。工具链、命令、日志 SHA-256 和未覆盖边界见[LUTAnalyst 三线性三维反求诊断验收](native-validation/2026-10-04-lutanalyst-trilinear-inverse.md)。
 - 只关闭三线性分区诊断子集；不代表任意 3D LUT 全局反求、tricubic／组合 shaper 反求、自动 transfer／colour 分离、生成计划或导出接线完成。FULL-05、H10 与 Goal 保持 active。
 
 ## 2026-10-04 HLG OOTF 标量峰值裁切逆向边界
@@ -1401,7 +2010,7 @@ PQ 显示预览现在在缺少 HDR 显示参数时明确拒绝，避免 PQ→sRG
 
 ## 2026-09-27 ICC `mAB/mBA` 与 `mft1/mft2` 规范修正
 
-- 用户导入 ICC 的三通道 CPU 子集现按 ICC.1:2022-05 修正：`mAB/mBA` 的处理顺序、3×4 交错矩阵、首通道最慢的 CLUT 轴序、type 3/4 参数数量和 section 边界均有独立契约；`mft1/mft2` 同步修正为矩阵→输入表→CLUT→输出表及相同 ICC 轴序。详情见[ICC `mAB/mBA` 与 `mft1/mft2` 数值契约验收](native-validation/2026-09-27-icc-mab-mft-transform.md)。
+- 用户导入 ICC 的三通道 CPU 子集现按 ICC.1:2022-05 修正：`mAB/mBA` 的处理顺序、连续 3×3 矩阵后接 3 个 offset、首通道最慢的 CLUT 轴序、type 3/4 参数数量和 section 边界均有独立契约；`mft1/mft2` 同步修正为矩阵→输入表→CLUT→输出表及相同 ICC 轴序。详情见[ICC `mAB/mBA` 与 `mft1/mft2` 数值契约验收](native-validation/2026-09-27-icc-mab-mft-transform.md)。
 - `ICCMABContractsTests` Debug/Release 各 12 项通过，`ICCMFTContractsTests` Debug/Release 各 6 项通过；当前 LUTKit Release 全包 342 项执行、0 失败、2 项既有可选夹具跳过，三平台 Release 构建通过。该结果只证明用户导入 CPU 子集、包内回归和编译，不勾选完整 H13、完整 ICC、HDR/EDR、真机或发布验收。
 - 完整发布入口复跑构建、Swift 回归和 3 个 App 包资源审计通过，但按设计以退出码 `2` 结束，原因仍是缺少真实 `docs/native-validation/full-scope-acceptance.json`；没有创建或伪造该清单。日志 `/tmp/lutcalc-icc-final-release-gate-20260927.log`，SHA-256 `757f3e72d943ad4dcc1f63e1087f181165060dc48d344618981504bd9372a682`。
 
@@ -1765,3 +2374,486 @@ PQ 显示预览现在在缺少 HDR 显示参数时明确拒绝，避免 PQ→sRG
 - 先行契约真实发现旧边界分支不连续及目录计数变化；实现后定向契约 3 项通过。独立 Python `Decimal` 精度 80 重读 `17³`、`33³`、`65³` 完整 CUBE，最大绝对误差分别为 `1.9257070165983715e-16`、`3.0724980301755193e-16`、`3.0724980301755193e-16`。
 - 完整 Swift Release、macOS Release、generic iOS Release 和 generic iOS Simulator Release 均退出码 `0`。证据见[Rec.2020 12-bit legacy 解析式验收](native-validation/2026-10-04-rec2020-12bit.md)。
 - 本包只关闭该旧注册及其算法核验，不勾选完整查表替代、HDR/ICC/LUTAnalyst 全量、格式往返、真机性能、签名发布或 Goal；Goal 继续保持 `active`。
+# 2026-10-06 Transfer／colour 缺口复核
+
+- 复核 `TransferID`、`AlgorithmCatalog`、`TransformPlan`、`NativeOutputEncoder`、`ColorSpaceID`、矩阵／CAT、CIELAB、HLG、PQ 和 ACES RGC 的公开公式接线；没有发现可在现有证据下安全新增的 transfer 或 colour 缺口，因此没有新增生产算法代码。
+- Release 定向覆盖命令 `swift test --package-path Native/Packages/LUTKit -c release --filter 'CatalogTransferSmokeTests|RegistryContractsTests|NativeOutputEncoderContractsTests|OutputCodeUnitsContractsTests'` 通过 25 项、0 失败；独立 Double 包装网格最大尺度化误差 `4.440892098500626e-16`，既有调节链最大尺度化误差 `7.993605777301127e-15`。详见[Transfer 与 colour 缺口复核](native-validation/2026-10-06-transfer-colour-gap-audit.md)。
+- 本次复核不减少 `.labin` `0/9`、直接查表 `0/45`，不关闭资料不足的厂商变换、自动 transfer／colour 分离、任意三维反求、完整 ICC/HDR/OOTF、目标软件往返或发布验收；Goal 保持 `active`。
+# 2026-10-06 BT.601 525／625 色域数学子集
+
+- 按 S05 公开资料新增 `ColorSpaceID.bt601SMPTEC` 与 `ColorSpaceID.bt601EBU`，分别登记 SMPTE-C 525 行和 EBU 3213 625 行 D65 原色；矩阵运行时由 Swift `Double` 推导，不加入传递函数、相机预设、UI 或采样表。
+- 先行缺失 API 契约失败后，实现 Debug／Release 定向各 2 项通过；目录检查色域计数由 20 更新为 22。独立矩阵锚点和命令见[BT.601 525／625 色域数学验收](native-validation/2026-10-06-bt601-colour-spaces.md)。
+- 本项只关闭两个公开色域矩阵子集，不关闭 BT.601 OETF／视频范围、完整历史设备工作流、`.labin`、直接查表、完整 ICC/HDR、UI、平台验收或 Goal；Goal 保持 `active`。
+## 2026-10-06 算法边界并行复核
+
+- 复核 `LUTCore`、`LUTAnalysis` 和既有 ICC 数学执行器的公开数值／结构边界；Release 定向组合执行 45 项、0 失败，覆盖矩阵病态拒绝、CIELAB、CAT、HLG/OOTF、PQ、RootSolver 与 cubic 判别式溢出路径。
+- 本轮未发现同时具备公开公式、明确单位语义、独立参照且不扩大既有范围的安全新增修复。旧 PQ OOTF 语义冲突、任意三维全局反求、`.labin`、直接查表、完整 ICC/HDR/EDR/OOTF 等继续未完成。详情见[算法边界并行复核记录](native-validation/2026-10-06-algorithm-boundary-followup.md)，Goal 保持 `active`。
+# 2026-10-06 ICC manufacturer/model 头字段边界
+
+- `ICCProfileValidator` 现在验证 header offset 48/52 的 manufacturer/model 字段：全零表示未知，非零必须为合法四字符签名；新增 Debug/Release `PreviewContractsTests` 合法与非法契约均通过。该项只关闭头字段结构边界，不代表厂商型号语义、完整 ICC 或 Goal 完成。验收见[ICC manufacturer/model 头字段边界验收](native-validation/2026-10-06-icc-manufacturer-model.md)。
+
+# 2026-10-06 ICC profile version 保留位边界
+
+- `ICCProfileValidator` 现在读取 header offset 8...11 的 ICC 8.8.8.8 version，并拒绝低 16 位非零的保留编码，合法版本值原样暴露为 `profileVersion`。Debug/Release `PreviewContractsTests` 各 42 项通过。
+- 本项只关闭版本字段结构边界；未推断未来版本能力，也不关闭真实 profile 参照、完整 ICC、`.labin`、直接查表、HDR/OOTF 或 Goal。验收见[ICC profile 版本字段边界验收](native-validation/2026-10-06-icc-profile-version.md)。
+
+# 2026-10-06 ICC signature 可打印 ASCII 字域
+
+- `ICCProfileValidator` 现接受由四个可打印 ASCII 字节构成的 signature，包括标点；不合法非 ASCII 字节仍拒绝。先以 `!@#$` 契约在旧实现上复现 `.invalidTagTable`，修复后 Debug 单项、Release 单项及 Release `PreviewContractsTests` 43 项通过。详见[ICC 可打印签名字节范围验收](native-validation/2026-10-06-icc-printable-signature.md)。
+- 本项只关闭 signature 字域结构边界，不推断未知 tag 语义，不关闭完整 ICC、HDR/OOTF 或 Goal；Goal 保持 `active`。
+@@
+# 2026-10-06 ICC linking profile class 与 PCS 白点组合审计
+
+- 审计普通 RGB/PCS linking 的 profile class、rendering intent 与 `wtpt` 组合；device-link、matrix/TRC、LUT、MPE 现有边界均有明确实现和契约。
+- 未发现可在缺少真实 profile 逐码参照时安全新增的公式或路由。LUT relative 白点处理和完整 profile class 组合继续标记研究阻塞，不修改生产算法。详见[ICC linking profile class 与 PCS 白点组合审计](native-validation/2026-10-06-icc-linking-class-whitepoint-audit.md)。
+- 本项不关闭完整 ICC、BPC、gamut mapping、ColorSync、真实第三方 profile 参照或 Goal；Goal 保持 `active`。
+
+# 2026-10-06 Tricubic 反求边界根与非有限分支审计
+
+- 新增 4 阶身份网格共享面根契约：目标 `(1/3, 0.37, 0.63)` 跨相邻 cell，Debug/Release 均得到单一回放根，`unresolvedCellCount = 0`；确认现有输入坐标去重和边界分类不误报。
+- 审计发现 `RGB64` 在反求入口前拒绝 NaN/Inf，因此三种 3D 反求报告的 `.nonFinite` 是内部防御分支，公共 API 不可达；保留有限值不变量，不伪造不可达测试。
+- 本项只关闭 tricubic 共享面边界的可观察契约，不关闭任意三维全局反求、全根完备性、`.labin`、直接查表、完整 ICC/HDR 或 Goal。证据见[Tricubic 反求边界根与非有限分支审计](native-validation/2026-10-06-tricubic-boundary-nonfinite-audit.md)。
+- 同批补充 tri/tetra/tricubic 域最大值 `(1, 1, 1)` 边界根契约，Debug/Release 各 3 项通过，均为单根、无 unresolved；不扩大为全局根完备性声明。
+
+# 2026-10-06 LUTAnalyst 反求残差与根分类审计
+
+- 复核 transfer 根诊断、shaper 根组合、tri/tetra/tricubic replay 残差、边界去重和状态传播；现有公开语义与契约覆盖充分，本轮未发现可安全新增的生产修复。
+- 保持残差阈值、Double 生成路径和 unresolved 分类不变；不把一维根诊断扩大为任意三维全局完备性。详见[LUTAnalyst 反求残差与根分类审计](native-validation/2026-10-06-lutanalyst-inverse-boundary-audit.md)。
+- 另记录 combined shaper `maxSolutions` 检查位置的静态疑点；现有公开输入去重后未能构造失败契约，因此不修改实现、不宣称该边界已闭合。
+- 新增 combined shaper 取消契约，验证下层 tri/tetra/tricubic 的 `CancellationError` 可传播；Debug/Release 均通过，未发现独立调度修复项。
+- 新增 folded shaper `maxSolutions = 1` 上限契约；两个不同根明确拒绝并返回 `.invalidInverseLimit`，Debug/Release 均通过，未静默截断结果。
+
+## 2026-10-06 LUTAnalyst combined shaper 取消与 distinct-root 上限
+
+- 组合 shaper 反求在颜色解、三通道 shaper 根和最终候选枚举处加入 `Task.checkCancellation()`；`maxSolutions` 现在只在回放确认且坐标去重后统计，重复边界根不会消耗上限。
+- 新增共享面 identity 根与 folded shaper 双根契约；Debug/Release `CombinedShaperColourInverseContractsTests` 各 7 项通过，`git diff --check` 通过。
+- 本项只关闭组合反求的取消与 distinct-root 上限语义，不关闭任意三维全局反求、全根完备性、`.labin`/直接查表、完整 ICC/HDR/OOTF 或 Goal。证据见[combined shaper 取消与 distinct-root 上限验收](native-validation/2026-10-06-lutanalyst-combined-boundary.md)。
+## 2026-10-06 ICC MPE 处理元素零通道边界
+
+- `ICCMPETransform` 解析 `mpet` 元素时拒绝零输入或零输出通道，避免空向量元素绕过通道链约束；先行失败契约覆盖 `matf` 零输入和零输出，修复后 Debug／Release `ICCMPEContractsTests` 各 28 项通过，`git diff --check` 通过。
+- 详情见[ICC MPE 通道数边界验收](native-validation/2026-10-06-icc-mpet-channel-count.md)。本项只关闭结构边界，不代表完整 ICC、真实 profile 逐码参照、BPC、gamut mapping、ColorSync 或 Goal 完成；Goal 继续 `active`。
+
+## 2026-10-06 真实显示器 profile Matrix/TRC 执行路径
+
+- 对 macOS 实际显示器 profile `/Library/ColorSync/Profiles/Displays/XBH-6C4F598C-E1DA-4CA4-82C7-618A66227F93.icc` 增加真实执行记录：输入 `(0.21, 0.58, 0.87)` 的 RGB／XYZ／RGB 编解码结果保持有限，最大绝对误差不超过 `3e-4`；`PreviewContractsTests` Release 定向通过。
+- 该证据只关闭真实显示器 profile 的 Matrix/TRC 执行子集，不关闭 ColorSync 逐码对照、BPC、gamut mapping、完整 ICC 或 Goal。详见[真实显示器 profile 执行路径验收](native-validation/2026-10-06-icc-real-display-profile.md)。
+## 2026-10-06 GP-Log2 目录门禁复验
+
+- GP-Log2 接入后原生目录计数从 81 条 transfer 更新为 82 条；`LUTCatalogChecks` 已同步冻结计数，Release 输出 `82 曲线、23 色域、76 预设` 并通过。
+- 低并行 `Scripts/verify-native-numerics.sh`（CPU/Swift/test/validation/batch 均为 2/2/1/1/1）最终退出码 0，66 项静态、参照、公式、命令行和 CUBE 检查通过。该门禁仍不替代三平台 App、真机、发布清单和 Goal 完成。
+
+## 2026-10-06 `.labin` 与直接查表替代边界复核
+
+- 复核 9 个旧 `.labin` 资源和 45 个直接查表注册，没有发现同时具备公开连续公式、适用范围、非灰轴语义和独立参照的可安全闭合子集；不新增生产算法、目录身份或采样数据。
+- `AlgorithmCatalog.blockedLookupRegistrationNames` 继续冻结 45 个名称，Release 定向契约保持执行 1 项、失败 0。`.labin` 替代仍为 `0/9`，直接查表替代仍为 `0/45`。
+- 详细来源、复核命令和后续关闭条件见[`.labin` 与直接查表替代边界复核](native-validation/2026-10-06-labin-direct-lookup-boundary-followup.md)。Goal 保持 `active`。
+
+## 2026-10-06 LUTAnalyst tricubic 单元枚举证据
+
+- `Tricubic3DInverseReport` 新增 `enumeratedCellCount` 与 `candidateCellCount`，分别记录完整 `(size - 1)^3` 单元遍历和 Bernstein 输出包围盒命中数。4³ identity 网格固定报告 27 个单元且存在候选；域外目标固定报告 27 个单元、0 个候选并保持 `isGloballyComplete = true`。
+- Release `TricubicInverseContractsTests` 执行 12 项、失败 0。该证据只区分“无候选”与“候选待根隔离”，不改变 Newton、Double、生产回放或阈值。
+- tricubic 候选单元的区间根隔离、奇异集合和共享面全根去重仍未实现；任意三维全局反求、自动 transfer/colour 分离、完整重建、`.labin` 和直接查表替代继续未完成。详见[LUTAnalyst tricubic 单元枚举证据验收](native-validation/2026-10-06-lutanalyst-tricubic-enumeration-evidence.md)。
+
+## 2026-10-06 LUTAnalyst transfer／colour 分离与重建边界
+
+- 审计确认现有安全子集：独立 1D transfer 的严格单值 cubic 反求计划已接入生成、项目重开与曝光批量身份；3D colour 仅接受调用方提供的 `KnownAffine3DTransform`；显式输入／输出参考对只产生 transfer → colour 的残差报告。相关 Release 定向回归 LUTAnalysis 38 项、LUTJobs 9 项全部通过，详见[LUTAnalyst transfer／colour 分离与重建边界验收](native-validation/2026-10-06-lutanalyst-transfer-colour-rebuild-boundary.md)。
+- 有限 3D LUT 样本不能唯一确定 transfer、色域、方向、量化或厂商连续模型；tricubic 候选单元仍缺区间根隔离和奇异集合证明。因此不新增自动分离、任意 3D 逆或猜测性生成接线；H07、H10、H14、FULL-05、`.labin` `0/9`、直接查表 `0/45` 及 Goal 继续保持未完成／active。
+
+## 2026-10-06 ICC MPE `parf` 公式类型复核
+
+- 重新核对 ICC.1:2022-05 §10.16 的 `cvst`：`parf` 只定义 function type 0、1、2；传统 `para` type 3、4 具有不同标签编码和参数布局，不能移植到 MPE。现有拒绝契约保持有效，未修改生产代码。
+- Release `ICCMPEContractsTests` 29 项通过。证据见[ICC MPE `parf` 公式类型复核](native-validation/2026-10-06-icc-mpet-parf-reaudit.md)。完整 ICC 与其他未闭合范围继续保持 active。
+
+## 2026-10-06 ILUT／OLUT 固定整数编码独立参照
+
+- 为既有 ILUT（14-bit、16,384 行）和 OLUT（12-bit、4,096 行）补充整数域 half-up 参照契约，覆盖端点、中点附近代码、OLUT 六列重复约束及 CRLF／注释解析；未新增厂商方言、采样表或 UI 接线。
+- LUTFormats Release 定向执行 12 项、失败 0，日志和 SHA-256 见[ILUT 与 OLUT 固定整数编码验收](native-validation/2026-10-06-fixed-format-quantization.md)。该证据只闭合已有编码和文本边界，不代表目标软件互操作、NCP 写出、`.labin` 或直接查表替代完成；Goal 保持 `active`。
+
+## 2026-10-06 ICC 任意通道路由审计
+
+- 复核传统 `mft1`／`mft2`／`mAB`／`mBA`、PCS `XYZ `/`Lab `、任意设备数组和 device-link `A2B0` 路由；现有实现已覆盖公开规范明确的通道、方向、编码、intent 与媒体白点边界。
+- Release 定向 43 项通过，0 失败。未发现可在没有真实第三方 profile 逐码参照时安全扩大生产路由的缺口；BPC、gamut mapping、ColorSync、完整 profile class/intent 组合和 MPE arbitrary linking 继续保留边界。
+- 详见[ICC 任意通道路由审计](native-validation/2026-10-06-icc-arbitrary-route-audit.md)。本项不代表完整 ICC 或 Goal 完成，Goal 保持 `active`。
+## 2026-10-06 TransformPlan 算法接线复核
+
+- 补充 GP-Log2 base-600 与连续 Rec.2020 的 TransformPlan round-trip 契约；Release `TransformAlgorithmWiringContractsTests` 3 项通过。
+- 发现并修正 GP-Log2 原先错误落入默认 D-Log2 `planVersion` 的接线问题，现固定为 `minimal-gopro-gplog2-base600-v1`。ACES RGC 与 BT.2100 HLG reference OOTF 的既有 stage 契约保持通过。
+- 该项只关闭项目算法身份与 transfer 分派接线边界，不代表 `.labin`、直接查表、任意 3D 全局反求、完整 ICC、PQ OOTF/HDR 或平台发布验收完成。详情见[TransformPlan 算法接线验收](native-validation/2026-10-06-transform-algorithm-wiring.md)。Goal 继续 `active`。
+# 2026-10-06 ICC 真实系统 profile 参照审计
+
+- 审计 macOS 系统 sRGB、Display P3、AdobeRGB、Rec.709、Rec.2020、DCI P3、ACESCG、ROMM RGB、Generic RGB 及真实显示器 profile。结构和现有 Matrix/TRC 执行子集保持通过。
+- 使用 LittleCMS 2.19 `transicc` 对 Display P3 到 sRGB 生成四个独立输出样本；结果包含外部渲染意图、量化和 out-of-gamut 策略，不能作为纯 Swift `Double` 公式的逐码预期，因此未硬编码为生产参照。
+- ICCPreview 定向 Release `91` 项通过（device-link 7、RGB/profile 及系统 profile 契约覆盖），详见[ICC 真实系统 profile 参照审计](native-validation/2026-10-06-icc-real-profile-reference-audit.md)。该项不关闭 BPC、通用 gamut mapping、ColorSync、完整 profile class/intent 或第三方 profile 逐码参照；Goal 保持 `active`。
+
+## 2026-10-06 AlgorithmCatalog 与 TransformPlan 身份复核
+
+- 补充审计发现并修复两类真实计划身份冲突：不同 `sonySGamut3Cine`／`sonySGamut3` 输入色域的 S-Log3 预设，以及 BBC WHP283 400%／800% transfer。计划身份现在保存相关 transfer／ColorSpaceID；新增目录预设去别名契约，Release 定向 `1/1` 与 S-Log3 身份契约 `1/1` 通过。该项只关闭缓存／批次指纹碰撞子集，不代表新增算法或完整迁移完成。详见[AlgorithmCatalog 与 TransformPlan 身份复核补充](native-validation/2026-10-06-catalog-plan-identity-followup.md)。
+
+- 用脚本核对 `TransferID` 82 项、`ColorSpaceID` 23 项与 `AlgorithmCatalog.builtIn()` 注册项，数量和原始 ID 均一一对应，无悬空引用或重复 raw value；内置 preset 的 transfer／色域引用由构造器继续强校验。
+- 契约先行复现 `sonySLog3` 与 `sonySLog3LUTCalcLegacy` 共享 `minimal-slog3-v1` 的缓存身份冲突；现改为 `minimal-slog3-v1:<inputTransferID>:<outputTransferID>`，published 与 legacy 及混合方向均保留明确 ID，避免批次指纹和缓存复用。
+- `TransformAlgorithmWiringContractsTests` Release `4/4` 通过，`git diff --check` 通过。该项不代表 `.labin`、直接查表、任意 3D 全局反求、完整 ICC、PQ OOTF/HDR 或平台发布验收完成；Goal 保持 `active`。
+- 后续 F-Log2 C 复核发现 F-Gamut C 仅位于输入侧或输出侧的计划原先共享 `minimal-flog2c-v1`，可能混淆不同 primaries 矩阵路由。现将双端 `ColorSpaceID` 纳入该分支身份，F-Log2 定向 Release `9/9` 通过；仍未完成所有计划族的全局参数/色域身份审计。详情见[F-Log2 C 计划色域方向身份验收](native-validation/2026-10-06-flog2c-plan-identity.md)。
+- 后续只读审计确认 sRGB published W3C 与 LUTCalc legacy 公式以及各自 encode/decode 方向原先共用 `minimal-srgb-v1`。现由既有方向身份 helper 加入 input/output transfer ID；新增契约修复前 3 项失败，修复后定向 Release `3/3` 通过，`git diff --check` 通过。详情见[sRGB 计划身份验收](native-validation/2026-10-06-srgb-plan-identity.md)。本修复不覆盖其他 transfer 家族，也不将 `planVersion` 当作完整请求指纹。
+
+## 2026-10-06 并行算法工作包与 ACES 方向契约
+
+- 并行完成 F-Log2 C 双端色域身份复核，以及 research G03 Leica L-Log／G04 KineLOG3 公式闭合复核。两项均有各自 Release 契约与独立来源记录；没有把已经实现的公式重复计作新实现。
+- 全量 Release 发现 ACES CC/CCT/Proxy 既有计划 ID 断言未随方向 transfer ID 更新。同步测试预期并补正反方向身份契约后，ACES/接线定向 Release 18 项通过，全量 `swift test --package-path Native/Packages/LUTKit -c release` 退出码 0，`git diff --check` 通过。详情见[并行算法工作包与 ACES 方向契约](native-validation/2026-10-06-parallel-algorithm-followup.md)。
+- 全局计划身份审计、`.labin` `0/9`、直接查表 `0/45`、任意三维反求完整性、完整 ICC、PQ OOTF/HDR/EDR 仍未完成；本项不关闭这些范围或 Goal，Goal 保持 `active`。
+
+## 2026-10-06 F-Log2 非 C／legacy 方向身份
+
+- `minimal-flog2-v1`、`minimal-flog2c-v1` 与 `minimal-flog2-legacy-v1` 现均将 input/output `TransferID`、`ColorSpaceID` 纳入 `planVersion`，避免 encode/decode 方向或双端色域不同的计划共享缓存身份。
+- 新增契约覆盖 published F-Log2、F-Log2 C 与 legacy 的精确身份，以及非 C/legacy 正反方向的身份差异和双端 ID。定向 Release `FLog2ContractsTests` 执行 11 项、失败 0；Xcode 27.0 (27A266a)、Swift 6.4.0。
+- 本项只关闭三个 F-Log2 计划分支的方向／色域身份，不代表全局参数身份审计、其他算法缺口、平台验收或 Goal 完成。验收见[F-Log2 非 C 与 legacy 方向身份](native-validation/2026-10-06-flog2-plan-identity.md)。
+
+## 2026-10-06 I-Log 与 V-Log 方向／色域身份
+
+- `minimal-ilog-v1` 与 `minimal-vlog-v1` 现将输入／输出 `TransferID`、输入／输出 `ColorSpaceID` 纳入 `planVersion`，避免不同方向和色域计划共享缓存身份。
+- 契约先行：旧实现下身份测试 8 个断言失败；修复后 I-Log、V-Log 及目录 transfer smoke 的 Release 定向测试共 7 项通过，`git diff --check` 通过。Xcode 27.0（27A266a）、Swift 6.4.0.34.1。
+- 该项不更改公式或数值路径，只关闭两个 transfer 分支的计划身份冲突；全局身份审计和其他算法、平台、发布范围仍未完成。详见[I-Log 与 V-Log 计划身份验收](native-validation/2026-10-06-ilog-vlog-plan-identity.md)，Goal 保持 `active`。
+
+## 2026-10-06 Conventional Gamma 与参数化 Gamma 计划身份
+
+- Conventional Gamma 的身份现包括 input/output `TransferID` 与两端 `ColorSpaceID`，区分 gamma22/gamma24、正反方向和跨色域路由；Parameterized Gamma 的身份包含两端 TransferID、两端 ColorSpaceID 与全部有效 Double 参数的 64 位 bit pattern。`encodedCut` nil 与数值等价的显式值规范到同一身份。
+- 先行红测复现两类 Gamma 各 2 个色域身份断言失败；修复后定向 Release 共 18 项通过。公式与生成数值路径未改，工具链和未覆盖范围见[Gamma 计划身份验收](native-validation/2026-10-06-gamma-plan-identity.md)。
+- 该项只关闭两类 Gamma 的计划身份冲突；其他算法缺口、全局身份审计、平台与发布验收仍未完成，Goal 保持 `active`。
+
+## 2026-10-06 Apple Log 与 ARRI LogC4 计划身份
+
+- Apple Log、Apple Log 2 与 ARRI LogC4 的 `planVersion` 现记录 input/output `TransferID` 及两端 `ColorSpaceID`，对应已登记的 Rec.2020、Apple Wide Gamut、ARRI Wide Gamut 4 语义；不修改公式或数值路径。
+- 新增方向及两端色域身份契约；主线组合定向 Release 中 `LUTCoreTests` 59 项通过，整包 Release 回归退出码 `0`，`git diff --check` 通过。该契约没有独立修复前红测证据。详见[Apple Log 与 ARRI LogC4 计划身份验收](native-validation/2026-10-06-apple-arri-log-plan-identity.md)。
+- 本项仅处理三个固定身份分支，不代表全局身份审计、其他算法、平台或发布范围完成；Goal 保持 `active`。
+
+## 2026-10-06 Transfer 与 Gamma 计划身份组合复验
+
+- Rec.709 legacy、Rec.2020 10-bit、Rec.2100 PQ、F-Log2、I-Log、V-Log、Mi-Log、Leica L-Log、KineLOG3、Apple Log、Apple Log 2、ARRI LogC4、sRGB、Conventional Gamma、Parameterized Gamma 与现有算法接线契约组合 Release 执行 59 项、0 失败。
+- 整包 `swift test --package-path Native/Packages/LUTKit -c release` 退出码 `0`，`git diff --check` 通过。该结果验证本轮合并改动没有 SwiftPM 回归，不代表所有 `TransformPlan` 分支的方向、参数和色域身份审计完成。
+- 新增代码包中只有部分取得修复前红测；Apple/ARRI 三分支未取得独立红测，验收记录明确保留此差异。全局身份审计、`.labin`／直接查表、任意 3D 全根、ICC/HDR、平台与发布范围仍未完成，Goal 保持 `active`。
+
+## 2026-10-06 SMPTE 240M 与 BT.1886 计划身份
+
+- 两个固定 `basePlanVersion` 分支此前只使用常量身份；现将 input/output `TransferID` 与 input/output `ColorSpaceID` 纳入身份，区分方向和两端色域路由。数值公式与生成路径未改。
+- 新增身份契约覆盖两个分支的反向方向、仅改变输入色域、仅改变输出色域；修改前未运行红测。统一身份定向 Release 13 项通过，整包 Release 最终退出码 `0`；工具链 Apple Swift 6.4，详见[SMPTE 240M 与 BT.1886 计划身份验收](native-validation/2026-10-06-smpte240m-bt1886-plan-identity.md)。
+- 本项只关闭两个身份分支；全局身份审计、其他算法缺口、平台验收与发布验收仍未完成，Goal 保持 `active`。
+
+## 2026-10-06 CIE L* 与 ProPhoto 计划身份
+
+- CIE L* 与 ProPhoto 原先使用固定 `basePlanVersion`；现将 input/output `TransferID` 与 input/output `ColorSpaceID` 纳入身份。数值公式与生成路径未改。
+- 新增方向和两端色域契约，使用合法目录 ID 且 `exposureStops` 为 `0`。修复前测试未运行；统一身份定向 Release 13 项通过，整包 Release 最终退出码 `0`。详见[CIE L* 与 ProPhoto 计划身份验收](native-validation/2026-10-06-cie-lstar-prophoto-plan-identity.md)。
+- 本项只关闭两个身份分支；全局身份审计、其他算法缺口、平台验收与发布验收仍未完成，Goal 保持 `active`。
+
+## 2026-10-06 ACES transfer 双端色域计划身份
+
+- ACEScc、ACEScct、ACESproxy 10-bit/12-bit 的计划身份原先只有 transfer 对，没有 input/output `ColorSpaceID`；新增契约在修复前以 16 条失败断言复现色域路径别名。
+- 四个分支现写入两端 transfer 和色域 ID。定向 ACES Release 14 项、目录 Release 22 项通过；全量 Release `swift test --package-path Native/Packages/LUTKit -c release --quiet` 退出码 `0`，工具链 Apple Swift 6.4。验收见[ACES transfer 计划色域身份](native-validation/2026-10-06-aces-plan-color-space-identity.md)。
+- 只关闭这四个分支的身份遗漏；不代表全局计划身份、算法缺口、平台或发布验收完成，Goal 保持 `active`。
+
+## 2026-10-06 Rec.2020 continuous 与 GP-Log2 计划身份
+
+- `rec2020.bt2020-continuous.v1` 与 `gopro.gplog2-base600.v1` 原先仅区分 transfer 方向；新增契约在修复前复现 4 条色域身份别名断言失败。
+- 两个分支现记录 input/output `TransferID` 与 `ColorSpaceID`。定向 Release 共 7 项、0 失败，既有连续 OETF 和 GP-Log2 Decimal 参照仍通过。详见[Rec.2020 continuous 与 GP-Log2 计划身份验收](native-validation/2026-10-06-rec2020-gplog2-plan-identity.md)。
+- LUTCore/目录组合及整包 Release 均复验通过，整包退出码 `0`；同步了一个 TransformAlgorithmWiring 旧短身份断言。`git diff --check` 通过。
+- 本项只关闭两个计划身份分支；全局身份审计、`.labin`/直接查表、ICC/HDR、平台和发布验收仍未完成，Goal 保持 `active`。
+
+## 2026-10-06 ARRI LogC scene 计划色域身份
+
+- `published-logc-scene-plan-v1` 原先遗漏输入/输出色域；新增契约在修复前复现 4 条别名断言失败。
+- 现记录 input/output transfer、ColorSpaceID 与 LogC EI。定向 4 项通过，包含 113080 个独立参照样本；整包 Release 退出码 `0`。详见[ARRI LogC scene 计划色域身份验收](native-validation/2026-10-06-arri-logc-plan-color-space-identity.md)。
+- 本项只处理 ARRI LogC scene 计划身份，不关闭全局身份、HDR、ICC、LUTAnalyst、`.labin`/直接查表或发布范围，Goal 保持 `active`。
+
+## 2026-10-06 linear scene 计划色域身份
+
+- `minimal-linear-scene-v1` 原先遗漏输入/输出色域；新增契约在修复前复现 4 条跨色域别名断言失败。
+- 现记录 input/output transfer 与两端色域。相关组合、3DL 批次 fingerprint/网格恢复契约及整包 Release 均通过；整包退出码 `0`。详见[linear scene 计划色域身份验收](native-validation/2026-10-06-linear-scene-plan-color-space-identity.md)。
+- 本项只处理 linear-scene 身份，不关闭完整缓存指纹、其他算法、ICC/HDR、平台或发布验收，Goal 保持 `active`。
+
+## 2026-10-06 Sony S-Log/S-Log2 计划色域身份
+
+- Sony S-Log、S-Log2 及两个 LUTCalc legacy 分支原先遗漏输入/输出色域；修复前契约复现 16 条身份别名断言失败。
+- 两个分支族现记录 input/output transfer 与色域 ID。定向 5 项通过，published/legacy 独立公式和冻结 fixture 仍通过；整包 Release 退出码 `0`。详见[Sony S-Log/S-Log2 计划色域身份验收](native-validation/2026-10-06-sony-slog-plan-color-space-identity.md)。
+- 本项只处理 Sony 两个 transfer 族身份，不关闭完整 Sony 工作流、其他算法、ICC/HDR、平台或发布范围，Goal 保持 `active`。
+
+## 2026-10-06 ITU Proposal 与 BBC 计划色域身份
+
+- ITU Proposal 400%/800%、BBC Gamma 0.4/0.5/0.6 与 BBC WHP283 400%/800% 原先只记录 transfer，未记录输入/输出色域；先行红测共复现 12 条身份别名断言失败。
+- 三类分支现统一记录 input/output transfer 与 `ColorSpaceID`。定向 Release：ITU Proposal 5 项、BBC WHP283 5 项、ProPhoto/BBC Gamma 6 项通过；公开公式边界、非有限值拒绝、数据包装往返和目录注册契约继续通过。详见[ITU Proposal 与 BBC 计划色域身份验收](native-validation/2026-10-06-itu-bbc-plan-color-space-identity.md)。
+- 本项只关闭七个 transfer 注册的计划身份遗漏，不代表全局身份审计、`.labin`/直接查表、ICC/HDR、平台或发布验收完成，Goal 保持 `active`。
+## 2026-10-06 HDR/OOTF 算法边界审计
+
+- 复核 BT.2100 HLG reference OOTF、extended gamma、黑位抬升、历史 HLG/PQ 兼容核、TransformPlan 路由和 HDR 预览拒绝契约；现有公开公式子集已由 32 项 Release 定向测试覆盖，独立 Decimal 误差保持在 `4.974256639474225e-16`（extended gamma）和 `7.771561172376096e-16`（extended EOTF）以内。
+- 未发现同时具备公开公式、明确单位语义和独立设备参照、可在不扩大范围下安全新增的 HDR/EDR 算法。PQ OOTF 的历史 `Lw`／`scale`／输入单位冲突、EDR 峰值与完整设备语义继续研究阻塞；不猜公式、不接入标准路由。
+- 详情见[HDR/OOTF 算法边界审计](native-validation/2026-10-06-hdr-ootf-algorithm-boundary-audit.md)。本项不关闭完整 HDR/EDR/OOTF、自动峰值、旧四种 HDR 变体或 Goal，Goal 保持 `active`。
+
+## 2026-10-06 DJI D-Log2 与 Null legacy 计划身份
+
+- 默认 `minimal-dlog2-v1` 和 Null legacy 分支原先没有记录输入/输出 transfer 和两端色域；先行红测复现 D-Log2 反向转换、两端色域变化以及 Null legacy 跨色域的身份别名。
+- 现记录 input/output `TransferID` 与 `ColorSpaceID`。`NullTransferContractsTests` 定向 Release 通过；整包 Release 回归中 LUTCore 351/351、LUTCatalog 31/31、LUTAnalysis 93/93 均通过；`git diff --check` 通过。解码、编码、矩阵、量化和 Double 路径未改变。
+- 详情见[DJI D-Log2 计划身份验收](native-validation/2026-10-06-dlog2-plan-identity.md)。本项不关闭 DJI D-Log-M 查表替代、`.labin`、完整 ICC/HDR/OOTF、LUTAnalyst、平台或发布验收，Goal 保持 `active`。
+
+## 2026-10-06 D-Log2/Null legacy 修复后原生数值门禁
+
+- `Scripts/verify-native-numerics.sh` 在当前工作区退出码 `0`；独立参照、54 对 CUBE、H08-H13、根求解、目录和静态边界均通过。
+- 结果日志为 `/tmp/native-numerics-20261006-dlog2-null.log`，本项只确认当前原生子集没有回归，不关闭完整 ICC/HDR、`.labin`/直接查表、任意三维全局反求、平台或发布范围。详见[修复后的原生数值门禁](native-validation/2026-10-06-native-numerics-post-dlog2-null.md)。
+
+## 2026-10-06 ICC mft 非三通道矩阵边界
+
+- `ICCMFTTransform` 现在拒绝非三通道设备数组携带非恒等 3×3 矩阵，避免接受后静默丢弃声明系数；三通道 RGB/PCS 和非三通道恒等 CLUT 路径保持不变。
+- 先行红测复现旧实现未拒绝，修复后 `ICCMFTContractsTests` Release 通过，`git diff --check` 通过。详情见[ICC mft 非三通道矩阵边界验收](native-validation/2026-10-06-icc-mft-nonthree-matrix-boundary.md)。本项不关闭完整 ICC、BPC、gamut mapping、ColorSync、`.labin` 或直接查表范围。
+
+## 2026-10-06 ICC mft 设备通道与 profile header
+
+- `ICCMFTTransform` 现在按 A2B 输入端、B2A 输出端校验设备通道数与 profile color-space signature；不一致的四通道 payload + `RGB ` header 明确拒绝，合法 CMYK 夹具继续通过。
+- 先行红测复现旧实现错误放行，修复后 `ICCMFTContractsTests` Release 通过，`git diff --check` 通过。详情见[ICC mft 设备通道与 profile header 验收](native-validation/2026-10-06-icc-mft-device-channel-header.md)。本项不关闭完整 ICC、BPC、gamut mapping、ColorSync 或查表范围。
+
+## 2026-10-06 I-Log/V-Log 身份契约回归
+
+- 全包 Release 回归先发现 I-Log 三条、V-Log 两条旧身份期望失败；生产实现已按既定规范写入 `inSpace`/`outSpace`，因此只更新测试契约，不改变公式、矩阵、网格、量化或 Double 路径。
+- I-Log/V-Log 定向 Release 与完整 `swift test --package-path Native/Packages/LUTKit -c release` 均退出码 `0`；完整日志为 `/tmp/lutkit-full-current-20261006-rerun.log`。详见[I-Log 与 V-Log 计划身份回归验收](native-validation/2026-10-06-ilog-vlog-plan-identity-regression.md)。本项不关闭全局身份审计、完整 ICC/HDR、`.labin`、直接查表、平台或发布验收。
+
+## 2026-10-06 TransformPlan 全局身份字段覆盖
+
+- 新增全局枚举契约，覆盖当前 82 个 transfer 的正向与反向计划，逐项断言 `planVersion` 含输入／输出 transfer 及 `inSpace`/`outSpace` 色域字段；ARRI LogC scene 与 Parameterized Gamma 按有效参数构造。
+- 全局契约和完整 Swift Release 均通过，日志 SHA-256 为 `fc55f5b39f2f72b94ee6807ac56361ebb3d278e0671a2d0dafc4689bec0e0d49`。这只关闭字段遗漏的可观察性边界，不等同于完整参数指纹、算法、平台或发布验收。详见[TransformPlan 全局身份覆盖验收](native-validation/2026-10-06-transform-plan-global-identity-coverage.md)。
+
+## 2026-10-06 ICC BPC/gamut mapping 与 HDR/OOTF 边界复核
+
+- ICC BPC/gamut mapping 复核没有新增生产算法：ICC.1:2022-05 不规定仅凭 `bkpt`/`wtpt` 推导的唯一 BPC 曲线，perceptual/saturation 映射必须来自 profile 的 A2B/B2A 或明确 CMM 策略。matrix/TRC 25 项与 LUT profile 10 项 Release 契约共 35/35 通过，日志 SHA-256 为 `e221b9a48f5c7cebe6dffc5f79cf2e45acd8fa5ea6fe7a16ffd2696b801a47ff`。详见[ICC BPC 与 gamut mapping 审计](native-validation/2026-10-06-icc-bpc-gamut-mapping-audit.md)。
+- HDR/EDR 复核确认 BT.1886、PQ 绝对 EOTF/OETF、HLG reference OOTF/EOTF 的公开公式子集已有契约；LUTCore 36 项、目录隔离 1 项、预览 36 项 Release 通过，日志 SHA-256 为 `c2ae04188d84f2bbc85632059652a686d7e8321da5c5297716f3e10e00305ac7`。PQ scene-to-display OOTF、自动峰值和 EDR 设备语义因单位与逐码参照不足继续研究阻塞。详见[HDR/OOTF 边界复核](native-validation/2026-10-06-hdr-ootf-next-boundary.md)。
+
+## 2026-10-06 内置 transfer 实际执行覆盖
+
+- 新增契约复用当前 82 个 transfer，分别实际执行 transfer -> linear scene 与 linear scene -> transfer 的 `TransformPlan.evaluate` Double 路径，并断言代表性样本输出有限；ARRI LogC scene 与 Parameterized Gamma 使用有效参数构造。
+- 定向 2 项和完整 Swift Release 均通过，日志 SHA-256 为 `5c52d1050b3c0d02b120d5648142bf5877e21e7e4d59f42b0fa28f859e128ebd`。这只关闭目录身份与执行接线的有限样本门禁，不替代边界、全网格、独立参照、设备范围或完整发布验收。详见[内置 transfer 实际执行覆盖验收](native-validation/2026-10-06-transfer-execution-coverage.md)。
+- 随后 `Scripts/verify-native-numerics.sh` 与 `Scripts/verify-native-fast.sh` 均退出码 `0`；快速门禁日志 SHA-256 为 `14c09c43ec2361842c80ebb9c8f74c92a3b94279e32ef9d0d3bae4c47cb5140e`。这些门禁只确认现有原生数值与 Swift/Node 子集没有回归，不替代三平台、真机和发布清单。
+
+## 2026-10-06 ICC 通道错误映射回归
+
+- 因上述 header 通道校验改变了底层错误顺序，device-link 先读取 `mft1/mft2` 声明通道并将 profile 维度冲突保持为 `dimensionMismatch`；传统 RGB 入口对混合 RGB/非 RGB 设备色域提前返回 `unsupportedColorSpace`，同色域的已验证非 RGB Lab/XYZ 路径不变。
+- `swift test --package-path Native/Packages/LUTKit -c release --filter LUTPreviewTests` 执行 `LUTPreviewTests.xctest` 200 项、0 失败，退出码 `0`；本项只修复错误语义映射，不关闭完整 ICC、BPC、gamut mapping、ColorSync、`.labin`、直接查表或 Goal。
+## 2026-10-06 LUTAnalyst 全局逆边界审计
+
+- 复核三线性严格仿射单元、tricubic Bernstein 候选枚举和组合 shaper/colour
+  unresolved 传播。三线性严格仿射单元可用矩阵反解证明唯一/无解；tricubic
+  目标不在任何 Bernstein 输出包围盒时可证明无解，其余候选单元仍不能用有限
+  Newton 种子证明全根。组合报告只有在颜色和 shaper 均无 unresolved 时才可标记
+  全局完备。
+- 定向 Release `LUTAnalysisTests` 52 项通过，日志和哈希见[全局逆边界审计](native-validation/2026-10-06-lutanalyst-global-inverse-boundary.md)。
+  区间根隔离、奇异集合处理、任意 3D LUT 全根/多解证明和自动 transfer/colour
+  推断仍未闭合，Goal 继续 `active`。
+
+## 2026-10-06 LUTAnalyst 全局逆缺口复验
+
+- 按同一 Release 命令复核三线性、legacy tricubic、组合 shaper/colour 与导入 LUT
+  分析契约；等待一次取消任务调度竞态后，`LUTAnalysisTests` 52 项全部通过。重跑
+  日志 SHA-256 为 `336e00f2765790df15b05834b68451a626ab601ea1af2dbc4c8c44d030f6d38b`。
+- 本轮没有可由现有公开数据严谨闭合的新算法项。tricubic 区间导数证书、根隔离、
+  奇异集合与共享面全根去重仍是前置研究工作；任意 3D LUT 全局根/多解证明、自动
+  transfer/colour 分离和完整重建继续未完成，Goal 保持 `active`。详见[全局逆缺口复验](native-validation/2026-10-06-lutanalyst-global-inverse-recheck.md)。
+
+## 2026-10-06 原生运行时与内置资源静态边界复验
+
+- `python3 tools/native-validation/audit-native-sources.py` 复验通过：当前扫描的 181 个 Swift 源文件没有 WebKit/JavaScriptCore 运行时、禁止的 LUT/脚本文件或 SwiftPM `Package resources` 声明；`git diff --check` 通过。
+- 搜索结果中的 `.cube`/`.labin` 仅属于用户导入、导出 API、契约夹具或研究验收文档，不是内置算法资源。该静态审计不能替代最终 App 包审计、间接采样依赖人工审查或完整发布清单；Goal 保持 `active`。
+
+## 2026-10-06 旧调节链与 cubic 算法缺口扫描
+
+- 复核确认 ASCCDL、Knee、BlackGamma/Highlight、DisplayConversion、GamutLimiter、HighlightGamut、FalseColour、Multitone、SDRSaturation、FinalOutput 以及 LegacyCubic/Tricubic/LUTAnalysis 现有契约均已有对应 Swift 覆盖；没有发现满足公开公式、独立参照且不搬表的安全新增项。
+- 白平衡 501 点 Planck/Duv/Dpl 轨迹和 PSST 四组 Ring 表仍只有旧采样数组，缺少公开连续生成定义和独立参照；LegacyKnee 第二段导数根在旧实现中明确停用，保持兼容语义。详见[旧算法缺口扫描验收](native-validation/2026-10-06-legacy-algorithm-gap-scan.md)。本项不减少 `.labin` `0/9`、直接查表 `0/45` 或完整旧功能未完成范围。
+
+## 2026-10-06 原生 Release 发布入口复验
+
+- `Scripts/verify-native-release.sh` 实际运行：macOS、iOS Simulator、iOS device 三个 Release 构建均成功，原生验证与 3 个 App 包资源审计通过；未发现所列 LUT/脚本文件或 WebKit/JavaScriptCore 直接链接。
+- 脚本退出码 `2`，唯一发布门槛失败是缺少真实 `docs/native-validation/full-scope-acceptance.json`。没有创建或伪造清单。日志 SHA-256 为 `b0d18b06bd032fe1e466e1dcc3be7f1eb0004a2c254d34864538743228449ed68`。详见[原生 Release 发布入口复验](native-validation/2026-10-06-native-release-revalidation.md)。
+
+## 2026-10-06 设备环境只读复验
+
+- `xcrun devicectl list devices` 确认实体 iPhone 11 `00008030-001015101ABA802E` 当前为 `connected`，型号正确；没有使用 iPhone Air 或镜像替代。
+- `xcrun simctl list devices available` 因 CoreSimulator 设备集初始化的 `NSPOSIXErrorDomain Code=12` 失败。本轮没有把模拟器环境错误写成 iPadOS 交互通过，也没有创建或清理设备。详见[设备环境只读复验](native-validation/2026-10-06-device-environment-recheck.md)。
+
+## 2026-10-06 白平衡与 PSST 算法阻塞复核
+
+- 独立重跑白平衡与 PSST 研发复现脚本，确认旧 `Planck.setLoci` 仍是 501 点匿名 RGB spline，PSST 仍依赖 `psstF/B/Y/M` 四组固定 Ring；源码没有公开连续生成定义、观测者／积分参数或独立逐码参照。
+- 复核日志和复现 JSON 的 SHA-256 已记录；未搬运采样表、未实现 HSV 或未经验证黑体近似，也未改变生产代码。白平衡／PSST 继续为研究阻塞，FULL-03 与 Goal 保持未完成／`active`。详见[白平衡与 PSST 算法阻塞复核](native-validation/2026-10-06-white-balance-psst-blocker-recheck.md)。
+
+## 2026-10-06 相机目录算法缺口审计
+
+- 新增 `CameraCatalogAlgorithmGapContractsTests`，先冻结 published policy 下 25 个未闭合 profile，要求解析器继续返回 `unsupportedDefaults`；定向 Swift Release `1/1` 通过。
+- 66 个身份的实际枚举为 published policy 可用 `41`、阻塞 `25`。阻塞项缺少精确的公开 transfer／色域配对（Venice 专属 gamut、DRAGONColor2、Pocket Film、Protune、DJI D-Log 系列、Nikon Neutral 等），不能用相近矩阵、Passthrough 或旧采样替代。
+- 本轮没有满足公开连续公式、明确色域定义和独立参照的安全新增算法子集；未改生产计算。详情见[相机目录算法缺口审计](native-validation/2026-10-06-camera-catalog-algorithm-gap.md)。
+
+## 2026-10-06 CIELAB 与色貌算法缺口审计
+
+- 复核 CIELAB 分段、白点、显式 CAT、33/65 网格计划、ICC PCS Lab 编解码及已有独立参照；定向 Release 为 LUTCore `15/15`、LUTPreview `4/4`，均无失败。
+- 当前没有 CIECAM02/CAM16、Oklab/Oklch、JzAzBz、ICtCp、Luv 或 Hunter Lab 的生产类型、目录身份和完整观察条件参照。不能把现有 Lab/CAT 类型扩展成无参数色貌公式，也不能把 Oklab 低优先级记录当作已完成算法。
+- 本轮没有生产代码修改，色貌研究缺口继续保持。详情见[CIELAB 与色貌算法缺口审计](native-validation/2026-10-06-cielab-color-appearance-gap-audit.md)。
+
+## 2026-10-06 Canon 直接查表缺口审计
+
+- 新增 `CanonLookupGapContractsTests`，冻结 `EOS Standard`、`EOS Standard (Legal)`、`Canon Normal 1-4` 和 `Canon WideDR` 七项拒绝身份；定向 Swift Release `2/2` 通过。
+- 旧实现全部是 `LUTGammaLUTSimple` 节点；WideDR 的注释参数没有公开来源、适用范围和独立非灰轴参照。不能拟合节点、把注释参数当规范或别名到 Rec.709/BT.1886/Canon C-Log 系列。
+- 本轮没有生产代码修改，直接查表组仍为 `0/45`。详情见[Canon 直接查表缺口审计](native-validation/2026-10-06-canon-direct-lookup-gap.md)。
+
+## 2026-10-06 S-Log3 后查表组算法缺口审计
+
+- 为 ARRI Amira709/Alexa-X-2、Sony LC709A/LC709/Cine+709、Panasonic V709、REDGamma 1-4 新增负向目录契约；LUTCatalog Release `1/1` 通过。
+- 旧 `LUTGammaLUTSL3` 仅有 64/65 个输出节点；既有六个 `.labin` 夹具只证明可解析，不能作为内置算法或独立公式参照。当前没有厂商连续 RGB 映射、版本/设备范围和独立非灰轴参照，不以拟合或标量 Rec.709/BT.1886/S-Log3 替代。
+- 未改生产代码，直接查表组仍 `0/45`。详情见[S-Log3 后查表组算法缺口审计](native-validation/2026-10-06-sl3-direct-lookup-gap.md)。
+
+## 2026-10-06 macOS Developer ID 本地签名与包审计
+
+- 以 `CODE_SIGNING_ALLOWED=NO` 构建当前 macOS Release，再用本机 Developer ID Application 证书离线签名；`codesign --verify --deep --strict` 通过，包资源审计退出码 `0`。
+- `spctl` 结果为 `source=Unnotarized Developer ID` 且 `override=security disabled`，只证明本地签名结构，不证明公证或默认 Gatekeeper 放行。Xcode 直接注入 Developer ID 因 SwiftPM 自动签名冲突失败，未改工程配置。
+- `xcrun notarytool history` 因缺少凭据未提交；公证、票据 stapling、真实发布签名和 full-scope 清单仍未完成。详情见[macOS Developer ID 本地签名与包审计](native-validation/2026-10-06-macos-developer-id-local-signing.md)。
+# 2026-10-06 Sony STD4/STD5 直接查表失败契约
+
+- 对 `Sony STD4 - SMPTE240M` 与 `Sony STD5 - Rec709` 增加失败契约，确认两个旧 `LUTGammaLUTSimple` 名称不能别名到独立的 SMPTE 240M 或 Rec.709 标量 transfer；Release 定向测试 1 项通过。
+- 旧样条首个样本与公开 SMPTE 240M OETF 的最小数值对照不相等，且缺少 Sony 官方连续定义、适用版本／机型、非灰轴语义和独立网格参照。没有新增生产算法、采样数据或目录身份。
+- 该项只关闭误注册回归风险，直接查表替代仍为 `0/45`；`.labin`、LUTAnalyst 任意三维全局反求、完整 ICC/HDR/OOTF、平台和发布验收继续未完成，Goal 保持 `active`。详见[STD4/STD5 失败契约验收](native-validation/2026-10-06-direct-lookup-std4-std5-failure-contract.md)。
+
+## 2026-10-06 LUT 格式 unsupported 分支边界
+
+- 新增 `UnsupportedFormatVariantContractsTests`，覆盖 SPI3D 未知版本/非 RGB 布局、3DL 方言标记错配、Assimilate 未知通道数和 VLT 未知版本/网格；Release 定向 `4/4` 通过，失败 `0`。详见[LUT 格式 unsupported 分支边界](native-validation/2026-10-06-format-unsupported-boundary.md)。
+- 复核没有发现可依公开语法和独立参照无损闭合的新格式子集；生产 parser/writer 不变。目标软件互操作、私有方言、NCP 写出、`.labin`、直接查表和 FULL-06 仍未完成，Goal 保持 `active`。
+
+## 2026-10-06 LUT 格式独立量化与剩余算法边界
+
+- 新增 `FormatIndependentQuantizationContractsTests`，以独立 R-fast 索引和 12-bit half-up 公式逐节点核对 VLT writer 的全部 4,913 个节点；Release 定向 `1/1` 通过，失败 `0`。详见[LUT 格式独立量化与剩余算法边界复核](native-validation/2026-10-06-format-independent-quantization.md)。
+- 复核 NCP 0100、3DL、Assimilate `.lut` 和 VLT 后，没有发现可依据公开规则、独立参照和现有 Swift/Double 路径安全闭合的新生产算法项。NCP writer 继续因缺少机型／固件／软件往返证据保持拒绝；厂商私有方言、目标软件互操作、`.labin`、直接查表和 LUTAnalyst 全局反求仍未完成，Goal 保持 `active`。
+
+## 2026-10-06 原生数值门禁复验
+
+- 在新增 ICC、CIELAB、格式拒绝边界、相机阻塞和直接查表负契约后重新运行 `Scripts/verify-native-numerics.sh`。66 个独立检查、54 个 CUBE 生成／读回对、H08/H09/H10/H12/H13 契约和 181 个 Swift 源文件静态边界检查全部通过。
+- 本轮没有修改生产计算路径，也没有引入采样数据；结果只证明当前原生数值子集没有回归，不关闭 `.labin` `0/9`、直接查表 `0/45`、LUTAnalyst 任意三维全局反求、完整 ICC/HDR/OOTF、平台交互、真机性能或发布清单。Goal 保持 `active`。
+### 2026-10-06 ICC unsupported 分支公开边界审计
+
+- 复核 `ICCMABTransform`、`ICCMFTTransform`、`ICCRGBProfileLink` 及 PCS XYZ/Lab 适配器的显式拒绝分支；现有失败契约 Release 共 79 项通过（ICCMAB 19、ICCMFT 14、ICCPCSXYZ 7、ICCRGBProfileLink 39）。
+- ICC.1:2022 对 `mft`、`mAB/mBA`、PCS 编码和 MPE 结构已有明确语义，但没有为 BPC、通用 gamut mapping、未知／厂商 MPE 元素或非 device profile class 提供可脱离 profile 的唯一公式与独立逐码参照；没有新增生产代码或放宽拒绝边界。
+- 该项只固定 unsupported 分支的规范边界，不关闭完整 ICC、BPC、gamut mapping、ColorSync、第三方 profile 往返或 Goal；详见[ICC unsupported 分支公开边界审计](native-validation/2026-10-06-icc-unsupported-branch-audit.md)。
+### 2026-10-06 Rec709 (800%) 查表等价性失败契约
+
+- 复核旧 `LUTGammaIOLUT` 的 `rec`／`out` 样条、SimpleLog bridge 与固定 Legal/Data 包装；在 scene `0.018/0.18/0.5/1.0` 上与公开 Rec.709 OETF、BT.1886 γ2.4 均不等价。
+- 新增 `RegistryContractsTests/testRec709800LookupCannotAliasRec709OrBT1886`，Release 1/1 通过；没有新增生产算法或搬运样条节点。
+- `Rec709 (800%)` 仍计入直接查表 `0/45`；完整范围／设备语义、独立网格参照、`.labin`、ICC/HDR/LUTAnalyst 和平台发布验收继续未完成。详见[Rec709 (800%) 直接查表等价性审计](native-validation/2026-10-06-rec709-800-lookup-audit.md)。
+### 2026-10-06 Sony STD1/STD2/STD3/STD6 查表失败契约
+
+- 复核四个 `LUTGammaLUTSimple` 注册的 SimpleLog 参数与样条行为；scene `0.18` 和 `1.0` 的输出均与公开 Rec.709 OETF、BT.1886 γ2.4 不等价，四条历史 look 曲线彼此也不同。
+- 新增 `RegistryContractsTests/testSonyStdLookupsCannotAliasPublishedTransfers`，Release 1/1 通过；没有新增生产算法或搬运样条节点。
+- 四项继续计入直接查表 `0/45`；完整 Sony 连续定义、设备范围、独立网格参照、`.labin`、ICC/HDR/LUTAnalyst 和平台发布验收仍未完成。详见[Sony STD look 查表等价性审计](native-validation/2026-10-06-sony-std-look-audit.md)。
+
+### 2026-10-06 File Provider、目标替换与后台恢复非界面审计
+
+- `ProjectAssetRecovery` 新增授权撤销后 fail-closed 契约；书签失效且没有调用方明确授权目录时返回 `noAuthorizedSource`。`ProjectAssetRecoveryContractsTests` Release 定向 `6/6` 通过。
+- 本地 Swift 已覆盖内容 hash 重校验、外部替换拒绝、NSFileCoordinator 提交、inode 竞争、严格 checkpoint、跨进程租约和 SIGKILL 恢复。真实 File Provider/iCloud 授权失效、远端替换/网络故障和 iPhone 11 后台终止仍没有证据，不能用本地契约替代。详见[File Provider、目标替换与后台恢复非界面审计](native-validation/2026-10-06-runtime-provider-recovery-audit.md)。Goal 保持 `active`。
+
+### 2026-10-06 Nikon IOLUT 直接查表阻塞
+
+- 新增 `NikonLookupBlockContractsTests`，逐项冻结 Nikon Standard、Neutral、Vivid、Monochrome、Portrait、Landscape 以及 DJI Mini 2、s709、Rec709 (800%) 的阻塞身份；Release 定向 `2/2` 通过，失败 `0`。
+- 复核没有找到 Nikon Picture Control 的公开连续曲线、机型/固件范围、非灰轴语义和独立网格参照；不能用 N-Log、Rec.709、BT.1886 或灰度复制猜测替代。详见[Nikon IOLUT 直接查表阻塞记录](native-validation/2026-10-06-nikon-iolut-blocker.md)。直接查表替代仍为 `0/45`，Goal 保持 `active`。
+### 2026-10-06 S-Log3 后显示查表失败契约
+
+- 审计 Amira709、Alexa-X-2、LC709A、LC709、Sony Cine+709、Varicam V709、REDGamma/2/3/4 共 10 个旧 `LUTGammaLUTSL3` 输出注册；旧 S-Log3 bridge 后的 scene `0.18` 灰轴样本与 Rec.709 OETF 不同，公开 S-Log3 公式不定义这些 vendor display look。
+- 新增 `RegistryContractsTests/testSLog3DisplayLookupsCannotAliasPublishedTransfers`，Release 1/1 通过；未搬运样条节点、未增加生产算法。
+- 10 项继续计入直接查表 `0/45`；Sony/ARRI/Panasonic/RED 连续 display 定义、版本／设备范围、非灰轴独立参照及完整 `.labin`、ICC/HDR/LUTAnalyst 和平台发布验收仍未完成。详见[S-Log3 后显示查表等价性审计](native-validation/2026-10-06-slog3-display-look-audit.md)。
+
+### 2026-10-06 直接查表与间接资源台账对账
+
+- 新增 `LookupResourceInventoryContractsTests`，对比旧 JS 注册快照与 Swift 阻塞白名单：四类直接查表共 `45` 项，分类 `1/9/10/25` 完全一致；根目录实际 `.labin` 文件共 `9` 个，名称集合与冻结快照一致。Release 定向 `2/2` 通过，失败 `0`。
+- 研究目录的 `.cube`、`.ctl`、`.dctl` 和验收 artifacts 明确属于研究/用户导入或结果资产，不计入 App 内置资源。本轮未关闭任何算法项、未搬运样条或资源；`.labin` 替代仍 `0/9`，直接查表替代仍 `0/45`，Goal 保持 `active`。详见[直接查表与间接资源台账对账](native-validation/2026-10-06-lookup-resource-inventory-reconciliation.md)。
+### 2026-10-06 iPhone 11 非 UI 真机验收预检
+
+- 固定实体 iPhone 11 UDID `00008030-001015101ABA802E`，确认 `LUTCalcIOS` scheme 与现有 Files／回调／前后台 XCTest 入口；`build-for-testing` 生成 iphoneos `.app`、Runner 和 `.xctestrun`。
+- 同一构建产物运行 `testDocumentViewSurvivesBackgroundAndForegroundOnDevice` 退出码 `65`，Runner 在建立连接前 code `74` 提前退出；同时 `devicectl diagnose` 失败。日志和工具链见[iPhone 11 非 UI 真机验收预检](native-validation/2026-10-06-iphone11-non-ui-preflight.md)。本轮没有取得新真机通过证据，也没有使用模拟器替代。
+- 该项只确认测试入口和环境阻塞，不关闭 Files、后台恢复、其他格式往返或发布验收；Goal 继续 `active`。
+
+### 2026-10-06 并行改动后的 LUTKit Release 回归
+
+- 在文件恢复契约、查表资源台账契约和最近算法边界契约合入工作区后，重新执行 `swift test --package-path Native/Packages/LUTKit -c release`，所有测试套件通过；LUTAnalysis 子包 `93/93` 通过，未发现失败。
+- 本回归只证明已有 Swift 契约、Double 数值路径和拒绝边界没有回归，不改变 `.labin` `0/9`、直接查表 `0/45`、任意 3D 全局反求、完整 ICC/HDR/OOTF 或平台发布的未完成状态。Goal 继续 `active`。
+
+### 2026-10-06 原生数值门禁复跑
+
+- `bash Scripts/verify-native-numerics.sh` 退出码 `0`；通过 `66` 个独立检查、`54` 个 CUBE 生成/读回案例和 `181` 个 Swift 源边界检查，10 个 worker 并行执行。
+- 该结果只证明原生数值和静态边界没有回归，不替代双端 App、实体 iPhone 11、iPadOS、Finder、File Provider、第三方往返、完整 ICC/HDR/LUTAnalyst 或公证发布验收。详见[原生数值门禁复跑](native-validation/2026-10-06-native-numerics-rerun.md)，Goal 保持 `active`。
+
+### 2026-10-06 原生发布入口复跑
+
+- `bash Scripts/verify-native-release.sh` 中的 Python、Node、Swift 检查通过；macOS Release、iOS Simulator Release、iOS generic Release 构建均显示 `BUILD SUCCEEDED`，三个 App 包资源审计通过。
+- 入口最终因缺少真实 `docs/native-validation/full-scope-acceptance.json` 退出 `2`。本轮没有创建或伪造清单；公证、Finder/iPadOS/实体 iPhone 11、File Provider、第三方软件往返和完整算法范围继续未完成。详见[原生发布入口复跑](native-validation/2026-10-06-native-release-rerun.md)，Goal 保持 `active`。
+
+### 2026-10-06 iPhone 11 前后台恢复复验
+
+- `xcrun devicectl list devices` 确认实体 iPhone 11 `00008030-001015101ABA802E` 为 `connected`；按现有 XCTest 入口直接运行前后台恢复用例，退出码 `65`。
+- `LUTCalcIOSUITests-Runner` 在建立 XCTest 连接前以 code `74` 提前退出，未取得新通过证据；CoreSimulator 内存错误和 Xcode 凭据缺失也记录在日志中。详见[iPhone 11 前后台恢复复验](native-validation/2026-10-06-iphone11-background-retry.md)，Goal 保持 `active`。
+
+### 2026-10-06 格式解析器 Release 回归
+
+- 格式定向 Release 回归执行 `61` 项、失败 `0`，覆盖 CUBE、SPI1D、SPI3D、3DL、ILUT、OLUT、Assimilate、VLT、NCP0100 读入及不支持变体、独立量化边界。
+- `NCP0100ContractsTests.testPublicSpecimenWhenProvided` 因没有公开样本环境变量跳过；不计为通过，也没有新增 NCP 写出。详见[格式解析器 Release 回归](native-validation/2026-10-06-format-parser-release-regression.md)，Goal 保持 `active`。
+
+### 2026-10-06 NCP0100 样本可用性复核
+
+- 仓库和研究目录没有可供 `LUTCALC_NCP0100_SPECIMEN` 使用的公开二进制样本；构建产物不作为格式样本或来源。
+- 因此只读 638 字节观察布局仍可由合成契约验证，真实机型/固件范围、厂商写出和 Nikon 软件往返继续缺证据；`NCP0100Writer` 保持 `.writeUnsupported`。详见[NCP0100 公开样本可用性复核](native-validation/2026-10-06-ncp-specimen-availability.md)，Goal 保持 `active`。
+
+### 2026-10-06 算法重点 Release 回归
+
+- LUTPreview、LUTCore、LUTAnalysis 定向 Release 共通过 `137` 项，失败 `0`；覆盖 ICC MPE/profile、ACES gamut compression、HLG EOTF/OOTF、隔离旧 PQ OOTF 以及 tetrahedral/trilinear/tricubic/组合 shaper 反求边界。
+- 该回归只确认局部公式和拒绝边界没有回归，不关闭任意 3D 全局根完备性、自动分离、完整 ICC/HDR/OOTF、`.labin` 或直接查表替代。详见[算法重点 Release 回归](native-validation/2026-10-06-algorithm-focus-release-regression.md)，Goal 保持 `active`。
+
+### 2026-10-06 查表台账 Release 复跑
+
+- LUTCatalog 对账定向 Release 执行 `34` 项、失败 `0`；Canon、Nikon、SL3 阻塞契约和资源清单对账均通过。
+- 直接查表替代仍为 `0/45`，`.labin` 替代仍为 `0/9`；没有新增猜测性算法身份或复制资源。详见[查表台账 Release 复跑](native-validation/2026-10-06-lookup-ledger-release-rerun.md)，Goal 保持 `active`。
+
+### 2026-10-06 当前目录计数复核
+
+- `swift run -c release --package-path Native/Packages/LUTKit LUTCatalogChecks` 退出码 `0`，当前注册表报告 `82` 个曲线、`23` 个色域、`76` 个预设；稳定 ID、别名、来源及重复/悬空引用检查通过。
+- 该命令只证明目录结构和身份可达性，不证明厂商模型、真实设备范围或完整算法覆盖。详见[当前目录计数复核](native-validation/2026-10-06-catalog-current-counts.md)，Goal 保持 `active`。
+
+### 2026-10-06 iPad 模拟器当前环境复核
+
+- `xcrun simctl list devices available` 仍因 CoreSimulator `NSPOSIXErrorDomain Code=12` 无法初始化设备集；本轮没有可用 iPad 模拟器，也未使用其他设备替代。
+- 旋转、多窗口、文稿协调和无障碍测试因此没有新证据。详见[iPad 模拟器当前环境复核](native-validation/2026-10-06-ipad-simulator-current-state.md)，Goal 保持 `active`。
+
+### 2026-10-06 tricubic Bernstein 系数审计接口
+
+- `LegacyTricubicVolume3D` 新增运行时 `cellBernsteinCoefficients(_:)`，`cellOutputBounds(_:)` 改为复用同一转换，避免诊断边界和后续区间分析分叉。没有新增内置采样数据、网格、ghost-node、插值或阈值。
+- `LegacyTricubicContractsTests` Release 执行 `6/6`、失败 `0`；除非线性 5³ 生产 sampler 重建外，新增解析仿射场对全部 64 个控制点的独立参照。误差门槛为 `2e-12`。详见[tricubic Bernstein 系数审计接口](native-validation/2026-10-06-tricubic-bernstein-coefficient-contract.md)。该项不关闭全根隔离或任意 3D 全局反求，Goal 保持 `active`。
+
+### 2026-10-06 tricubic 系数接口后的全量 Release 回归
+
+- 新接口完成后重新执行 `swift test --package-path Native/Packages/LUTKit -c release`，退出码 `0`；LUTAnalysis `93/93`，其余测试包全部通过。
+- 该回归只证明系数接口和包围盒复用没有破坏现有路径，不改变 tricubic 全局全根、`.labin`/直接查表、完整 ICC/HDR/OOTF 或平台发布的未完成状态。详见[tricubic 系数接口后的全量 Release 回归](native-validation/2026-10-06-full-release-after-tricubic-coefficients.md)，Goal 保持 `active`。
+
+### 2026-10-06 并行算法闭合与回归
+
+- ICC `mft1/mft2` 网格点边界按 ICC.1 从 `2...64` 修正为 `2...255`，保留 16 MiB 资源上限；255 点一维夹具定向 Release `15/15` 通过。
+- LUTAnalysis 新增非单位域严格单调分段线性独立参照契约，定向 Release `5/5` 通过，误差不超过 `2e-12`；生产实现无需修改。
+- PQ OOTF 仅补充 80 位 Decimal 边界探针，因场景单位、参考白、gamma、黑位和峰值语义缺少公开唯一来源，继续标记研究阻塞。
+- 并行改动后的完整 `swift test --package-path Native/Packages/LUTKit -c release` 通过；LUTAnalysis `94/94`，失败 `0`，`git diff --check` 通过。详见[并行算法闭合与回归](native-validation/2026-10-06-parallel-algorithm-closure.md)。Goal 保持 `active`。
+
+### 2026-10-06 严格单调一维非单位域契约
+
+- 新增严格单调 `MonotonicCurve1D` 的非单位域独立线性参照：`[10,20,40]` 在 `[-2,1,4]` 上于 `x=2.5` 得到 `30`，逆映射回到 `2.5`。
+- Release 定向执行 `5/5`，失败 `0`；现有 Double 坐标归一化和根求解器回放满足契约，因此没有生产算法改动。
+- 该项只关闭一维严格单调局部契约，不改变任意 3D 全局反求、`.labin`、直接查表、完整 ICC/HDR/OOTF 或平台验收边界。详见[严格单调一维非单位域契约](native-validation/2026-10-06-monotonic-nonunit-domain-contract.md)，Goal 保持 `active`。
+## 2026-10-06 ICC `mft` 255 点网格边界
+
+- 按 ICC.1 无符号 8 位网格字段规范，将 `ICCMFTTransform` 合法网格范围从
+  `2...64` 修正为 `2...255`；资源安全仍由 checked arithmetic 和 16 MiB
+  profile 上限约束。
+- 新增一进一出 255 点 `mft2` 独立契约，Release `ICCMFTContractsTests`
+  15 项通过、0 失败，日志 SHA-256 为
+  `fafb936cf408f8e6cf90bfea4f24b7fa98e3b9f65432be47b38b2cc479aa5006`。
+- 本项只关闭合法网格上限误拒绝，不代表完整 ICC、BPC、gamut mapping、
+  ColorSync、第三方 profile 逐码参照或 Goal 完成；Goal 继续 `active`。
+  详情见[ICC `mft` 255 点网格边界验收](native-validation/2026-10-06-icc-mft-grid255.md)。
+## 2026-10-06 ICC MPE 拒绝分支扫描
+
+- 复核 `parf` 类型、`samf` 首段、`matf` 通道及未知处理元素边界。现有拒绝
+  均有 ICC.1 结构依据或缺少公开唯一语义；没有安全的生产扩展。
+- `parf` 3/4 属于 `para` tag，`samf` 首段缺少隐含起点；MPE 末端填充和
+  厂商扩展仍缺少独立参照，继续保持研究阻塞。
+- 本轮未修改 Swift 生产代码，不代表完整 ICC MPE 或 Goal 完成。详情见
+  [ICC MPE 拒绝分支算法扫描](native-validation/2026-10-06-icc-mpe-rejected-branch-scan.md)。

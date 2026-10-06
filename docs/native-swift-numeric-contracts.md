@@ -1,5 +1,9 @@
 # 原生数值内核：实现契约与优化边界
 
+## 2026-10-05 ICC float32 PCSLAB MPE 编码契约
+
+ICC `D2B`/`B2D` 的 `Lab ` PCS 使用直接 float32 `L*`（0...100）、`a*`、`b*`，不能复用 `mft1/mft2/mAB/mBA` 的 unsigned normalized 编码，也不能在 float PCS 端静默裁切。原生内部 `CIELABColor.lStar` 仍为 0...1，因此只在 MPE 适配边界执行 `L*/100` 与 `L*×100`。元素和矩阵参数先按 ICC float32 解码为 `Double`，结果保持有限性检查；独立参照与验证命令见[ICC MPE PCSLAB 验收](native-validation/2026-10-05-icc-mpet-lab.md)。
+
 ## 2026-10-02 相机曝光状态契约补充
 
 `lutcalc.camera-exposure-state.v1`保存稳定profileID、正整数recordedISO（1...9007199254740991）、Double stopCorrection、来源和输入policy。CineEI按Double `log(ISO/baseISO)/log(2)`后对精确binary64执行旧四位小数舍入，ties远离0、保留符号零，不能先Double乘10000双重舍入，不能用ISO比例代替最终增益。手动CineEI更新ISO为正整数round(baseISO*2^stop)，不可表示值拒绝。其他两类ISO编辑保留手动stop。
@@ -198,6 +202,16 @@ LUTAnalyst 的灰轴提取、TF/颜色分离是**一种分析分解**，不是�
 
 ## 6. HDR、裁剪与预览
 
+### BT.2100 HLG reference EOTF 黑位抬升
+
+- reference HLG EOTF 按 BT.2100-3 Table 5 使用 `beta = sqrt(3) * (LB/LW)^(1/gamma)`，先对每个 `E'` 执行 `max(0, (1-beta)E'+beta)`，再走 HLG 逆 OETF 和亮度耦合 reference OOTF。`LW`、`LB`、`gamma` 和 nits 单位必须显式且有限。
+- `E'=0` 的显示锚点为 `LB²/LW`；标准允许负 `E'` 头房用于 PLUGE，因此该锚点以下的正显示值仍可逆。`FD<=0` 的逆向输入拒绝，因为 `max(0, ...)` 已合并多个编码值。
+- 该子集只验证解析黑位公式和逆向域，不代表自动峰值、项目黑位策略、四种 HDR 变体、PQ OOTF 或完整 HDR/EDR 显示路径。
+
+- reference HLG extended gamma 仅可由显式模式选择，按 BT.2100-3 Note 5f 使用 `gamma = 1.2 * 1.111 ^ log2(LW/1000)`；默认通常制作范围仍为 `400...2000 cd/m²`，不能从峰值自动推断 extended。独立 90 位 `Decimal` 参照的最大尺度化误差为 `4.974256639474225e-16`。
+- extended gamma 只关闭 OOTF 数学模式和有限性边界，不改变 schema、默认路由、参考白/黑位策略或 HDR/EDR 设备语义。
+- extended gamma 已另外通过 reference EOTF 黑位抬升、负 PLUGE 头房、标量逆和 RGB 亮度耦合交叉参照；最大尺度化误差为 `7.771561172376096e-16`。这仍不等于自动峰值、完整 HDR 变体或设备显示验收。
+
 - PQ 的绝对亮度、HLG 的场景/显示变换、OOTF 与编码函数分别建模。请求保存峰值亮度、参考白、黑位及系统 gamma 等实际所需参数；默认值要有来源，不能“屏幕多少亮度就改变导出 LUT”。
 - `clip=false` 的原意需要拆分：旧 `finalOut` 即使关闭用户 clip 仍应用 `bClip/wClip` 和 HDR 上限。这是实测旧行为，不是关闭 clip 就无限域。新计划分别存 `cameraLimit`、`userLimit`、`formatLimit`，并记录每次裁剪的阶段与数量。
 - False Colour 原有导出用途保留明确模式；不得在用户只开启预览叠层时悄悄写进普通 LUT。图表/取样默认 CPU 指定阶段。
@@ -271,7 +285,7 @@ python3 tools/native-validation/generate-contract-fixtures.py
 - Y≥high 阈值输出 H；Y≤low 输出 B（负值／非正 Y 不执行对数）。过渡区线性权重 `r=(high−Y)/(high−low)`，对数权重 `r=(highStops−log(Y*5)/log(2))/(highStops−lowStops)`；逐通道 `r*B+(1−r)*H`。不添加 clamp 或末端饱和度修正。
 - scene 输入／输出经 `.9` 标度与 legacy linear 衔接；普通输出线性 SDR 阶段 11 继续在阶段 10 之后，Knee／输出编码在 13。黑白电平／Black Gamma 的独立 gamma 默认值准备不包含 Highlight Gamut、色域矩阵或曝光。
 - 这是 3D 耦合阶段；核心独立 1D 和 1D 请求在写文件前拒绝。不能用灰轴采样冒充完整 1D 表达；disabled 才允许其余条件合格的 1D 请求。
-- 当前可引用原生目录中 14 个矩阵色域，并使用当前 CIECAT02/Bradford。其余旧特殊空间／自定义色域／非矩阵输出与其他 CAT 仍按原范围待补，不把内置风格表搬入产品。矩阵旧 `lc/lf` 一致的证明不推广到非矩阵预览链。
+- 当前可引用原生目录中 14 个矩阵色域，并使用 9 个公开 CAT 锥响应矩阵（CIECAT02、Bradford、CIECAT97s、Von Kries、Sharp、CMCCAT2000、Bianco-S、Bianco-S-PC、XYZ Scaling）。白平衡的 Planck 轨迹／Duv／Dpl、其余旧特殊空间／自定义色域／非矩阵输出仍按原范围待补，不把内置风格表搬入产品。矩阵旧 `lc/lf` 一致的证明不推广到非矩阵预览链。
 - 参数从 schema 10 起保存，原生 schema 1–9 缺字段为 nil；disabled 仍记录身份，配置进入不可变请求、撤销与项目包，gamma 编辑和其他 settings helper 不得丢失。未知字段／色域／身份错配拒绝。文稿 gamma 后端的字段保留不属于 UI 验收。
 
 先行契约、原色与 CAT 的独立高精度参照、完整网格、实际旧组合链和未覆盖范围见[Highlight Gamut 阶段验收](native-validation/2026-10-02-highlight-gamut.md)。
